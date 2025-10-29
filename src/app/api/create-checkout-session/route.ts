@@ -1,61 +1,34 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
-export const runtime = "nodejs";
-
-// Initialize Stripe with your server-side secret key
+// ✅ Initialize Stripe with your secret key from the environment file (.env.local)
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-09-30.clover",
+  apiVersion: "2023-10-16", // Correct stable version
 });
 
+// ✅ Handle POST requests to create a checkout session
 export async function POST(req: Request) {
   try {
-    // Support both shapes:
-    //  - { listing: { id, title, basePrice } }
-    //  - { id, title, basePrice }
     const body = await req.json();
-    const payload = body?.listing ?? body;
 
-    const id = payload?.id ?? null;
-    const title = payload?.title;
-    const basePrice = payload?.basePrice ?? payload?.base_price; // accept snake_case too
+    // Destructure required fields from the frontend request
+    const { lineItems, successUrl, cancelUrl } = body;
 
-    if (!title || basePrice == null) {
-      return NextResponse.json(
-        { error: "Missing required fields (title, basePrice)" },
-        { status: 400 }
-      );
-    }
-
-    const amountCents = Math.max(0, Math.round(Number(basePrice) * 100));
-
+    // ✅ Create a new Stripe Checkout session
     const session = await stripe.checkout.sessions.create({
-      mode: "payment",
       payment_method_types: ["card"],
-      line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            product_data: { name: String(title) },
-            unit_amount: amountCents,
-          },
-          quantity: 1,
-        },
-      ],
-      // include listing id so webhook can decrement inventory
-      metadata: {
-        listing_id: id ? String(id) : "",
-        title: String(title),
-      },
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/cancel`,
+      mode: "payment",
+      line_items: lineItems,
+      success_url: successUrl || `${process.env.NEXT_PUBLIC_BASE_URL}/success`,
+      cancel_url: cancelUrl || `${process.env.NEXT_PUBLIC_BASE_URL}/cancel`,
     });
 
-    return NextResponse.json({ url: session.url }, { status: 200 });
+    // ✅ Return the session ID to the frontend
+    return NextResponse.json({ id: session.id });
   } catch (error: any) {
-    console.error("Stripe checkout session error:", error?.message || error);
+    console.error("❌ Stripe Checkout Session Error:", error);
     return NextResponse.json(
-      { error: error?.message || "Internal Server Error" },
+      { error: error.message || "An unexpected error occurred." },
       { status: 500 }
     );
   }

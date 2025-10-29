@@ -1,105 +1,63 @@
-import { NextResponse } from "next/server";
+// src/app/api/stripe-webhook/route.ts
 import Stripe from "stripe";
+import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-// ─────────────────────────────
-// Initialize Stripe + Supabase
-// ─────────────────────────────
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-09-30.clover",
-});
+// ✅ Initialize Stripe with your secret key (no API version needed)
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
+// ✅ Create Supabase client (server-side role key)
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_URL as string,
+  process.env.SUPABASE_SERVICE_ROLE_KEY as string
 );
 
-// ─────────────────────────────
-// Verify and handle Stripe Webhook
-// ─────────────────────────────
 export async function POST(req: Request) {
+  // Stripe sends a signature header we must verify
   const sig = req.headers.get("stripe-signature");
-  if (!sig) {
-    console.error("❌ No stripe-signature header");
-    return NextResponse.json({ error: "Missing Stripe signature" }, { status: 400 });
-  }
+  const body = await req.text();
 
-  let event: Stripe.Event;
   try {
-    const body = await req.text();
-    event = stripe.webhooks.constructEvent(
+    // ✅ Verify this request really came from Stripe
+    const event = stripe.webhooks.constructEvent(
       body,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET!
+      sig!,
+      process.env.STRIPE_WEBHOOK_SECRET as string
     );
-  } catch (err: any) {
-    console.error("❌ Webhook signature verification failed:", err.message);
-    return NextResponse.json({ error: err.message }, { status: 400 });
-  }
 
-  console.log(`⚡ Stripe event received: ${event.type}`);
+    // ✅ Handle checkout completion
+    if (event.type === "checkout.session.completed") {
+      const session = event.data.object as Stripe.Checkout.Session;
+      console.log("✅ Payment succeeded:", session.id);
 
-  // ─────────────────────────────
-  // Handle checkout.session.completed
-  // ─────────────────────────────
-  if (event.type === "checkout.session.completed") {
-    const session = event.data.object as Stripe.Checkout.Session;
+      // Extract your custom metadata (set when creating the Checkout Session)
+      const listingId = session.metadata?.listingId;
 
-    const listing_id = session.metadata?.listing_id ?? null;
-    const amount = session.amount_total ? session.amount_total / 100 : 0;
-    const currency = session.currency || "usd";
-    const email = session.customer_details?.email || null;
+      if (listingId) {
+        // ✅ Update your Supabase database to mark the item as SOLD
+        const { error } = await supabase
+          .from("listings")
+          .update({
+            status: "sold",
+            paid: true,
+            sold_at: new Date().toISOString(),
+          })
+          .eq("id", listingId);
 
-    if (!listing_id) {
-      console.warn("⚠️ checkout.session.completed received without listing_id metadata");
-    }
-
-    try {
-      // Insert payment (idempotent)
-      const { error: insertError } = await supabase.from("payments").upsert(
-        {
-          stripe_session_id: session.id,
-          payment_intent_id: session.payment_intent as string,
-          listing_id,
-          amount,
-          currency,
-          customer_email: email,
-          status: "paid",
-          created_at: new Date().toISOString(),
-        },
-        { onConflict: "stripe_session_id" }
-      );
-
-      if (insertError) {
-        console.error("❌ Error inserting payment:", insertError.message);
-        return NextResponse.json({ error: insertError.message }, { status: 500 });
-      }
-
-      console.log(`✅ Payment saved for session ${session.id}`);
-
-      // Decrement available units if listing_id exists
-      if (listing_id) {
-        const { error: rpcError } = await supabase.rpc("decrement_units", {
-          listing_id_param: listing_id,
-        });
-        if (rpcError) {
-          console.error("⚠️ Failed to decrement units:", rpcError.message);
+        if (error) {
+          console.error("❌ Failed to update Supabase listing:", error.message);
         } else {
-          console.log(`📉 Units decremented for listing: ${listing_id}`);
+          console.log(`✅ Listing ${listingId} marked as sold in Supabase`);
         }
+      } else {
+        console.warn("⚠️ No listingId found in session metadata.");
       }
-    } catch (err: any) {
-      console.error("❌ Webhook processing error:", err.message);
-      return NextResponse.json({ error: err.message }, { status: 500 });
     }
-  }
 
-  // Log other events for visibility
-  else if (event.type === "payment_intent.succeeded") {
-    console.log("💰 PaymentIntent succeeded");
-  } else {
-    console.log(`ℹ️ Unhandled event type: ${event.type}`);
+    // ✅ Always respond to Stripe to confirm receipt
+    return NextResponse.json({ received: true });
+  } catch (err: any) {
+    console.error("❌ Webhook verification failed:", err.message);
+    return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
   }
-
-  return NextResponse.json({ received: true }, { status: 200 });
 }
