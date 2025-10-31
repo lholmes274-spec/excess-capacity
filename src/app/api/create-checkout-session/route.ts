@@ -3,7 +3,7 @@ import Stripe from "stripe";
 
 // ✅ Initialize Stripe with your secret key from the environment file (.env.local)
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2023-10-16", // Correct stable version
+  apiVersion: "2024-04-10", // Correct stable version
 });
 
 // ✅ Handle POST requests to create a checkout session
