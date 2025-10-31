@@ -1,63 +1,86 @@
-// src/app/api/stripe-webhook/route.ts
-import Stripe from "stripe";
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
+import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 
-// ✅ Initialize Stripe with your secret key (no API version needed)
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+// ✅ Initialize Stripe with a valid API version
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+  apiVersion: "2024-04-10",
+});
 
-// ✅ Create Supabase client (server-side role key)
+// ✅ Create a Supabase client using service role key
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL as string,
   process.env.SUPABASE_SERVICE_ROLE_KEY as string
 );
 
-export async function POST(req: Request) {
-  // Stripe sends a signature header we must verify
-  const sig = req.headers.get("stripe-signature");
+export async function POST(req: Request): Promise<NextResponse> {
   const body = await req.text();
+  const sig = headers().get("stripe-signature");
+
+  if (!sig) {
+    return NextResponse.json(
+      { error: "Missing Stripe signature" },
+      { status: 400 }
+    );
+  }
+
+  let event: Stripe.Event;
 
   try {
-    // ✅ Verify this request really came from Stripe
-    const event = stripe.webhooks.constructEvent(
+    event = stripe.webhooks.constructEvent(
       body,
-      sig!,
+      sig,
       process.env.STRIPE_WEBHOOK_SECRET as string
     );
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : "Unknown error";
+    console.error("❌ Webhook signature error:", errorMessage);
+    return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
+  }
 
-    // ✅ Handle checkout completion
-    if (event.type === "checkout.session.completed") {
-      const session = event.data.object as Stripe.Checkout.Session;
-      console.log("✅ Payment succeeded:", session.id);
+  try {
+    switch (event.type) {
+      case "checkout.session.completed": {
+        const session = event.data.object as Stripe.Checkout.Session;
 
-      // Extract your custom metadata (set when creating the Checkout Session)
-      const listingId = session.metadata?.listingId;
+        await supabase.from("payments").insert([
+          {
+            stripe_session_id: session.id,
+            amount: session.amount_total ? session.amount_total / 100 : null,
+            currency: session.currency,
+            customer_email: session.customer_email,
+            status: session.payment_status,
+          },
+        ]);
 
-      if (listingId) {
-        // ✅ Update your Supabase database to mark the item as SOLD
-        const { error } = await supabase
-          .from("listings")
-          .update({
-            status: "sold",
-            paid: true,
-            sold_at: new Date().toISOString(),
-          })
-          .eq("id", listingId);
-
-        if (error) {
-          console.error("❌ Failed to update Supabase listing:", error.message);
-        } else {
-          console.log(`✅ Listing ${listingId} marked as sold in Supabase`);
-        }
-      } else {
-        console.warn("⚠️ No listingId found in session metadata.");
+        console.log("✅ Payment saved:", session.id);
+        break;
       }
+
+      case "payment_intent.succeeded":
+        console.log("💰 PaymentIntent succeeded");
+        break;
+
+      default:
+        console.log("ℹ️ Unhandled event type:", event.type);
     }
 
-    // ✅ Always respond to Stripe to confirm receipt
-    return NextResponse.json({ received: true });
-  } catch (err: any) {
-    console.error("❌ Webhook verification failed:", err.message);
-    return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
+    return NextResponse.json({ received: true }, { status: 200 });
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : "Unknown error";
+    console.error("Webhook handling error:", errorMessage);
+    return NextResponse.json(
+      { error: "Webhook handler failed" },
+      { status: 500 }
+    );
   }
+}
+
+// ⛔ Block other methods
+export async function GET(): Promise<NextResponse> {
+  return NextResponse.json(
+    { error: "Method Not Allowed" },
+    { status: 405 }
+  );
 }

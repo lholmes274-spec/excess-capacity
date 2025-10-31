@@ -10,9 +10,9 @@ module.exports = {
       colors: {
         brand: {
           DEFAULT: "#0f172a",
-          light: "#1e293b",
-        },
-      },
+          light: "#1e293b"
+        }
+      }
     },
   },
   plugins: [],

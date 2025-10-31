@@ -3,17 +3,17 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 
-export default function SuccessPage() {
+export default function CancelPage() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-green-50 to-green-100 text-center p-6">
-      {/* Animated Checkmark */}
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-red-50 to-red-100 text-center p-6">
+      {/* Animated X Icon */}
       <motion.div
-        initial={{ scale: 0, rotate: -45 }}
+        initial={{ scale: 0, rotate: 45 }}
         animate={{ scale: 1, rotate: 0 }}
         transition={{ type: "spring", stiffness: 120, damping: 10 }}
         className="mb-6"
       >
-        <div className="w-24 h-24 rounded-full bg-green-500 flex items-center justify-center shadow-lg">
+        <div className="w-24 h-24 rounded-full bg-red-500 flex items-center justify-center shadow-lg">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-14 w-14 text-white"
@@ -22,19 +22,19 @@ export default function SuccessPage() {
             stroke="currentColor"
             strokeWidth={2}
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </div>
       </motion.div>
 
-      {/* Animated Heading */}
+      {/* Heading */}
       <motion.h1
-        className="text-3xl sm:text-4xl font-extrabold text-green-700 mb-2"
+        className="text-3xl sm:text-4xl font-extrabold text-red-700 mb-2"
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2, duration: 0.7 }}
       >
-        Payment Successful 🎉
+        Payment Canceled ❌
       </motion.h1>
 
       {/* Subtext */}
@@ -44,11 +44,12 @@ export default function SuccessPage() {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4, duration: 0.8 }}
       >
-        Thank you for your purchase through <span className="font-semibold text-green-700">ProsperityHub</span>.  
-        Your transaction has been processed successfully.
+        Your transaction was canceled or not completed.  
+        Don’t worry — no charges were made to your account.  
+        You can return to <span className="font-semibold text-red-700">ProsperityHub</span> anytime to try again.
       </motion.p>
 
-      {/* Return Button */}
+      {/* Button */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -56,7 +57,7 @@ export default function SuccessPage() {
       >
         <Link
           href="/"
-          className="px-6 py-3 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition-colors"
+          className="px-6 py-3 bg-red-600 text-white rounded-lg shadow hover:bg-red-700 transition-colors"
         >
           Back to Marketplace
         </Link>
