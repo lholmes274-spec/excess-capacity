@@ -2,18 +2,18 @@
 const nextConfig = {
   reactStrictMode: true,
 
-  // ✅ Redirect all .vercel.app URLs and www. to prosperityhub.app
   async redirects() {
     return [
+      // ✅ Redirect all .vercel.app requests to prosperityhub.app
       {
         source: '/:path*',
+        destination: 'https://prosperityhub.app/:path*',
         has: [
           {
             type: 'host',
-            value: '(.*)vercel\\.app',
+            value: 'excess-capacity-git-main-lholmes274-specs-projects.vercel.app',
           },
         ],
-        destination: 'https://prosperityhub.app/:path*',
         permanent: true,
       },
       {
@@ -21,7 +21,7 @@ const nextConfig = {
         has: [
           {
             type: 'host',
-            value: 'www\\.prosperityhub\\.app',
+            value: 'www.prosperityhub.app',
           },
         ],
         destination: 'https://prosperityhub.app/:path*',
@@ -30,7 +30,6 @@ const nextConfig = {
     ];
   },
 
-  // ✅ Image domains for your listings and assets
   images: {
     domains: [
       'images.unsplash.com',
@@ -39,13 +38,11 @@ const nextConfig = {
     ],
   },
 
-  // ✅ Experimental Next.js optimizations
   experimental: {
     optimizeCss: true,
     scrollRestoration: true,
   },
 
-  // ✅ Optional environment variable (for canonical URLs)
   env: {
     NEXT_PUBLIC_SITE_URL: 'https://prosperityhub.app',
   },
