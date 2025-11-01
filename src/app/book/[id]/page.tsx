@@ -1,41 +1,75 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
-import { useParams } from 'next/navigation';
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
+import { useParams } from "next/navigation";
+import Link from "next/link";
 
 export default function BookPage() {
-  const { id } = useParams();
+  const params = useParams();
+  const { id } = params;
   const [listing, setListing] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchListing = async () => {
-      const { data } = await supabase.from('listings').select('*').eq('id', id).single();
-      setListing(data);
-    };
+    if (!id) return;
+
+    async function fetchListing() {
+      const { data, error } = await supabase
+        .from("listings")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (error) {
+        console.error("❌ Error fetching listing:", error);
+      } else {
+        setListing(data);
+      }
+      setLoading(false);
+    }
+
     fetchListing();
   }, [id]);
 
+  if (loading)
+    return (
+      <div className="min-h-screen flex items-center justify-center text-gray-500">
+        Loading listing details...
+      </div>
+    );
+
   if (!listing)
-    return <div className="min-h-screen flex justify-center items-center">Loading...</div>;
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center text-gray-500">
+        <p>Listing not found.</p>
+        <Link href="/" className="text-blue-500 mt-3 underline">
+          ← Go back home
+        </Link>
+      </div>
+    );
 
   return (
-    <div className="min-h-screen bg-gray-50 px-6 py-10">
-      <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-lg p-6">
-        <img
-          src={listing.image_url}
-          alt={listing.title}
-          className="rounded w-full h-60 object-cover mb-4"
-        />
-        <h1 className="text-3xl font-bold mb-2">{listing.title}</h1>
-        <p className="text-gray-700 mb-4">{listing.description}</p>
-        <p className="text-green-600 text-lg font-semibold mb-4">
-          ${listing.price} / {listing.unit}
+    <main className="min-h-screen bg-gradient-to-br from-yellow-50 to-amber-100 py-12 px-6 flex flex-col items-center">
+      <div className="max-w-lg bg-white p-8 rounded-2xl shadow-xl border border-amber-200">
+        <h1 className="text-3xl font-extrabold text-amber-700 mb-3">
+          {listing.title}
+        </h1>
+        <p className="text-gray-600 mb-2">{listing.description || "No description."}</p>
+        <p className="text-gray-800 font-semibold mb-4">
+          Location: {listing.city ? `${listing.city}, ${listing.state}` : "Unknown"}
         </p>
-        <button className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">
-          Continue to Payment
-        </button>
+        <p className="text-green-600 text-2xl font-bold mb-6">
+          ${listing.basePrice}
+        </p>
+
+        <Link
+          href={`/checkout?listing_id=${listing.id}`}
+          className="bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold px-6 py-3 rounded-lg shadow-lg hover:scale-105 hover:from-green-600 hover:to-emerald-700 transition-all"
+        >
+          Proceed to Checkout
+        </Link>
       </div>
-    </div>
+    </main>
   );
 }
