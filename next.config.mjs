@@ -1,35 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // ✅ Enable strict mode for React
   reactStrictMode: true,
 
-  async redirects() {
-    return [
-      // ✅ Redirect all .vercel.app requests to prosperityhub.app
-      {
-        source: '/:path*',
-        destination: 'https://prosperityhub.app/:path*',
-        has: [
-          {
-            type: 'host',
-            value: 'excess-capacity-git-main-lholmes274-specs-projects.vercel.app',
-          },
-        ],
-        permanent: true,
-      },
-      {
-        source: '/:path*',
-        has: [
-          {
-            type: 'host',
-            value: 'www.prosperityhub.app',
-          },
-        ],
-        destination: 'https://prosperityhub.app/:path*',
-        permanent: true,
-      },
-    ];
-  },
-
+  // ✅ Image optimization domains
   images: {
     domains: [
       'images.unsplash.com',
@@ -38,14 +12,21 @@ const nextConfig = {
     ],
   },
 
+  // ✅ Experimental optimizations for performance
   experimental: {
     optimizeCss: true,
     scrollRestoration: true,
   },
 
+  // ✅ Environment variables for runtime
   env: {
     NEXT_PUBLIC_SITE_URL: 'https://prosperityhub.app',
+    NEXT_PUBLIC_PRODUCTION_URL: 'https://prosperityhub.app',
+    NEXT_PUBLIC_SITE_NAME: 'Prosperity Hub',
   },
+
+  // ✅ Output settings (optional, improves Vercel deployment)
+  output: 'standalone',
 };
 
 export default nextConfig;
