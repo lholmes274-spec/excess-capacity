@@ -1,161 +1,97 @@
-"use client";
+export const dynamic = "force-dynamic";
 
-import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabaseClient";
+import Image from "next/image";
+import Link from "next/link";
 
-export default function Home() {
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    location: "",
-    basePrice: "",
-    type: "",
-    state: "",
-    city: "",
-    zip: "",
-  });
+export default async function Home() {
+  // ✅ Always fetch fresh listings from Supabase
+  const { data: listings, error } = await supabase
+    .from("listings")
+    .select("*")
+    .order("created_at", { ascending: false });
 
-  const [loading, setLoading] = useState(false);
-  const [listings, setListings] = useState([]);
+  if (error) {
+    console.error("❌ Error fetching listings:", error);
+    return (
+      <div className="min-h-screen flex justify-center items-center text-red-600 font-semibold">
+        Failed to load listings. Please try again later.
+      </div>
+    );
+  }
 
-  // ✅ 1. Handle form inputs
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  // ✅ 2. Fetch all listings
-  const fetchListings = async () => {
-    try {
-      const res = await fetch("/api/get-listings");
-      const data = await res.json();
-      if (res.ok) setListings(data);
-      else console.error("Failed to fetch listings:", data);
-    } catch (err) {
-      console.error("Error loading listings:", err);
-    }
-  };
-
-  useEffect(() => {
-    fetchListings();
-  }, []);
-
-  // ✅ 3. Add a new listing
-  const handleAddListing = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const res = await fetch("/api/add-listing", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        alert("❌ Failed to add listing: " + data.error);
-      } else {
-        alert("✅ Listing added successfully!");
-        setFormData({
-          title: "",
-          description: "",
-          location: "",
-          basePrice: "",
-          type: "",
-          state: "",
-          city: "",
-          zip: "",
-        });
-        fetchListings(); // refresh list
-      }
-    } catch (error) {
-      console.error("Add listing error:", error);
-      alert("Unexpected error while adding listing.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ✅ 4. Book a specific listing (Step 2)
-  const handleBookListing = async (item: any) => {
-    try {
-      const res = await fetch("/api/create-checkout-session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: item.title,
-          amount: item.basePrice || 0,
-          listingId: item.id,
-        }),
-      });
-
-      const data = await res.json();
-      if (data?.url) {
-        window.location.href = data.url;
-      } else {
-        alert("Failed to start checkout for " + item.title);
-      }
-    } catch (err) {
-      console.error("Book Listing error:", err);
-      alert("Error booking listing.");
-    }
-  };
+  if (!listings || listings.length === 0) {
+    return (
+      <div className="min-h-screen flex flex-col justify-center items-center text-gray-600">
+        <h1 className="text-2xl font-bold mb-2">No Listings Available</h1>
+        <p className="text-gray-500">New opportunities will appear here soon.</p>
+      </div>
+    );
+  }
 
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen p-6 bg-gray-50">
-      {/* ---------- ADD LISTING FORM ---------- */}
-      <h1 className="text-2xl font-bold mb-4">Add Listing</h1>
+    <main className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <h1 className="text-4xl font-extrabold text-center mb-10 text-gray-800">
+          ProsperityHub Marketplace
+        </h1>
 
-      <form
-        onSubmit={handleAddListing}
-        className="flex flex-col gap-3 w-full max-w-md border p-4 rounded-lg bg-white shadow"
-      >
-        <input name="title" placeholder="Title" value={formData.title} onChange={handleChange} className="border p-2 rounded" required />
-        <textarea name="description" placeholder="Description" value={formData.description} onChange={handleChange} className="border p-2 rounded" />
-        <input name="location" placeholder="Location" value={formData.location} onChange={handleChange} className="border p-2 rounded" />
-        <input name="basePrice" placeholder="Base Price" type="number" value={formData.basePrice} onChange={handleChange} className="border p-2 rounded" />
-        <input name="type" placeholder="Type" value={formData.type} onChange={handleChange} className="border p-2 rounded" />
-        <input name="state" placeholder="State" value={formData.state} onChange={handleChange} className="border p-2 rounded" />
-        <input name="city" placeholder="City" value={formData.city} onChange={handleChange} className="border p-2 rounded" />
-        <input name="zip" placeholder="ZIP Code" value={formData.zip} onChange={handleChange} className="border p-2 rounded" />
-
-        <button type="submit" disabled={loading} className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700">
-          {loading ? "Adding..." : "Add Listing"}
-        </button>
-      </form>
-
-      {/* ---------- LISTINGS SECTION ---------- */}
-      <div className="w-full max-w-5xl mt-10">
-        <h2 className="text-xl font-semibold mb-4">Available Listings</h2>
-
-        {listings.length === 0 ? (
-          <p className="text-gray-500">No listings found yet.</p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {listings.map((item: any) => (
-              <div key={item.id} className="border p-5 rounded-xl shadow bg-white flex flex-col justify-between">
-                <div>
-                  <h3 className="text-lg font-bold mb-2">{item.title}</h3>
-                  <p className="text-sm text-gray-600 mb-2">{item.description}</p>
-                  <p className="text-sm text-gray-800">
-                    📍 {item.city}, {item.state}
-                  </p>
-                  <p className="text-sm font-semibold text-green-700 mt-1">
-                    💲 {item.basePrice || 0}
-                  </p>
-                </div>
-
-                <button
-                  onClick={() => handleBookListing(item)}
-                  className="mt-4 bg-green-600 text-white py-2 rounded hover:bg-green-700 transition"
-                >
-                  Book Now
-                </button>
+        {/* Listings Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {listings.map((listing) => (
+            <div
+              key={listing.id}
+              className="bg-white rounded-2xl shadow hover:shadow-xl transition duration-300 overflow-hidden border border-gray-200"
+            >
+              {/* Image Section */}
+              <div className="relative h-48 w-full">
+                {listing.image_url ? (
+                  <Image
+                    src={listing.image_url}
+                    alt={listing.title}
+                    fill
+                    className="object-cover"
+                    priority
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full bg-gray-200 text-gray-500 text-sm">
+                    No image
+                  </div>
+                )}
               </div>
-            ))}
-          </div>
-        )}
+
+              {/* Info Section */}
+              <div className="p-4 flex flex-col h-full">
+                <h2 className="text-lg font-semibold text-gray-800 mb-1">
+                  {listing.title}
+                </h2>
+                <p className="text-sm text-gray-500 mb-3">
+                  {listing.location || "No location provided"}
+                </p>
+
+                <div className="mt-auto flex items-center justify-between">
+                  <p className="text-lg font-bold text-gray-700">
+                    ${Number(listing.basePrice ?? 0).toFixed(2)}
+                  </p>
+
+                  {/* Book Now Button */}
+                  <Link
+                    href={`/checkout?listing_id=${listing.id}`}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition"
+                  >
+                    Book Now
+                  </Link>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Footer */}
+        <footer className="mt-12 text-center text-gray-400 text-sm">
+          © {new Date().getFullYear()} ProsperityHub. All rights reserved.
+        </footer>
       </div>
     </main>
   );
