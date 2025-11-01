@@ -5,14 +5,13 @@ import Image from "next/image";
 import Link from "next/link";
 
 export default async function Home() {
-  // ✅ Always fetch fresh listings from Supabase
   const { data: listings, error } = await supabase
     .from("listings")
     .select("*")
     .order("created_at", { ascending: false });
 
   if (error) {
-    console.error("❌ Error fetching listings:", error);
+    console.error("❌ Error loading listings:", error);
     return (
       <div className="min-h-screen flex justify-center items-center text-red-600 font-semibold">
         Failed to load listings. Please try again later.
@@ -20,65 +19,58 @@ export default async function Home() {
     );
   }
 
-  if (!listings || listings.length === 0) {
-    return (
-      <div className="min-h-screen flex flex-col justify-center items-center text-gray-600">
-        <h1 className="text-2xl font-bold mb-2">No Listings Available</h1>
-        <p className="text-gray-500">New opportunities will appear here soon.</p>
-      </div>
-    );
-  }
-
   return (
-    <main className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-6xl mx-auto">
+    <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <h1 className="text-4xl font-extrabold text-center mb-10 text-gray-800">
-          ProsperityHub Marketplace
+        <h1 className="text-center text-4xl md:text-5xl font-extrabold mb-12">
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-500 via-amber-400 to-yellow-600">
+            ProsperityHub Marketplace
+          </span>
         </h1>
 
-        {/* Listings Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {listings.map((listing) => (
+        {/* Listings grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+          {listings?.map((listing) => (
             <div
               key={listing.id}
-              className="bg-white rounded-2xl shadow hover:shadow-xl transition duration-300 overflow-hidden border border-gray-200"
+              className="relative bg-white rounded-2xl shadow-lg hover:shadow-2xl border border-gray-200 overflow-hidden transition-all duration-300 group"
             >
-              {/* Image Section */}
-              <div className="relative h-48 w-full">
+              {/* Image */}
+              <div className="relative h-56 w-full overflow-hidden">
                 {listing.image_url ? (
                   <Image
                     src={listing.image_url}
                     alt={listing.title}
                     fill
-                    className="object-cover"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
                     priority
                   />
                 ) : (
-                  <div className="flex items-center justify-center h-full bg-gray-200 text-gray-500 text-sm">
+                  <div className="h-full flex items-center justify-center bg-gray-200 text-gray-500">
                     No image
                   </div>
                 )}
               </div>
 
-              {/* Info Section */}
-              <div className="p-4 flex flex-col h-full">
-                <h2 className="text-lg font-semibold text-gray-800 mb-1">
+              {/* Content */}
+              <div className="p-5 flex flex-col h-full">
+                <h2 className="text-xl font-semibold text-gray-800 mb-2 group-hover:text-yellow-600 transition-colors">
                   {listing.title}
                 </h2>
-                <p className="text-sm text-gray-500 mb-3">
-                  {listing.location || "No location provided"}
+
+                <p className="text-gray-500 text-sm mb-4">
+                  {listing.location || "Location not provided"}
                 </p>
 
-                <div className="mt-auto flex items-center justify-between">
-                  <p className="text-lg font-bold text-gray-700">
+                <div className="flex items-center justify-between mt-auto">
+                  <span className="text-lg font-bold text-gray-800">
                     ${Number(listing.basePrice ?? 0).toFixed(2)}
-                  </p>
+                  </span>
 
-                  {/* Book Now Button */}
                   <Link
                     href={`/checkout?listing_id=${listing.id}`}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition"
+                    className="px-5 py-2.5 bg-gradient-to-r from-yellow-500 to-amber-600 text-white font-medium rounded-lg shadow-md hover:shadow-lg hover:from-yellow-600 hover:to-amber-700 transition-all"
                   >
                     Book Now
                   </Link>
@@ -89,8 +81,10 @@ export default async function Home() {
         </div>
 
         {/* Footer */}
-        <footer className="mt-12 text-center text-gray-400 text-sm">
-          © {new Date().getFullYear()} ProsperityHub. All rights reserved.
+        <footer className="mt-16 text-center text-gray-500 text-sm">
+          © {new Date().getFullYear()}{" "}
+          <span className="font-semibold text-yellow-600">ProsperityHub</span>.
+          All rights reserved.
         </footer>
       </div>
     </main>
