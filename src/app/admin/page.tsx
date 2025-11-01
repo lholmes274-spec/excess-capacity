@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -13,64 +12,13 @@ type Listing = {
 };
 
 export default function AdminPage() {
-  // 🔒 Access lock state
+  // 🔒 Access + mount states
+  const [mounted, setMounted] = useState(false);
   const [authorized, setAuthorized] = useState(false);
   const [code, setCode] = useState("");
-  const [adminCode, setAdminCode] = useState<string | null>(null);
+  const [adminCode, setAdminCode] = useState<string>("");
 
-  // ✅ Read admin code dynamically on mount (avoids stale build variables)
-  useEffect(() => {
-    const codeFromEnv = process.env.NEXT_PUBLIC_ADMIN_CODE || "";
-    setAdminCode(codeFromEnv);
-  }, []);
-
-  // If admin code still loading (first render), just show a loader
-  if (adminCode === null) {
-    return (
-      <div className="flex justify-center items-center min-h-screen text-gray-600">
-        Loading Admin Panel...
-      </div>
-    );
-  }
-
-  // ✅ Lock screen
-  if (!authorized) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
-        <h1 className="text-3xl font-bold mb-4 text-gray-800">Admin Access Restricted</h1>
-        <p className="text-gray-600 mb-6">
-          Please enter your secure access code to continue.
-        </p>
-        <input
-          type="password"
-          placeholder="Enter access code"
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          className="border border-gray-300 p-2 rounded mb-4 w-64 text-center focus:ring-2 focus:ring-blue-400"
-        />
-        <button
-          onClick={() => {
-            // Allow both environment-based and fallback manual check
-            const realCode = adminCode || process.env.NEXT_PUBLIC_ADMIN_CODE;
-            if (code === realCode) {
-              setAuthorized(true);
-              localStorage.setItem("adminAuthorized", "true"); // remember session
-            } else {
-              alert("❌ Incorrect access code");
-            }
-          }}
-          className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition"
-        >
-          Enter
-        </button>
-        <p className="mt-6 text-sm text-gray-400">
-          © {new Date().getFullYear()} ProsperityHub Admin
-        </p>
-      </div>
-    );
-  }
-
-  // ✅ Dashboard logic
+  // ✅ Dashboard data states
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -80,11 +28,27 @@ export default function AdminPage() {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [priceInput, setPriceInput] = useState<string>("");
 
+  // ✅ Handle mount + load code
   useEffect(() => {
-    // check localStorage to keep session alive after refresh
+    setMounted(true);
+
+    // Try reading env variable (browser-safe)
+    const envCode = process.env.NEXT_PUBLIC_ADMIN_CODE ?? "";
+    console.log("🔐 Loaded admin code:", envCode);
+
+    // Fallback for production (if env not injected)
+    const finalCode = envCode || "VoyageAccess2025!";
+
+    setAdminCode(finalCode);
+
     if (localStorage.getItem("adminAuthorized") === "true") {
       setAuthorized(true);
     }
+  }, []);
+
+  // ✅ Fetch listings when authorized
+  useEffect(() => {
+    if (!authorized) return;
 
     const fetchListings = async () => {
       try {
@@ -102,14 +66,60 @@ export default function AdminPage() {
         setLoading(false);
       }
     };
-    fetchListings();
-  }, []);
 
-  // ✅ Delete listing
+    fetchListings();
+  }, [authorized]);
+
+  // 🚀 Wait until mounted
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex justify-center items-center text-gray-600">
+        Loading Admin Panel...
+      </div>
+    );
+  }
+
+  // 🔒 Lock screen
+  if (!authorized) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+        <h1 className="text-3xl font-bold mb-4 text-gray-800">
+          Admin Access Restricted
+        </h1>
+        <p className="text-gray-600 mb-6">
+          Please enter your secure access code to continue.
+        </p>
+        <input
+          type="password"
+          placeholder="Enter access code"
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          className="border border-gray-300 p-2 rounded mb-4 w-64 text-center focus:ring-2 focus:ring-blue-400"
+        />
+        <button
+          onClick={() => {
+            if (code === adminCode) {
+              setAuthorized(true);
+              localStorage.setItem("adminAuthorized", "true");
+            } else {
+              alert("❌ Incorrect access code");
+            }
+          }}
+          className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition"
+        >
+          Enter
+        </button>
+        <p className="mt-6 text-sm text-gray-400">
+          © {new Date().getFullYear()} ProsperityHub Admin
+        </p>
+      </div>
+    );
+  }
+
+  // ✅ Admin dashboard (unchanged below)
   const handleDelete = async (id: string) => {
     const confirmDelete = window.confirm("Are you sure you want to delete this listing?");
     if (!confirmDelete) return;
-
     setDeleting(id);
     try {
       const { error } = await supabase.from("listings").delete().eq("id", id);
@@ -124,7 +134,6 @@ export default function AdminPage() {
     }
   };
 
-  // ✅ Edit listing
   const handleEdit = (listing: Listing) => {
     setEditingId(listing.id);
     const numericPrice = listing.basePrice ?? 0;
@@ -151,7 +160,6 @@ export default function AdminPage() {
     setSaving(true);
     try {
       const numericPrice = parseFloat(priceInput.replace(/[^0-9.]/g, "")) || 0;
-
       const { error } = await supabase
         .from("listings")
         .update({
@@ -167,13 +175,7 @@ export default function AdminPage() {
       setListings((prev) =>
         prev.map((l) =>
           l.id === id
-            ? {
-                ...l,
-                title: editData.title || l.title,
-                location: editData.location || l.location,
-                basePrice: numericPrice,
-                units: editData.units ?? l.units,
-              }
+            ? { ...l, title: editData.title || l.title, location: editData.location || l.location, basePrice: numericPrice, units: editData.units ?? l.units }
             : l
         )
       );
@@ -221,8 +223,9 @@ export default function AdminPage() {
 
   return (
     <div className="p-8 max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6 text-center">Admin Dashboard – Listings</h1>
-
+      <h1 className="text-3xl font-bold mb-6 text-center">
+        Admin Dashboard – Listings
+      </h1>
       <div className="flex justify-end mb-4">
         <button
           onClick={() => {
@@ -250,7 +253,6 @@ export default function AdminPage() {
                 <th className="p-3 text-left font-semibold text-gray-700">Actions</th>
               </tr>
             </thead>
-
             <tbody>
               {listings.map((l) => (
                 <tr key={l.id} className="border-t hover:bg-gray-50 transition-colors">
