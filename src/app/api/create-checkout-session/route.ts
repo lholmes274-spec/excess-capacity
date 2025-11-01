@@ -1,34 +1,61 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
-// ✅ Initialize Stripe with your secret key from the environment file (.env.local)
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-04-10", // Correct stable version
-});
+// ✅ Load and verify your Stripe Secret Key
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 
-// ✅ Handle POST requests to create a checkout session
+if (!stripeSecretKey) {
+  console.error("❌ STRIPE_SECRET_KEY is missing. Check your .env.local or Vercel settings.");
+}
+
+const stripe = new Stripe(stripeSecretKey!, { apiVersion: "2024-04-10" });
+
 export async function POST(req: Request) {
   try {
+    // Parse incoming JSON body
     const body = await req.json();
+    const { title, amount } = body;
 
-    // Destructure required fields from the frontend request
-    const { lineItems, successUrl, cancelUrl } = body;
+    console.log("🔹 Incoming checkout request:", { title, amount });
 
-    // ✅ Create a new Stripe Checkout session
+    if (!title) {
+      console.error("❌ Missing 'title' in request body.");
+      return NextResponse.json({ error: "Missing 'title' field" }, { status: 400 });
+    }
+
+    // Ensure the amount is valid and not zero
+    const unitAmount = Math.max(Number(amount || 0) * 100, 100); // at least $1.00
+
+    console.log("💵 Creating checkout session for:", title, "| Amount (cents):", unitAmount);
+
+    // ✅ Create the Stripe Checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "payment",
-      line_items: lineItems,
-      success_url: successUrl || `${process.env.NEXT_PUBLIC_BASE_URL}/success`,
-      cancel_url: cancelUrl || `${process.env.NEXT_PUBLIC_BASE_URL}/cancel`,
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: title || "Listing",
+            },
+            unit_amount: unitAmount,
+          },
+          quantity: 1,
+        },
+      ],
+      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success`,
+      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/cancel`,
     });
 
-    // ✅ Return the session ID to the frontend
-    return NextResponse.json({ id: session.id });
+    console.log("✅ Checkout session created successfully:", session.id);
+
+    // Return checkout URL to frontend
+    return NextResponse.json({ url: session.url });
   } catch (error: any) {
-    console.error("❌ Stripe Checkout Session Error:", error);
+    console.error("❌ Stripe Checkout Error:", error.message);
     return NextResponse.json(
-      { error: error.message || "An unexpected error occurred." },
+      { error: error.message || "Failed to create checkout session" },
       { status: 500 }
     );
   }

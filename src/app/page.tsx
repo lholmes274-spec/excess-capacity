@@ -1,161 +1,162 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { useState, useEffect } from "react";
 
-export default function HomePage() {
-  const [listings, setListings] = useState<any[]>([]);
-  const [filtered, setFiltered] = useState<any[]>([]);
-  const [search, setSearch] = useState('');
-  const [stateFilter, setStateFilter] = useState('');
-  const [category, setCategory] = useState('');
+export default function Home() {
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    location: "",
+    basePrice: "",
+    type: "",
+    state: "",
+    city: "",
+    zip: "",
+  });
 
-  const categories = [
-    'workspace',
-    'storage',
-    'parking',
-    'equipment',
-    'vehicle',
-    'service',
-    'digital',
-    'event',
-  ];
+  const [loading, setLoading] = useState(false);
+  const [listings, setListings] = useState([]);
 
-  const states = [
-    '', 'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
-    'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
-    'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
-    'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
-    'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
-  ];
+  // ✅ 1. Handle form inputs
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
-  // Fetch all listings
+  // ✅ 2. Fetch all listings
+  const fetchListings = async () => {
+    try {
+      const res = await fetch("/api/get-listings");
+      const data = await res.json();
+      if (res.ok) setListings(data);
+      else console.error("Failed to fetch listings:", data);
+    } catch (err) {
+      console.error("Error loading listings:", err);
+    }
+  };
+
   useEffect(() => {
-    const fetchListings = async () => {
-      const { data, error } = await supabase
-        .from('listings')
-        .select('*')
-        .eq('availability', true)
-        .order('created_at', { ascending: false });
-
-      if (!error && data) {
-        setListings(data);
-        setFiltered(data);
-      }
-    };
     fetchListings();
   }, []);
 
-  // Apply filters
-  useEffect(() => {
-    let result = listings;
+  // ✅ 3. Add a new listing
+  const handleAddListing = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
 
-    if (search.trim()) {
-      result = result.filter(
-        (item) =>
-          item.title.toLowerCase().includes(search.toLowerCase()) ||
-          item.description.toLowerCase().includes(search.toLowerCase())
-      );
+    try {
+      const res = await fetch("/api/add-listing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert("❌ Failed to add listing: " + data.error);
+      } else {
+        alert("✅ Listing added successfully!");
+        setFormData({
+          title: "",
+          description: "",
+          location: "",
+          basePrice: "",
+          type: "",
+          state: "",
+          city: "",
+          zip: "",
+        });
+        fetchListings(); // refresh list
+      }
+    } catch (error) {
+      console.error("Add listing error:", error);
+      alert("Unexpected error while adding listing.");
+    } finally {
+      setLoading(false);
     }
+  };
 
-    if (stateFilter) {
-      result = result.filter(
-        (item) => item.state?.toLowerCase() === stateFilter.toLowerCase()
-      );
+  // ✅ 4. Book a specific listing (Step 2)
+  const handleBookListing = async (item: any) => {
+    try {
+      const res = await fetch("/api/create-checkout-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: item.title,
+          amount: item.basePrice || 0,
+          listingId: item.id,
+        }),
+      });
+
+      const data = await res.json();
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        alert("Failed to start checkout for " + item.title);
+      }
+    } catch (err) {
+      console.error("Book Listing error:", err);
+      alert("Error booking listing.");
     }
-
-    if (category) {
-      result = result.filter((item) => item.type === category);
-    }
-
-    setFiltered(result);
-  }, [search, stateFilter, category, listings]);
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 px-6 py-10">
-      <h1 className="text-4xl font-bold text-center mb-6">
-        Prosperity Hub Marketplace
-      </h1>
-      <p className="text-center text-gray-600 mb-10">
-        Discover and rent workspaces, parking, storage, and more across the U.S.
-      </p>
+    <main className="flex flex-col items-center justify-center min-h-screen p-6 bg-gray-50">
+      {/* ---------- ADD LISTING FORM ---------- */}
+      <h1 className="text-2xl font-bold mb-4">Add Listing</h1>
 
-      {/* Filter Controls */}
-      <div className="flex flex-wrap gap-4 justify-center mb-10">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search listings..."
-          className="border rounded px-3 py-2 w-64"
-        />
+      <form
+        onSubmit={handleAddListing}
+        className="flex flex-col gap-3 w-full max-w-md border p-4 rounded-lg bg-white shadow"
+      >
+        <input name="title" placeholder="Title" value={formData.title} onChange={handleChange} className="border p-2 rounded" required />
+        <textarea name="description" placeholder="Description" value={formData.description} onChange={handleChange} className="border p-2 rounded" />
+        <input name="location" placeholder="Location" value={formData.location} onChange={handleChange} className="border p-2 rounded" />
+        <input name="basePrice" placeholder="Base Price" type="number" value={formData.basePrice} onChange={handleChange} className="border p-2 rounded" />
+        <input name="type" placeholder="Type" value={formData.type} onChange={handleChange} className="border p-2 rounded" />
+        <input name="state" placeholder="State" value={formData.state} onChange={handleChange} className="border p-2 rounded" />
+        <input name="city" placeholder="City" value={formData.city} onChange={handleChange} className="border p-2 rounded" />
+        <input name="zip" placeholder="ZIP Code" value={formData.zip} onChange={handleChange} className="border p-2 rounded" />
 
-        <select
-          value={stateFilter}
-          onChange={(e) => setStateFilter(e.target.value)}
-          className="border rounded px-3 py-2"
-        >
-          <option value="">All States</option>
-          {states.map(
-            (s) => s && (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            )
-          )}
-        </select>
+        <button type="submit" disabled={loading} className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700">
+          {loading ? "Adding..." : "Add Listing"}
+        </button>
+      </form>
 
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className="border rounded px-3 py-2"
-        >
-          <option value="">All Categories</option>
-          {categories.map((cat) => (
-            <option key={cat} value={cat}>
-              {cat.charAt(0).toUpperCase() + cat.slice(1)}
-            </option>
-          ))}
-        </select>
-      </div>
+      {/* ---------- LISTINGS SECTION ---------- */}
+      <div className="w-full max-w-5xl mt-10">
+        <h2 className="text-xl font-semibold mb-4">Available Listings</h2>
 
-      {/* Listings Display */}
-      {filtered.length === 0 ? (
-        <p className="text-center text-gray-500">No listings found.</p>
-      ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filtered.map((item) => (
-            <div
-              key={item.id}
-              className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
-            >
-              {item.image_url && (
-                <img
-                  src={item.image_url}
-                  alt={item.title}
-                  className="h-40 w-full object-cover"
-                />
-              )}
-              <div className="p-4">
-                <h3 className="font-semibold text-lg">{item.title}</h3>
-                <p className="text-gray-600 text-sm">{item.description}</p>
-                <p className="text-green-600 font-semibold mt-2">
-                  ${item.price} / {item.unit}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {item.city}, {item.state}
-                </p>
-                <a
-                  href={`/book/${item.id}`}
-                  className="mt-3 inline-block bg-blue-600 text-white px-4 py-1 rounded text-sm hover:bg-blue-700"
+        {listings.length === 0 ? (
+          <p className="text-gray-500">No listings found yet.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {listings.map((item: any) => (
+              <div key={item.id} className="border p-5 rounded-xl shadow bg-white flex flex-col justify-between">
+                <div>
+                  <h3 className="text-lg font-bold mb-2">{item.title}</h3>
+                  <p className="text-sm text-gray-600 mb-2">{item.description}</p>
+                  <p className="text-sm text-gray-800">
+                    📍 {item.city}, {item.state}
+                  </p>
+                  <p className="text-sm font-semibold text-green-700 mt-1">
+                    💲 {item.basePrice || 0}
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => handleBookListing(item)}
+                  className="mt-4 bg-green-600 text-white py-2 rounded hover:bg-green-700 transition"
                 >
                   Book Now
-                </a>
+                </button>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </main>
   );
 }
