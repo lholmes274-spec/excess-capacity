@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
 type Listing = {
@@ -13,6 +13,64 @@ type Listing = {
 };
 
 export default function AdminPage() {
+  // 🔒 Access lock state
+  const [authorized, setAuthorized] = useState(false);
+  const [code, setCode] = useState("");
+  const [adminCode, setAdminCode] = useState<string | null>(null);
+
+  // ✅ Read admin code dynamically on mount (avoids stale build variables)
+  useEffect(() => {
+    const codeFromEnv = process.env.NEXT_PUBLIC_ADMIN_CODE || "";
+    setAdminCode(codeFromEnv);
+  }, []);
+
+  // If admin code still loading (first render), just show a loader
+  if (adminCode === null) {
+    return (
+      <div className="flex justify-center items-center min-h-screen text-gray-600">
+        Loading Admin Panel...
+      </div>
+    );
+  }
+
+  // ✅ Lock screen
+  if (!authorized) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+        <h1 className="text-3xl font-bold mb-4 text-gray-800">Admin Access Restricted</h1>
+        <p className="text-gray-600 mb-6">
+          Please enter your secure access code to continue.
+        </p>
+        <input
+          type="password"
+          placeholder="Enter access code"
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          className="border border-gray-300 p-2 rounded mb-4 w-64 text-center focus:ring-2 focus:ring-blue-400"
+        />
+        <button
+          onClick={() => {
+            // Allow both environment-based and fallback manual check
+            const realCode = adminCode || process.env.NEXT_PUBLIC_ADMIN_CODE;
+            if (code === realCode) {
+              setAuthorized(true);
+              localStorage.setItem("adminAuthorized", "true"); // remember session
+            } else {
+              alert("❌ Incorrect access code");
+            }
+          }}
+          className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition"
+        >
+          Enter
+        </button>
+        <p className="mt-6 text-sm text-gray-400">
+          © {new Date().getFullYear()} ProsperityHub Admin
+        </p>
+      </div>
+    );
+  }
+
+  // ✅ Dashboard logic
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -22,8 +80,12 @@ export default function AdminPage() {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [priceInput, setPriceInput] = useState<string>("");
 
-  // ✅ Load listings
   useEffect(() => {
+    // check localStorage to keep session alive after refresh
+    if (localStorage.getItem("adminAuthorized") === "true") {
+      setAuthorized(true);
+    }
+
     const fetchListings = async () => {
       try {
         const { data, error } = await supabase
@@ -62,7 +124,7 @@ export default function AdminPage() {
     }
   };
 
-  // ✅ Edit mode
+  // ✅ Edit listing
   const handleEdit = (listing: Listing) => {
     setEditingId(listing.id);
     const numericPrice = listing.basePrice ?? 0;
@@ -85,7 +147,6 @@ export default function AdminPage() {
     setPriceInput("");
   };
 
-  // ✅ Save listing — now using basePrice
   const handleSave = async (id: string) => {
     setSaving(true);
     try {
@@ -96,7 +157,7 @@ export default function AdminPage() {
         .update({
           title: editData.title,
           location: editData.location,
-          basePrice: numericPrice, // ✅ fixed here
+          basePrice: numericPrice,
           units: editData.units,
         })
         .eq("id", id);
@@ -110,7 +171,7 @@ export default function AdminPage() {
                 ...l,
                 title: editData.title || l.title,
                 location: editData.location || l.location,
-                basePrice: numericPrice, // ✅ fixed here
+                basePrice: numericPrice,
                 units: editData.units ?? l.units,
               }
             : l
@@ -160,9 +221,19 @@ export default function AdminPage() {
 
   return (
     <div className="p-8 max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6 text-center">
-        Admin Dashboard – Listings
-      </h1>
+      <h1 className="text-3xl font-bold mb-6 text-center">Admin Dashboard – Listings</h1>
+
+      <div className="flex justify-end mb-4">
+        <button
+          onClick={() => {
+            localStorage.removeItem("adminAuthorized");
+            window.location.reload();
+          }}
+          className="text-sm text-gray-500 underline"
+        >
+          Log out
+        </button>
+      </div>
 
       {listings.length === 0 ? (
         <p className="text-center text-gray-500">No listings found.</p>
@@ -193,7 +264,6 @@ export default function AdminPage() {
                           className="border rounded p-1 w-full"
                         />
                       </td>
-
                       <td className="p-2">
                         <input
                           type="text"
@@ -202,8 +272,6 @@ export default function AdminPage() {
                           className="border rounded p-1 w-full"
                         />
                       </td>
-
-                      {/* ✅ Currency Input */}
                       <td className="p-2">
                         <input
                           type="text"
@@ -214,8 +282,6 @@ export default function AdminPage() {
                           className="border rounded p-1 w-full text-right focus:ring-2 focus:ring-blue-400"
                         />
                       </td>
-
-                      {/* ✅ Units */}
                       <td className="p-2">
                         <input
                           type="number"
@@ -230,13 +296,9 @@ export default function AdminPage() {
                           className="border rounded p-1 w-full text-right focus:ring-2 focus:ring-blue-400"
                         />
                       </td>
-
                       <td className="p-2">
-                        {l.created_at
-                          ? new Date(l.created_at).toLocaleString()
-                          : "—"}
+                        {l.created_at ? new Date(l.created_at).toLocaleString() : "—"}
                       </td>
-
                       <td className="p-2 flex gap-2">
                         <button
                           onClick={() => handleSave(l.id)}
@@ -260,9 +322,7 @@ export default function AdminPage() {
                       <td className="p-2">${Number(l.basePrice ?? 0).toFixed(2)}</td>
                       <td className="p-2">{l.units ?? 1}</td>
                       <td className="p-2">
-                        {l.created_at
-                          ? new Date(l.created_at).toLocaleString()
-                          : "—"}
+                        {l.created_at ? new Date(l.created_at).toLocaleString() : "—"}
                       </td>
                       <td className="p-2 flex gap-2">
                         <button
