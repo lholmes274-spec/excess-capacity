@@ -28,6 +28,10 @@ export default function AdminPage() {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [priceInput, setPriceInput] = useState<string>("");
 
+  // ✅ Auto logout timer (in ms)
+  const LOGOUT_TIMEOUT = 60 * 60 * 1000; // 1 hour = 3600000 ms
+  let logoutTimer: NodeJS.Timeout | null = null;
+
   // ✅ Handle mount + load code
   useEffect(() => {
     setMounted(true);
@@ -36,15 +40,62 @@ export default function AdminPage() {
     const envCode = process.env.NEXT_PUBLIC_ADMIN_CODE ?? "";
     console.log("🔐 Loaded admin code:", envCode);
 
-    // Fallback for production (if env not injected)
+    // Fallback if not injected (for production)
     const finalCode = envCode || "VoyageAccess2025!";
-
     setAdminCode(finalCode);
 
-    if (localStorage.getItem("adminAuthorized") === "true") {
-      setAuthorized(true);
+    // Restore session if valid
+    const authFlag = localStorage.getItem("adminAuthorized");
+    const lastLogin = localStorage.getItem("adminLastLogin");
+
+    if (authFlag === "true" && lastLogin) {
+      const elapsed = Date.now() - parseInt(lastLogin, 10);
+      if (elapsed < LOGOUT_TIMEOUT) {
+        setAuthorized(true);
+      } else {
+        // Expired
+        localStorage.removeItem("adminAuthorized");
+        localStorage.removeItem("adminLastLogin");
+      }
     }
   }, []);
+
+  // ✅ Set up auto logout countdown
+  useEffect(() => {
+    if (!authorized) return;
+
+    const setTimer = () => {
+      // Clear any existing timer
+      if (logoutTimer) clearTimeout(logoutTimer);
+
+      logoutTimer = setTimeout(() => {
+        alert("Session expired — you’ve been logged out for security.");
+        localStorage.removeItem("adminAuthorized");
+        localStorage.removeItem("adminLastLogin");
+        setAuthorized(false);
+      }, LOGOUT_TIMEOUT);
+    };
+
+    // Start initial timer
+    setTimer();
+
+    // Reset timer on activity
+    const resetTimer = () => {
+      clearTimeout(logoutTimer!);
+      setTimer();
+    };
+
+    window.addEventListener("mousemove", resetTimer);
+    window.addEventListener("keydown", resetTimer);
+    window.addEventListener("click", resetTimer);
+
+    return () => {
+      clearTimeout(logoutTimer!);
+      window.removeEventListener("mousemove", resetTimer);
+      window.removeEventListener("keydown", resetTimer);
+      window.removeEventListener("click", resetTimer);
+    };
+  }, [authorized]);
 
   // ✅ Fetch listings when authorized
   useEffect(() => {
@@ -101,6 +152,7 @@ export default function AdminPage() {
             if (code === adminCode) {
               setAuthorized(true);
               localStorage.setItem("adminAuthorized", "true");
+              localStorage.setItem("adminLastLogin", Date.now().toString());
             } else {
               alert("❌ Incorrect access code");
             }
@@ -230,6 +282,7 @@ export default function AdminPage() {
         <button
           onClick={() => {
             localStorage.removeItem("adminAuthorized");
+            localStorage.removeItem("adminLastLogin");
             window.location.reload();
           }}
           className="text-sm text-gray-500 underline"
