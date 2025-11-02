@@ -52,8 +52,9 @@ export default function BookPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-yellow-50 to-amber-100 py-12 px-6 flex flex-col items-center">
       <div className="max-w-lg bg-white p-8 rounded-2xl shadow-xl border border-amber-200">
+        {/* ✅ Version marker for deployment confirmation */}
         <h1 className="text-3xl font-extrabold text-amber-700 mb-3">
-          {listing.title}
+          {listing.title} <span className="text-gray-400 text-lg">— v2</span>
         </h1>
 
         <p className="text-gray-600 mb-2">
