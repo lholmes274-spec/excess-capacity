@@ -45,11 +45,9 @@ export default function Home() {
     }
 
     try {
-      // 👇 Get the logged-in user (if Supabase Auth is active)
       const { data: userData } = await supabase.auth.getUser();
       const user = userData?.user;
 
-      // ✅ C) Insert new fields into Supabase
       const { error } = await supabase.from("listings").insert([
         {
           title: form.title,
@@ -78,8 +76,6 @@ export default function Home() {
         alert("❌ Error adding listing. Please try again.");
       } else {
         alert("✅ Listing added successfully!");
-
-        // ✅ D) Reset the form (include new keys)
         setForm({
           title: "",
           description: "",
@@ -96,7 +92,6 @@ export default function Home() {
           contact_email: "",
           pickup_instru: "",
         });
-
         fetchListings();
       }
     } catch (err: any) {
@@ -108,6 +103,18 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-amber-50 via-yellow-50 to-amber-100 py-10 px-4 sm:px-8 lg:px-16">
       <div className="max-w-5xl mx-auto bg-white/90 backdrop-blur-md rounded-2xl shadow-2xl p-6 md:p-10 border border-amber-200">
+
+        {/* 🌐 Brand Intro (Option B) */}
+        <h1 className="text-center text-5xl font-extrabold mb-2">
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-600 via-yellow-500 to-amber-700 drop-shadow-md">
+            Dynamic Excess Capacity Sharing
+          </span>
+        </h1>
+        <p className="text-center text-gray-700 text-lg mb-8">
+          Manage & Explore Listings that unlock hidden potential.
+        </p>
+
+        {/* Existing Heading */}
         <h1 className="text-center text-5xl font-extrabold mb-8">
           <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-600 via-yellow-500 to-amber-700 drop-shadow-md">
             Manage & Explore Listings
@@ -221,7 +228,6 @@ export default function Home() {
                 }
                 className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
               />
-
               <input
                 type="email"
                 placeholder="Contact Email"
@@ -231,7 +237,6 @@ export default function Home() {
                 }
                 className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
               />
-
               <textarea
                 placeholder="Pickup Instructions (e.g., gate code, hours, where to park)"
                 value={form.pickup_instru}
