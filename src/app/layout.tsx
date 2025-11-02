@@ -1,12 +1,13 @@
 // src/app/layout.tsx
-import "./globals.css"; // ✅ THIS IS THE MISSING LINE
+import "./globals.css";
 import { Inter } from "next/font/google";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
   title: "Prosperity Hub",
-  description: "Discover and rent workspaces, parking, storage, and more across the U.S.",
+  description:
+    "Discover and rent workspaces, parking, storage, and more across the U.S.",
 };
 
 export default function RootLayout({
@@ -45,13 +46,8 @@ export default function RootLayout({
           </nav>
         </header>
 
+        {/* Main Page Content */}
         <main className="container mx-auto px-6 py-8">{children}</main>
-
-        <footer className="bg-[#0f172a] text-gray-300 text-center py-6 mt-10">
-          <p className="text-sm">
-            © {new Date().getFullYear()} Prosperity Hub. All rights reserved.
-          </p>
-        </footer>
       </body>
     </html>
   );
