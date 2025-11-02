@@ -104,7 +104,7 @@ export default function Home() {
     <main className="min-h-screen bg-gradient-to-br from-amber-50 via-yellow-50 to-amber-100 py-10 px-4 sm:px-8 lg:px-16">
       <div className="max-w-5xl mx-auto bg-white/90 backdrop-blur-md rounded-2xl shadow-2xl p-6 md:p-10 border border-amber-200">
 
-        {/* 🌐 Brand Intro (Option B) */}
+        {/* 🌐 Brand Intro (Option B, Gold Title + Plain Tagline) */}
         <h1 className="text-center text-5xl font-extrabold mb-2">
           <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-600 via-yellow-500 to-amber-700 drop-shadow-md">
             Dynamic Excess Capacity Sharing
@@ -113,13 +113,6 @@ export default function Home() {
         <p className="text-center text-gray-700 text-lg mb-8">
           Manage & Explore Listings that unlock hidden potential.
         </p>
-
-        {/* Existing Heading */}
-        <h1 className="text-center text-5xl font-extrabold mb-8">
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-600 via-yellow-500 to-amber-700 drop-shadow-md">
-            Manage & Explore Listings
-          </span>
-        </h1>
 
         {/* Add Listing Form */}
         <form
