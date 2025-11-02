@@ -18,7 +18,7 @@ export default function BookPage() {
       const { data, error } = await supabase
         .from("listings")
         .select("*")
-        .eq("id", id)
+        .eq("id", String(id)) // ✅ FIX: ensure 'id' is always treated as a string
         .single();
 
       if (error) {
@@ -55,17 +55,70 @@ export default function BookPage() {
         <h1 className="text-3xl font-extrabold text-amber-700 mb-3">
           {listing.title}
         </h1>
-        <p className="text-gray-600 mb-2">{listing.description || "No description."}</p>
+
+        <p className="text-gray-600 mb-2">
+          {listing.description || "No description."}
+        </p>
+
         <p className="text-gray-800 font-semibold mb-4">
           Location: {listing.city ? `${listing.city}, ${listing.state}` : "Unknown"}
         </p>
+
         <p className="text-green-600 text-2xl font-bold mb-6">
-          ${listing.basePrice}
+          ${listing.baseprice}
         </p>
+
+        {/* ——— Pickup & Contact Details ——— */}
+        <div className="mt-6 p-5 rounded-xl border border-amber-200 bg-amber-50/60 text-left">
+          <h2 className="text-lg font-semibold text-amber-700 mb-2">
+            Pickup & Contact
+          </h2>
+
+          <div className="space-y-1 text-gray-700">
+            <p>
+              <span className="font-medium">Address:</span>{" "}
+              {listing.address_line1
+                ? `${listing.address_line1}${
+                    listing.address_line2 ? ", " + listing.address_line2 : ""
+                  }`
+                : "—"}
+            </p>
+
+            <p>
+              <span className="font-medium">City/State/Zip:</span>{" "}
+              {listing.city || listing.state || listing.zip
+                ? `${listing.city || ""}${
+                    listing.state ? ", " + listing.state : ""
+                  }${listing.zip ? " " + listing.zip : ""}`
+                : "—"}
+            </p>
+
+            <p>
+              <span className="font-medium">Contact:</span>{" "}
+              {listing.contact_name || "—"}
+            </p>
+
+            <p>
+              <span className="font-medium">Phone:</span>{" "}
+              {listing.contact_phone || "—"}
+            </p>
+
+            <p>
+              <span className="font-medium">Email:</span>{" "}
+              {listing.contact_email || "—"}
+            </p>
+
+            <p className="mt-2">
+              <span className="font-medium">Instructions:</span>
+              <br />
+              {listing.pickup_instru || "—"}
+            </p>
+          </div>
+        </div>
 
         <Link
           href={`/checkout?listing_id=${listing.id}`}
-          className="bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold px-6 py-3 rounded-lg shadow-lg hover:scale-105 hover:from-green-600 hover:to-emerald-700 transition-all"
+          className="block mt-8 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold px-6 py-3 rounded-lg shadow-lg hover:scale-105 hover:from-green-600 hover:to-emerald-700 transition-all text-center"
         >
           Proceed to Checkout
         </Link>

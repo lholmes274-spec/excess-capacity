@@ -10,14 +10,20 @@ export default function Home() {
     title: "",
     description: "",
     location: "",
-    basePrice: "",
+    baseprice: "",
     type: "",
     state: "",
     city: "",
     zip: "",
+    address_line1: "",
+    address_line2: "",
+    contact_name: "",
+    contact_phone: "",
+    contact_email: "",
+    pickup_instru: "",
   });
 
-  // Fetch all listings
+  // ✅ Fetch all listings
   async function fetchListings() {
     const { data, error } = await supabase
       .from("listings")
@@ -30,40 +36,72 @@ export default function Home() {
     fetchListings();
   }, []);
 
-  // Add new listing
-  async function addListing(e: React.FormEvent) {
+  // ✅ Add new listing (Auth-ready)
+  async function addListing(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!form.title || !form.basePrice) return alert("Please fill required fields");
 
-    const { error } = await supabase.from("listings").insert([
-      {
-        title: form.title,
-        description: form.description,
-        location: form.location,
-        basePrice: form.basePrice,
-        type: form.type,
-        state: form.state,
-        city: form.city,
-        zip: form.zip,
-      },
-    ]);
+    if (!form.title || !form.baseprice) {
+      return alert("Please fill required fields");
+    }
 
-    if (error) {
-      alert("❌ Error adding listing");
-      console.error(error);
-    } else {
-      alert("✅ Listing added successfully!");
-      setForm({
-        title: "",
-        description: "",
-        location: "",
-        basePrice: "",
-        type: "",
-        state: "",
-        city: "",
-        zip: "",
-      });
-      fetchListings();
+    try {
+      // 👇 Get the logged-in user (if Supabase Auth is active)
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData?.user;
+
+      // ✅ C) Insert new fields into Supabase
+      const { error } = await supabase.from("listings").insert([
+        {
+          title: form.title,
+          description: form.description,
+          location: form.location,
+          baseprice: Number(form.baseprice),
+          type: form.type,
+          state: form.state,
+          city: form.city,
+          zip: form.zip,
+
+          // ✅ NEW FIELDS
+          address_line1: form.address_line1,
+          address_line2: form.address_line2,
+          contact_name: form.contact_name,
+          contact_phone: form.contact_phone,
+          contact_email: form.contact_email,
+          pickup_instru: form.pickup_instru,
+
+          owner_id: user?.id || null,
+        },
+      ]);
+
+      if (error) {
+        console.error("❌ Error adding listing:", error);
+        alert("❌ Error adding listing. Please try again.");
+      } else {
+        alert("✅ Listing added successfully!");
+
+        // ✅ D) Reset the form (include new keys)
+        setForm({
+          title: "",
+          description: "",
+          location: "",
+          baseprice: "",
+          type: "",
+          state: "",
+          city: "",
+          zip: "",
+          address_line1: "",
+          address_line2: "",
+          contact_name: "",
+          contact_phone: "",
+          contact_email: "",
+          pickup_instru: "",
+        });
+
+        fetchListings();
+      }
+    } catch (err: any) {
+      console.error("⚠️ Unexpected error:", err);
+      alert("⚠️ Something went wrong while adding your listing.");
     }
   }
 
@@ -81,22 +119,133 @@ export default function Home() {
           onSubmit={addListing}
           className="grid grid-cols-1 md:grid-cols-2 gap-5 bg-gradient-to-br from-amber-50 to-yellow-100 rounded-xl p-6 border border-amber-200 shadow-inner mb-10"
         >
-          {Object.keys(form).map((key) => (
-            <input
-              key={key}
-              type="text"
-              placeholder={
-                key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, " $1")
-              }
-              value={(form as any)[key]}
-              onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-              className="p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-400 shadow-sm hover:shadow-md transition-all"
-            />
-          ))}
+          {/* ——— Basic Listing Info ——— */}
+          <input
+            type="text"
+            placeholder="Title"
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
+          />
+          <input
+            type="text"
+            placeholder="Location"
+            value={form.location}
+            onChange={(e) => setForm({ ...form, location: e.target.value })}
+            className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
+          />
+          <input
+            type="text"
+            placeholder="Base Price"
+            value={form.baseprice}
+            onChange={(e) => setForm({ ...form, baseprice: e.target.value })}
+            className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
+          />
+          <input
+            type="text"
+            placeholder="Type"
+            value={form.type}
+            onChange={(e) => setForm({ ...form, type: e.target.value })}
+            className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
+          />
+          <input
+            type="text"
+            placeholder="State"
+            value={form.state}
+            onChange={(e) => setForm({ ...form, state: e.target.value })}
+            className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
+          />
+          <input
+            type="text"
+            placeholder="City"
+            value={form.city}
+            onChange={(e) => setForm({ ...form, city: e.target.value })}
+            className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
+          />
+          <input
+            type="text"
+            placeholder="Zip Code"
+            value={form.zip}
+            onChange={(e) => setForm({ ...form, zip: e.target.value })}
+            className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
+          />
+
+          <textarea
+            placeholder="Description"
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm md:col-span-2 min-h-[100px]"
+          />
+
+          {/* ——— Pickup & Contact (New Section) ——— */}
+          <div className="md:col-span-2 mt-2 border-t border-amber-200 pt-4">
+            <h3 className="text-lg font-semibold text-amber-700 mb-3">
+              Pickup & Contact
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <input
+                type="text"
+                placeholder="Address Line 1"
+                value={form.address_line1}
+                onChange={(e) =>
+                  setForm({ ...form, address_line1: e.target.value })
+                }
+                className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
+              />
+              <input
+                type="text"
+                placeholder="Address Line 2 (optional)"
+                value={form.address_line2}
+                onChange={(e) =>
+                  setForm({ ...form, address_line2: e.target.value })
+                }
+                className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
+              />
+
+              <input
+                type="text"
+                placeholder="Contact Name"
+                value={form.contact_name}
+                onChange={(e) =>
+                  setForm({ ...form, contact_name: e.target.value })
+                }
+                className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
+              />
+              <input
+                type="text"
+                placeholder="Contact Phone"
+                value={form.contact_phone}
+                onChange={(e) =>
+                  setForm({ ...form, contact_phone: e.target.value })
+                }
+                className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
+              />
+
+              <input
+                type="email"
+                placeholder="Contact Email"
+                value={form.contact_email}
+                onChange={(e) =>
+                  setForm({ ...form, contact_email: e.target.value })
+                }
+                className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
+              />
+
+              <textarea
+                placeholder="Pickup Instructions (e.g., gate code, hours, where to park)"
+                value={form.pickup_instru}
+                onChange={(e) =>
+                  setForm({ ...form, pickup_instru: e.target.value })
+                }
+                className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm md:col-span-2 min-h-[100px]"
+              />
+            </div>
+          </div>
 
           <button
             type="submit"
-            className="col-span-1 md:col-span-2 bg-gradient-to-r from-amber-500 to-yellow-600 text-white font-semibold py-3 rounded-lg shadow-lg hover:shadow-2xl hover:from-amber-600 hover:to-yellow-700 transition-all duration-300"
+            className="col-span-1 md:col-span-2 bg-gradient-to-r from-amber-500 to-yellow-600 text-white font-semibold py-3 rounded-lg shadow-lg hover:shadow-2xl hover:from-amber-600 hover:to-yellow-700 transition-all duration-300 mt-4"
           >
             Add Listing
           </button>
@@ -123,10 +272,13 @@ export default function Home() {
                     {listing.title}
                   </h3>
                   <p className="text-sm text-gray-600 mb-1">
-                    📍 {listing.city ? `${listing.city}, ${listing.state}` : "Unknown"}
+                    📍{" "}
+                    {listing.city
+                      ? `${listing.city}, ${listing.state}`
+                      : "Unknown"}
                   </p>
                   <p className="text-lg text-green-600 font-semibold">
-                    ${listing.basePrice}
+                    ${listing.baseprice}
                   </p>
                 </div>
 
