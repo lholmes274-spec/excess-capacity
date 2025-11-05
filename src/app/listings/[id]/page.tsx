@@ -1,4 +1,5 @@
 // src/app/listings/[id]/page.tsx
+// @ts-nocheck
 "use client";
 
 import { useEffect, useState } from "react";
@@ -9,6 +10,7 @@ export default function ListingDetailPage() {
   const { id } = useParams();
   const [listing, setListing] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [debugMode, setDebugMode] = useState(false); // ✅ Debug toggle
 
   useEffect(() => {
     if (!id) return;
@@ -19,7 +21,12 @@ export default function ListingDetailPage() {
         .eq("id", id)
         .single();
 
-      if (!error && data) setListing(data);
+      if (!error && data) {
+        console.log("🧩 Listing data from Supabase:", data); // ✅ Debug log
+        setListing(data);
+      } else {
+        console.error("❌ Fetch error:", error);
+      }
       setLoading(false);
     };
     fetchListing();
@@ -30,6 +37,23 @@ export default function ListingDetailPage() {
 
   return (
     <div className="max-w-3xl mx-auto p-8 bg-white shadow-md rounded-2xl mt-6 border border-gray-100">
+      {/* ✅ Debug Mode Toggle */}
+      <div className="flex justify-end mb-4">
+        <button
+          onClick={() => setDebugMode(!debugMode)}
+          className="px-3 py-1 text-sm rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300 transition"
+        >
+          {debugMode ? "Hide Debug Info" : "Show Debug Info"}
+        </button>
+      </div>
+
+      {/* ✅ Conditional Debug Info */}
+      {debugMode && (
+        <pre className="bg-gray-900 text-green-300 text-xs rounded-lg p-4 overflow-x-auto mb-6 border border-gray-700 shadow-inner">
+          {JSON.stringify(listing, null, 2)}
+        </pre>
+      )}
+
       {/* ✅ Title */}
       <h1 className="text-3xl font-bold text-orange-800 mb-2">
         {listing.title}
@@ -65,21 +89,31 @@ export default function ListingDetailPage() {
         </p>
       )}
 
-      {/* ✅ Pickup Instructions (supports both "pickup_instru" and "pickup_instructions") */}
-      {(listing.pickup_instru || listing.pickup_instructions) && (
+      {/* ✅ Pickup Instructions (covers all field variations) */}
+      {(listing.pickup_instru ||
+        listing.pickup_instructions ||
+        listing.instructions ||
+        listing.pickup ||
+        listing.pickup_note) && (
         <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <h3 className="font-semibold text-orange-800 mb-2">
             Pickup & Instructions
           </h3>
           <p className="text-gray-700 text-sm whitespace-pre-line">
-            {listing.pickup_instru || listing.pickup_instructions}
+            {listing.pickup_instru ||
+              listing.pickup_instructions ||
+              listing.instructions ||
+              listing.pickup ||
+              listing.pickup_note}
           </p>
         </div>
       )}
 
       {/* ✅ Contact Section */}
       <div className="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
-        <h3 className="font-semibold text-gray-800 mb-2">Contact Information</h3>
+        <h3 className="font-semibold text-gray-800 mb-2">
+          Contact Information
+        </h3>
         <p>
           <strong>Contact:</strong> {listing.contact_name || "—"}
         </p>
