@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -7,6 +8,7 @@ type Listing = {
   title: string;
   location?: string | null;
   basePrice?: number | null;
+  price?: number | null;
   units?: number | null;
   created_at?: string | null;
 };
@@ -29,7 +31,7 @@ export default function AdminPage() {
   const LOGOUT_TIMEOUT = 60 * 60 * 1000; // 1 hour
   let logoutTimer: NodeJS.Timeout | null = null;
 
-  // 🔐 Load admin code and session
+  // ✅ Mount setup
   useEffect(() => {
     setMounted(true);
     const envCode = process.env.NEXT_PUBLIC_ADMIN_CODE ?? "";
@@ -41,20 +43,26 @@ export default function AdminPage() {
 
     if (authFlag === "true" && lastLogin) {
       const elapsed = Date.now() - parseInt(lastLogin, 10);
-      if (elapsed < LOGOUT_TIMEOUT) setAuthorized(true);
+      if (elapsed < LOGOUT_TIMEOUT) {
+        setAuthorized(true);
+      } else {
+        localStorage.removeItem("adminAuthorized");
+        localStorage.removeItem("adminLastLogin");
+      }
     }
   }, []);
 
-  // 🧾 Fetch listings
+  // ✅ Fetch listings
   useEffect(() => {
     if (!authorized) return;
 
-    async function fetchListings() {
+    const fetchListings = async () => {
       try {
         const { data, error } = await supabase
           .from("listings")
           .select("*")
           .order("created_at", { ascending: false });
+
         if (error) throw error;
         setListings(data || []);
       } catch (err: any) {
@@ -63,12 +71,12 @@ export default function AdminPage() {
       } finally {
         setLoading(false);
       }
-    }
+    };
 
     fetchListings();
   }, [authorized]);
 
-  // 🔒 Lock Screen
+  // 🔒 Lock screen before auth
   if (!mounted)
     return (
       <div className="min-h-screen flex justify-center items-center text-gray-600">
@@ -83,7 +91,7 @@ export default function AdminPage() {
           Admin Access Restricted
         </h1>
         <p className="text-gray-600 mb-6">
-          Enter your secure access code to continue.
+          Please enter your secure access code to continue.
         </p>
         <input
           type="password"
@@ -112,7 +120,68 @@ export default function AdminPage() {
       </div>
     );
 
-  // 🗑 Delete Listing
+  // ✅ Edit setup
+  const handleEdit = (listing: Listing) => {
+    setEditingId(listing.id);
+    const numericPrice = listing.basePrice ?? listing.price ?? 0;
+    setEditData({
+      title: listing.title,
+      location: listing.location || "",
+      basePrice: numericPrice,
+      price: numericPrice,
+      units: listing.units ?? 1,
+    });
+    setPriceInput(`$${numericPrice.toFixed(2)}`);
+  };
+
+  const handleChange = (field: keyof Listing, value: any) => {
+    setEditData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleCancel = () => {
+    setEditingId(null);
+    setEditData({});
+    setPriceInput("");
+  };
+
+  // ✅ Save updates (sync basePrice + price)
+  const handleSave = async (id: string) => {
+    setSaving(true);
+    try {
+      const numericPrice = parseFloat(priceInput.replace(/[^0-9.]/g, "")) || 0;
+
+      const updatePayload = {
+        title: editData.title,
+        location: editData.location,
+        basePrice: numericPrice,
+        price: numericPrice,
+        units: editData.units ?? 1,
+      };
+
+      const { error } = await supabase
+        .from("listings")
+        .update(updatePayload)
+        .eq("id", id);
+
+      if (error) throw error;
+
+      setListings((prev) =>
+        prev.map((l) =>
+          l.id === id ? ({ ...l, ...updatePayload } as Listing) : l
+        )
+      );
+
+      alert("✅ Listing updated successfully!");
+      handleCancel();
+    } catch (err: any) {
+      console.error("❌ Save error:", err.message);
+      alert("Failed to update listing: " + err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // ✅ Delete listing
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this listing?")) return;
     setDeleting(id);
@@ -120,66 +189,15 @@ export default function AdminPage() {
       const { error } = await supabase.from("listings").delete().eq("id", id);
       if (error) throw error;
       setListings((prev) => prev.filter((l) => l.id !== id));
-      alert("✅ Listing deleted!");
+      alert("Listing deleted successfully!");
     } catch (err: any) {
-      alert("❌ Delete failed: " + err.message);
+      console.error("❌ Delete error:", err.message);
+      alert("Failed to delete listing.");
     } finally {
       setDeleting(null);
     }
   };
 
-  // ✏️ Edit Listing
-  const handleEdit = (l: Listing) => {
-    setEditingId(l.id);
-    setEditData({
-      title: l.title,
-      location: l.location,
-      basePrice: l.basePrice ?? 0,
-      units: l.units ?? 1,
-    });
-    setPriceInput(`$${(l.basePrice ?? 0).toFixed(2)}`);
-  };
-
-  const handleSave = async (id: string) => {
-    setSaving(true);
-    try {
-      const numericPrice = parseFloat(priceInput.replace(/[^0-9.]/g, "")) || 0;
-
-      const { error } = await supabase
-        .from("listings")
-        .update({
-          title: editData.title,
-          location: editData.location,
-          basePrice: numericPrice,
-          units: editData.units ?? 1,
-        })
-        .eq("id", id);
-
-      if (error) throw error;
-
-      setListings((prev) =>
-        prev.map((l) =>
-          l.id === id
-            ? { ...l, ...editData, basePrice: numericPrice }
-            : l
-        )
-      );
-
-      alert("✅ Listing updated successfully!");
-      setEditingId(null);
-    } catch (err: any) {
-      alert("❌ Save failed: " + err.message);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // 💰 Price Handling
-  const handlePriceChange = (value: string) => {
-    setPriceInput(value);
-  };
-
-  // 🖥️ Dashboard Table
   if (loading)
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -229,16 +247,14 @@ export default function AdminPage() {
             </thead>
             <tbody>
               {listings.map((l) => (
-                <tr key={l.id} className="border-t hover:bg-gray-50 transition">
+                <tr key={l.id} className="border-t hover:bg-gray-50 transition-colors">
                   {editingId === l.id ? (
                     <>
                       <td className="p-2">
                         <input
                           type="text"
                           value={editData.title || ""}
-                          onChange={(e) =>
-                            setEditData({ ...editData, title: e.target.value })
-                          }
+                          onChange={(e) => handleChange("title", e.target.value)}
                           className="border rounded p-1 w-full"
                         />
                       </td>
@@ -246,9 +262,7 @@ export default function AdminPage() {
                         <input
                           type="text"
                           value={editData.location || ""}
-                          onChange={(e) =>
-                            setEditData({ ...editData, location: e.target.value })
-                          }
+                          onChange={(e) => handleChange("location", e.target.value)}
                           className="border rounded p-1 w-full"
                         />
                       </td>
@@ -256,7 +270,7 @@ export default function AdminPage() {
                         <input
                           type="text"
                           value={priceInput}
-                          onChange={(e) => handlePriceChange(e.target.value)}
+                          onChange={(e) => setPriceInput(e.target.value)}
                           placeholder="$0.00"
                           className="border rounded p-1 w-full text-right"
                         />
@@ -264,21 +278,16 @@ export default function AdminPage() {
                       <td className="p-2">
                         <input
                           type="number"
-                          min={1}
                           value={editData.units ?? 1}
+                          min={1}
                           onChange={(e) =>
-                            setEditData({
-                              ...editData,
-                              units: Number(e.target.value),
-                            })
+                            handleChange("units", Number(e.target.value))
                           }
                           className="border rounded p-1 w-full text-right"
                         />
                       </td>
                       <td className="p-2">
-                        {l.created_at
-                          ? new Date(l.created_at).toLocaleString()
-                          : "—"}
+                        {l.created_at ? new Date(l.created_at).toLocaleString() : "—"}
                       </td>
                       <td className="p-2 flex gap-2">
                         <button
@@ -289,7 +298,7 @@ export default function AdminPage() {
                           {saving ? "Saving..." : "Save"}
                         </button>
                         <button
-                          onClick={() => setEditingId(null)}
+                          onClick={handleCancel}
                           className="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500"
                         >
                           Cancel
@@ -300,12 +309,10 @@ export default function AdminPage() {
                     <>
                       <td className="p-2">{l.title}</td>
                       <td className="p-2">{l.location || "—"}</td>
-                      <td className="p-2">${Number(l.basePrice ?? 0).toFixed(2)}</td>
+                      <td className="p-2">${Number(l.basePrice ?? l.price ?? 0).toFixed(2)}</td>
                       <td className="p-2">{l.units ?? 1}</td>
                       <td className="p-2">
-                        {l.created_at
-                          ? new Date(l.created_at).toLocaleString()
-                          : "—"}
+                        {l.created_at ? new Date(l.created_at).toLocaleString() : "—"}
                       </td>
                       <td className="p-2 flex gap-2">
                         <button
