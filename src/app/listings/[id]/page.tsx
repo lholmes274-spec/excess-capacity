@@ -10,16 +10,8 @@ export default function ListingDetailPage() {
   const { id } = useParams();
   const [listing, setListing] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [debugMode, setDebugMode] = useState(false); // ✅ Debug toggle
-  const [isAdmin, setIsAdmin] = useState(false); // ✅ Admin visibility flag
 
   useEffect(() => {
-    // ✅ Check admin access from localStorage or env variable
-    const adminAuthorized =
-      localStorage.getItem("adminAuthorized") === "true" ||
-      process.env.NEXT_PUBLIC_ADMIN_CODE === "VoyageAccess2025!";
-    setIsAdmin(adminAuthorized);
-
     if (!id) return;
     const fetchListing = async () => {
       const { data, error } = await supabase
@@ -28,12 +20,7 @@ export default function ListingDetailPage() {
         .eq("id", id)
         .single();
 
-      if (!error && data) {
-        console.log("🧩 Listing data from Supabase:", data); // Debug log
-        setListing(data);
-      } else {
-        console.error("❌ Fetch error:", error);
-      }
+      if (!error && data) setListing(data);
       setLoading(false);
     };
     fetchListing();
@@ -46,26 +33,6 @@ export default function ListingDetailPage() {
 
   return (
     <div className="max-w-3xl mx-auto p-8 bg-white shadow-md rounded-2xl mt-6 border border-gray-100">
-      {/* ✅ Admin-Only Debug Mode */}
-      {isAdmin && (
-        <>
-          <div className="flex justify-end mb-4">
-            <button
-              onClick={() => setDebugMode(!debugMode)}
-              className="px-3 py-1 text-sm rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300 transition"
-            >
-              {debugMode ? "Hide Debug Info" : "Show Debug Info"}
-            </button>
-          </div>
-
-          {debugMode && (
-            <pre className="bg-gray-900 text-green-300 text-xs rounded-lg p-4 overflow-x-auto mb-6 border border-gray-700 shadow-inner">
-              {JSON.stringify(listing, null, 2)}
-            </pre>
-          )}
-        </>
-      )}
-
       {/* ✅ Title */}
       <h1 className="text-3xl font-bold text-orange-800 mb-2">
         {listing.title}
@@ -83,7 +50,7 @@ export default function ListingDetailPage() {
         </p>
       )}
 
-      {/* ✅ Dynamic Price Section */}
+      {/* ✅ Dynamic Price */}
       {listing.basePrice && (
         <p className="text-2xl font-semibold text-green-700 mt-2">
           ${listing.basePrice}
@@ -97,8 +64,6 @@ export default function ListingDetailPage() {
               ? "per month"
               : listing.type?.toLowerCase() === "vehicle"
               ? "per day"
-              : listing.duration
-              ? listing.duration
               : "per unit"}
           </span>
         </p>
@@ -131,7 +96,7 @@ export default function ListingDetailPage() {
         </div>
       )}
 
-      {/* ✅ Contact Section */}
+      {/* ✅ Contact */}
       <div className="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
         <h3 className="font-semibold text-gray-800 mb-2">
           Contact Information
