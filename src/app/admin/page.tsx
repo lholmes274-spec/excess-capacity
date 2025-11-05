@@ -141,7 +141,7 @@ export default function AdminPage() {
     setPriceInput("");
   };
 
-  // ✅ Save updates — fixes Supabase "basePrice" case issue
+  // ✅ Save updates
   const handleSave = async (id: string) => {
     setSaving(true);
     try {
@@ -150,7 +150,7 @@ export default function AdminPage() {
       const updatePayload = {
         title: editData.title,
         location: editData.location,
-        ["basePrice"]: numericPrice, // ✅ Force case-sensitive key
+        ["basePrice"]: numericPrice,
         units: editData.units ?? 1,
       };
 
@@ -161,7 +161,6 @@ export default function AdminPage() {
 
       if (error) throw error;
 
-      // Update local list immediately
       setListings((prev) =>
         prev.map((l) =>
           l.id === id
@@ -186,18 +185,34 @@ export default function AdminPage() {
     }
   };
 
-  // ✅ Delete listing
+  // ✅ Delete listing (FIXED)
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this listing?")) return;
     setDeleting(id);
     try {
       const { error } = await supabase.from("listings").delete().eq("id", id);
-      if (error) throw error;
-      setListings((prev) => prev.filter((l) => l.id !== id));
-      alert("Listing deleted successfully!");
+
+      if (error) {
+        console.error("❌ Delete failed:", error.message);
+        alert("Failed to delete listing: " + error.message);
+        return;
+      }
+
+      // 🔁 Double-check that deletion persisted
+      const { data: verify } = await supabase
+        .from("listings")
+        .select("id")
+        .eq("id", id);
+
+      if (verify && verify.length > 0) {
+        alert("⚠️ Deletion may not have persisted (check Supabase RLS rules).");
+      } else {
+        setListings((prev) => prev.filter((l) => l.id !== id));
+        alert("✅ Listing deleted successfully!");
+      }
     } catch (err: any) {
       console.error("❌ Delete error:", err.message);
-      alert("Failed to delete listing.");
+      alert("Failed to delete listing: " + err.message);
     } finally {
       setDeleting(null);
     }
