@@ -71,13 +71,23 @@ export default function ListingDetailPage() {
         </p>
       )}
 
-      {/* ✅ Price Section */}
+      {/* ✅ Dynamic Price Section */}
       {listing.basePrice && (
         <p className="text-2xl font-semibold text-green-700 mt-2">
           ${listing.basePrice}
           <span className="text-base font-normal text-gray-600">
             {" "}
-            {listing.duration ? listing.duration : "per unit"}
+            {listing.type?.toLowerCase() === "service"
+              ? "per hour"
+              : listing.type?.toLowerCase() === "housing"
+              ? "per night"
+              : listing.type?.toLowerCase() === "storage"
+              ? "per month"
+              : listing.type?.toLowerCase() === "vehicle"
+              ? "per day"
+              : listing.duration
+              ? listing.duration
+              : "per unit"}
           </span>
         </p>
       )}
