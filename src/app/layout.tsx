@@ -4,7 +4,7 @@ import { Inter } from "next/font/google";
 
 const inter = Inter({ subsets: ["latin"] });
 
-// ✅ Updated metadata for SEO + OpenGraph + Twitter
+// ✅ Complete SEO + Social Media Metadata
 export const metadata = {
   title: "Prosperity Hub",
   description:
@@ -17,10 +17,11 @@ export const metadata = {
     siteName: "ProsperityHub.app",
     images: [
       {
-        url: "https://prosperityhub.app/og-image.jpg", // ✅ replace if you have your own image
-        width: 1200,
+        url: "https://prosperityhub.app/og-image.jpg",
+        width: 1200, // ✅ Fixes 'processed asynchronously' warning
         height: 630,
         alt: "Prosperity Hub platform preview",
+        type: "image/jpeg",
       },
     ],
     locale: "en_US",
