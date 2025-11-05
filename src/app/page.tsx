@@ -20,7 +20,7 @@ export default function Home() {
     contact_name: "",
     contact_phone: "",
     contact_email: "",
-    pickup_instru: "",
+    pickup_instructions: "", // ✅ updated name
   });
 
   // ✅ Fetch all listings
@@ -53,7 +53,7 @@ export default function Home() {
           title: form.title,
           description: form.description,
           location: form.location,
-          basePrice: Number(form.baseprice), // ✅ Fixed field name
+          basePrice: Number(form.baseprice), // ✅ keep basePrice (camelCase)
           type: form.type,
           state: form.state,
           city: form.city,
@@ -65,7 +65,7 @@ export default function Home() {
           contact_name: form.contact_name,
           contact_phone: form.contact_phone,
           contact_email: form.contact_email,
-          pickup_instru: form.pickup_instru,
+          pickup_instructions: form.pickup_instructions, // ✅ updated field here
 
           owner_id: user?.id || null,
         },
@@ -90,7 +90,7 @@ export default function Home() {
           contact_name: "",
           contact_phone: "",
           contact_email: "",
-          pickup_instru: "",
+          pickup_instructions: "", // ✅ reset updated name
         });
         fetchListings();
       }
@@ -232,9 +232,9 @@ export default function Home() {
               />
               <textarea
                 placeholder="Pickup Instructions (e.g., gate code, hours, where to park)"
-                value={form.pickup_instru}
+                value={form.pickup_instructions}
                 onChange={(e) =>
-                  setForm({ ...form, pickup_instru: e.target.value })
+                  setForm({ ...form, pickup_instructions: e.target.value })
                 }
                 className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm md:col-span-2 min-h-[100px]"
               />
