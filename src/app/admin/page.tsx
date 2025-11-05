@@ -142,7 +142,7 @@ export default function AdminPage() {
     setPriceInput("");
   };
 
-  // ✅ Save updates (only use basePrice)
+  // ✅ Save updates (case-sensitive "basePrice")
   const handleSave = async (id: string) => {
     setSaving(true);
     try {
@@ -151,7 +151,7 @@ export default function AdminPage() {
       const updatePayload = {
         title: editData.title,
         location: editData.location,
-        basePrice: numericPrice,
+        "basePrice": numericPrice, // ✅ Correct case-sensitive key
         units: editData.units ?? 1,
       };
 
