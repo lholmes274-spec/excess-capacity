@@ -255,8 +255,9 @@ export default function Home() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {listings.map((listing) => (
-              <div
+              <Link
                 key={listing.id}
+                href={`/listings/${listing.id}`}
                 className="bg-white rounded-xl border border-amber-200 shadow-md hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 p-6 flex flex-col justify-between"
               >
                 <div>
@@ -280,7 +281,7 @@ export default function Home() {
                 >
                   Book Now
                 </Link>
-              </div>
+              </Link>
             ))}
           </div>
         )}
