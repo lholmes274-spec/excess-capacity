@@ -28,7 +28,6 @@ export default function AdminPage() {
   const [priceInput, setPriceInput] = useState<string>("");
 
   const LOGOUT_TIMEOUT = 60 * 60 * 1000; // 1 hour
-  let logoutTimer: NodeJS.Timeout | null = null;
 
   // ✅ Mount setup
   useEffect(() => {
@@ -142,7 +141,7 @@ export default function AdminPage() {
     setPriceInput("");
   };
 
-  // ✅ Save updates (case-sensitive "basePrice")
+  // ✅ Save updates — fixes Supabase "basePrice" case issue
   const handleSave = async (id: string) => {
     setSaving(true);
     try {
@@ -151,7 +150,7 @@ export default function AdminPage() {
       const updatePayload = {
         title: editData.title,
         location: editData.location,
-        "basePrice": numericPrice, // ✅ Correct case-sensitive key
+        ["basePrice"]: numericPrice, // ✅ Force case-sensitive key
         units: editData.units ?? 1,
       };
 
@@ -162,9 +161,18 @@ export default function AdminPage() {
 
       if (error) throw error;
 
+      // Update local list immediately
       setListings((prev) =>
         prev.map((l) =>
-          l.id === id ? ({ ...l, ...updatePayload } as Listing) : l
+          l.id === id
+            ? ({
+                ...l,
+                title: editData.title,
+                location: editData.location,
+                basePrice: numericPrice,
+                units: editData.units ?? 1,
+              } as Listing)
+            : l
         )
       );
 
