@@ -53,7 +53,7 @@ export default function Home() {
           title: form.title,
           description: form.description,
           location: form.location,
-          baseprice: Number(form.baseprice),
+          basePrice: Number(form.baseprice), // ✅ Fixed field name
           type: form.type,
           state: form.state,
           city: form.city,
@@ -104,7 +104,7 @@ export default function Home() {
     <main className="min-h-screen bg-gradient-to-br from-amber-50 via-yellow-50 to-amber-100 py-10 px-4 sm:px-8 lg:px-16">
       <div className="max-w-5xl mx-auto bg-white/90 backdrop-blur-md rounded-2xl shadow-2xl p-6 md:p-10 border border-amber-200">
 
-        {/* 🌐 Brand Intro (Option B, Gold Title + Plain Tagline) */}
+        {/* 🌐 Brand Intro */}
         <h1 className="text-center text-5xl font-extrabold mb-2">
           <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-600 via-yellow-500 to-amber-700 drop-shadow-md">
             Dynamic Excess Capacity Sharing
@@ -177,7 +177,7 @@ export default function Home() {
             className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm md:col-span-2 min-h-[100px]"
           />
 
-          {/* ——— Pickup & Contact (New Section) ——— */}
+          {/* ——— Pickup & Contact Section ——— */}
           <div className="md:col-span-2 mt-2 border-t border-amber-200 pt-4">
             <h3 className="text-lg font-semibold text-amber-700 mb-3">
               Pickup & Contact
@@ -276,7 +276,7 @@ export default function Home() {
                       : "Unknown"}
                   </p>
                   <p className="text-lg text-green-600 font-semibold">
-                    ${listing.baseprice}
+                    ${listing.basePrice} {/* ✅ Fixed here */}
                   </p>
                 </div>
 
