@@ -20,7 +20,7 @@ export default function Home() {
     contact_name: "",
     contact_phone: "",
     contact_email: "",
-    pickup_instructions: "", // ✅ updated name
+    pickup_instru: "",
   });
 
   // ✅ Fetch all listings
@@ -53,20 +53,17 @@ export default function Home() {
           title: form.title,
           description: form.description,
           location: form.location,
-          basePrice: Number(form.baseprice), // ✅ keep basePrice (camelCase)
+          basePrice: Number(form.baseprice),
           type: form.type,
           state: form.state,
           city: form.city,
           zip: form.zip,
-
-          // ✅ NEW FIELDS
           address_line1: form.address_line1,
           address_line2: form.address_line2,
           contact_name: form.contact_name,
           contact_phone: form.contact_phone,
           contact_email: form.contact_email,
-          pickup_instructions: form.pickup_instructions, // ✅ updated field here
-
+          pickup_instru: form.pickup_instru,
           owner_id: user?.id || null,
         },
       ]);
@@ -90,7 +87,7 @@ export default function Home() {
           contact_name: "",
           contact_phone: "",
           contact_email: "",
-          pickup_instructions: "", // ✅ reset updated name
+          pickup_instru: "",
         });
         fetchListings();
       }
@@ -103,7 +100,6 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-amber-50 via-yellow-50 to-amber-100 py-10 px-4 sm:px-8 lg:px-16">
       <div className="max-w-5xl mx-auto bg-white/90 backdrop-blur-md rounded-2xl shadow-2xl p-6 md:p-10 border border-amber-200">
-
         {/* 🌐 Brand Intro */}
         <h1 className="text-center text-5xl font-extrabold mb-2">
           <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-600 via-yellow-500 to-amber-700 drop-shadow-md">
@@ -119,7 +115,6 @@ export default function Home() {
           onSubmit={addListing}
           className="grid grid-cols-1 md:grid-cols-2 gap-5 bg-gradient-to-br from-amber-50 to-yellow-100 rounded-xl p-6 border border-amber-200 shadow-inner mb-10"
         >
-          {/* ——— Basic Listing Info ——— */}
           <input
             type="text"
             placeholder="Title"
@@ -177,7 +172,7 @@ export default function Home() {
             className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm md:col-span-2 min-h-[100px]"
           />
 
-          {/* ——— Pickup & Contact Section ——— */}
+          {/* Pickup & Contact */}
           <div className="md:col-span-2 mt-2 border-t border-amber-200 pt-4">
             <h3 className="text-lg font-semibold text-amber-700 mb-3">
               Pickup & Contact
@@ -202,7 +197,6 @@ export default function Home() {
                 }
                 className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
               />
-
               <input
                 type="text"
                 placeholder="Contact Name"
@@ -232,9 +226,9 @@ export default function Home() {
               />
               <textarea
                 placeholder="Pickup Instructions (e.g., gate code, hours, where to park)"
-                value={form.pickup_instructions}
+                value={form.pickup_instru}
                 onChange={(e) =>
-                  setForm({ ...form, pickup_instructions: e.target.value })
+                  setForm({ ...form, pickup_instru: e.target.value })
                 }
                 className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm md:col-span-2 min-h-[100px]"
               />
@@ -249,7 +243,7 @@ export default function Home() {
           </button>
         </form>
 
-        {/* Available Listings */}
+        {/* Listings Section */}
         <h2 className="text-3xl font-bold mb-6 text-gray-800 text-center md:text-left">
           Available Listings
         </h2>
@@ -276,7 +270,7 @@ export default function Home() {
                       : "Unknown"}
                   </p>
                   <p className="text-lg text-green-600 font-semibold">
-                    ${listing.basePrice} {/* ✅ Fixed here */}
+                    ${listing.basePrice}
                   </p>
                 </div>
 
@@ -291,13 +285,7 @@ export default function Home() {
           </div>
         )}
       </div>
-
-      {/* Footer */}
-      <footer className="text-center mt-12 text-gray-600 text-sm">
-        © {new Date().getFullYear()}{" "}
-        <span className="font-semibold text-amber-600">ProsperityHub</span>. All
-        rights reserved.
-      </footer>
+      {/* 🚫 Removed gold footer — global blue footer will render automatically */}
     </main>
   );
 }
