@@ -82,9 +82,16 @@ export default function TermsPage() {
           </a>.
         </p>
 
+        {/* ✅ New paragraph for trust acknowledgment */}
+        <p className="text-gray-600 text-sm mt-10">
+          For legal and estate purposes, ProsperityHub.app is intended to be
+          assigned to the <strong>Prosperity Voyage Living Trust</strong> upon
+          its formal activation and registration.
+        </p>
+
+        {/* ✅ Footer note */}
         <p className="text-gray-500 text-sm mt-10 text-center">
-          © {new Date().getFullYear()} Prosperity Voyage Living Trust. 
-          All rights reserved.
+          © {new Date().getFullYear()} ProsperityHub.app. All rights reserved.
         </p>
       </div>
     </main>

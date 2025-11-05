@@ -18,6 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} bg-gray-50 text-gray-900`}>
+        {/* ——— Header ——— */}
         <header className="bg-[#0f172a] text-white shadow-sm">
           <nav className="container mx-auto flex justify-between items-center px-6 py-4">
             <h1 className="text-lg font-semibold">Prosperity Hub</h1>
@@ -46,8 +47,15 @@ export default function RootLayout({
           </nav>
         </header>
 
-        {/* Main Page Content */}
+        {/* ——— Page Content ——— */}
         <main className="container mx-auto px-6 py-8">{children}</main>
+
+        {/* ——— Global Footer (Same on all pages) ——— */}
+        <footer className="bg-[#0f172a] text-gray-300 text-center py-6 mt-10">
+          <p className="text-sm">
+            © {new Date().getFullYear()} ProsperityHub.app. All rights reserved.
+          </p>
+        </footer>
       </body>
     </html>
   );
