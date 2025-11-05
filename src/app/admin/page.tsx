@@ -12,13 +12,11 @@ type Listing = {
 };
 
 export default function AdminPage() {
-  // 🔒 Access + mount states
   const [mounted, setMounted] = useState(false);
   const [authorized, setAuthorized] = useState(false);
   const [code, setCode] = useState("");
   const [adminCode, setAdminCode] = useState<string>("");
 
-  // ✅ Dashboard data states
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,86 +26,35 @@ export default function AdminPage() {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [priceInput, setPriceInput] = useState<string>("");
 
-  // ✅ Auto logout timer (in ms)
-  const LOGOUT_TIMEOUT = 60 * 60 * 1000; // 1 hour = 3600000 ms
+  const LOGOUT_TIMEOUT = 60 * 60 * 1000; // 1 hour
   let logoutTimer: NodeJS.Timeout | null = null;
 
-  // ✅ Handle mount + load code
+  // 🔐 Load admin code and session
   useEffect(() => {
     setMounted(true);
-
-    // Try reading env variable (browser-safe)
     const envCode = process.env.NEXT_PUBLIC_ADMIN_CODE ?? "";
-    console.log("🔐 Loaded admin code:", envCode);
-
-    // Fallback if not injected (for production)
     const finalCode = envCode || "VoyageAccess2025!";
     setAdminCode(finalCode);
 
-    // Restore session if valid
     const authFlag = localStorage.getItem("adminAuthorized");
     const lastLogin = localStorage.getItem("adminLastLogin");
 
     if (authFlag === "true" && lastLogin) {
       const elapsed = Date.now() - parseInt(lastLogin, 10);
-      if (elapsed < LOGOUT_TIMEOUT) {
-        setAuthorized(true);
-      } else {
-        // Expired
-        localStorage.removeItem("adminAuthorized");
-        localStorage.removeItem("adminLastLogin");
-      }
+      if (elapsed < LOGOUT_TIMEOUT) setAuthorized(true);
     }
   }, []);
 
-  // ✅ Set up auto logout countdown
+  // 🧾 Fetch listings
   useEffect(() => {
     if (!authorized) return;
 
-    const setTimer = () => {
-      // Clear any existing timer
-      if (logoutTimer) clearTimeout(logoutTimer);
-
-      logoutTimer = setTimeout(() => {
-        alert("Session expired — you’ve been logged out for security.");
-        localStorage.removeItem("adminAuthorized");
-        localStorage.removeItem("adminLastLogin");
-        setAuthorized(false);
-      }, LOGOUT_TIMEOUT);
-    };
-
-    // Start initial timer
-    setTimer();
-
-    // Reset timer on activity
-    const resetTimer = () => {
-      clearTimeout(logoutTimer!);
-      setTimer();
-    };
-
-    window.addEventListener("mousemove", resetTimer);
-    window.addEventListener("keydown", resetTimer);
-    window.addEventListener("click", resetTimer);
-
-    return () => {
-      clearTimeout(logoutTimer!);
-      window.removeEventListener("mousemove", resetTimer);
-      window.removeEventListener("keydown", resetTimer);
-      window.removeEventListener("click", resetTimer);
-    };
-  }, [authorized]);
-
-  // ✅ Fetch listings when authorized
-  useEffect(() => {
-    if (!authorized) return;
-
-    const fetchListings = async () => {
+    async function fetchListings() {
       try {
         const { data, error } = await supabase
           .from("listings")
           .select("*")
           .order("created_at", { ascending: false });
-
         if (error) throw error;
         setListings(data || []);
       } catch (err: any) {
@@ -116,29 +63,27 @@ export default function AdminPage() {
       } finally {
         setLoading(false);
       }
-    };
+    }
 
     fetchListings();
   }, [authorized]);
 
-  // 🚀 Wait until mounted
-  if (!mounted) {
+  // 🔒 Lock Screen
+  if (!mounted)
     return (
       <div className="min-h-screen flex justify-center items-center text-gray-600">
         Loading Admin Panel...
       </div>
     );
-  }
 
-  // 🔒 Lock screen
-  if (!authorized) {
+  if (!authorized)
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
         <h1 className="text-3xl font-bold mb-4 text-gray-800">
           Admin Access Restricted
         </h1>
         <p className="text-gray-600 mb-6">
-          Please enter your secure access code to continue.
+          Enter your secure access code to continue.
         </p>
         <input
           type="password"
@@ -166,59 +111,47 @@ export default function AdminPage() {
         </p>
       </div>
     );
-  }
 
-  // ✅ Admin dashboard (unchanged below)
+  // 🗑 Delete Listing
   const handleDelete = async (id: string) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this listing?");
-    if (!confirmDelete) return;
+    if (!confirm("Are you sure you want to delete this listing?")) return;
     setDeleting(id);
     try {
       const { error } = await supabase.from("listings").delete().eq("id", id);
       if (error) throw error;
       setListings((prev) => prev.filter((l) => l.id !== id));
-      alert("Listing deleted successfully!");
+      alert("✅ Listing deleted!");
     } catch (err: any) {
-      console.error("❌ Delete error:", err.message);
-      alert("Failed to delete listing.");
+      alert("❌ Delete failed: " + err.message);
     } finally {
       setDeleting(null);
     }
   };
 
-  const handleEdit = (listing: Listing) => {
-    setEditingId(listing.id);
-    const numericPrice = listing.basePrice ?? 0;
+  // ✏️ Edit Listing
+  const handleEdit = (l: Listing) => {
+    setEditingId(l.id);
     setEditData({
-      title: listing.title,
-      location: listing.location || "",
-      basePrice: numericPrice,
-      units: listing.units ?? 1,
+      title: l.title,
+      location: l.location,
+      basePrice: l.basePrice ?? 0,
+      units: l.units ?? 1,
     });
-    setPriceInput(`$${numericPrice.toFixed(2)}`);
-  };
-
-  const handleChange = (field: keyof Listing, value: any) => {
-    setEditData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleCancel = () => {
-    setEditingId(null);
-    setEditData({});
-    setPriceInput("");
+    setPriceInput(`$${(l.basePrice ?? 0).toFixed(2)}`);
   };
 
   const handleSave = async (id: string) => {
     setSaving(true);
     try {
       const numericPrice = parseFloat(priceInput.replace(/[^0-9.]/g, "")) || 0;
+
       const { error } = await supabase
         .from("listings")
         .update({
           title: editData.title,
           location: editData.location,
           basePrice: numericPrice,
-          units: editData.units,
+          units: editData.units ?? 1,
         })
         .eq("id", id);
 
@@ -227,38 +160,26 @@ export default function AdminPage() {
       setListings((prev) =>
         prev.map((l) =>
           l.id === id
-            ? { ...l, title: editData.title || l.title, location: editData.location || l.location, basePrice: numericPrice, units: editData.units ?? l.units }
+            ? { ...l, ...editData, basePrice: numericPrice }
             : l
         )
       );
 
       alert("✅ Listing updated successfully!");
-      handleCancel();
+      setEditingId(null);
     } catch (err: any) {
-      console.error("❌ Save error:", err.message);
-      alert("Failed to update listing: " + err.message);
+      alert("❌ Save failed: " + err.message);
     } finally {
       setSaving(false);
     }
   };
 
-  const handlePriceInputChange = (value: string) => {
+  // 💰 Price Handling
+  const handlePriceChange = (value: string) => {
     setPriceInput(value);
-    const numeric = parseFloat(value.replace(/[^0-9.]/g, "")) || 0;
-    handleChange("basePrice", numeric);
   };
 
-  const handlePriceBlur = () => {
-    const numericValue = parseFloat(priceInput.replace(/[^0-9.]/g, ""));
-    if (isNaN(numericValue)) {
-      setPriceInput("$0.00");
-      handleChange("basePrice", 0);
-    } else {
-      setPriceInput(`$${numericValue.toFixed(2)}`);
-      handleChange("basePrice", numericValue);
-    }
-  };
-
+  // 🖥️ Dashboard Table
   if (loading)
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -308,14 +229,16 @@ export default function AdminPage() {
             </thead>
             <tbody>
               {listings.map((l) => (
-                <tr key={l.id} className="border-t hover:bg-gray-50 transition-colors">
+                <tr key={l.id} className="border-t hover:bg-gray-50 transition">
                   {editingId === l.id ? (
                     <>
                       <td className="p-2">
                         <input
                           type="text"
                           value={editData.title || ""}
-                          onChange={(e) => handleChange("title", e.target.value)}
+                          onChange={(e) =>
+                            setEditData({ ...editData, title: e.target.value })
+                          }
                           className="border rounded p-1 w-full"
                         />
                       </td>
@@ -323,7 +246,9 @@ export default function AdminPage() {
                         <input
                           type="text"
                           value={editData.location || ""}
-                          onChange={(e) => handleChange("location", e.target.value)}
+                          onChange={(e) =>
+                            setEditData({ ...editData, location: e.target.value })
+                          }
                           className="border rounded p-1 w-full"
                         />
                       </td>
@@ -331,28 +256,29 @@ export default function AdminPage() {
                         <input
                           type="text"
                           value={priceInput}
-                          onChange={(e) => handlePriceInputChange(e.target.value)}
-                          onBlur={handlePriceBlur}
+                          onChange={(e) => handlePriceChange(e.target.value)}
                           placeholder="$0.00"
-                          className="border rounded p-1 w-full text-right focus:ring-2 focus:ring-blue-400"
+                          className="border rounded p-1 w-full text-right"
                         />
                       </td>
                       <td className="p-2">
                         <input
                           type="number"
-                          value={editData.units ?? 1}
                           min={1}
-                          step={1}
-                          onChange={(e) => {
-                            const val = Math.floor(Number(e.target.value));
-                            if (isNaN(val) || val < 1) return;
-                            handleChange("units", val);
-                          }}
-                          className="border rounded p-1 w-full text-right focus:ring-2 focus:ring-blue-400"
+                          value={editData.units ?? 1}
+                          onChange={(e) =>
+                            setEditData({
+                              ...editData,
+                              units: Number(e.target.value),
+                            })
+                          }
+                          className="border rounded p-1 w-full text-right"
                         />
                       </td>
                       <td className="p-2">
-                        {l.created_at ? new Date(l.created_at).toLocaleString() : "—"}
+                        {l.created_at
+                          ? new Date(l.created_at).toLocaleString()
+                          : "—"}
                       </td>
                       <td className="p-2 flex gap-2">
                         <button
@@ -363,7 +289,7 @@ export default function AdminPage() {
                           {saving ? "Saving..." : "Save"}
                         </button>
                         <button
-                          onClick={handleCancel}
+                          onClick={() => setEditingId(null)}
                           className="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500"
                         >
                           Cancel
@@ -377,7 +303,9 @@ export default function AdminPage() {
                       <td className="p-2">${Number(l.basePrice ?? 0).toFixed(2)}</td>
                       <td className="p-2">{l.units ?? 1}</td>
                       <td className="p-2">
-                        {l.created_at ? new Date(l.created_at).toLocaleString() : "—"}
+                        {l.created_at
+                          ? new Date(l.created_at).toLocaleString()
+                          : "—"}
                       </td>
                       <td className="p-2 flex gap-2">
                         <button
