@@ -8,7 +8,6 @@ type Listing = {
   title: string;
   location?: string | null;
   basePrice?: number | null;
-  price?: number | null;
   units?: number | null;
   created_at?: string | null;
 };
@@ -123,12 +122,11 @@ export default function AdminPage() {
   // ✅ Edit setup
   const handleEdit = (listing: Listing) => {
     setEditingId(listing.id);
-    const numericPrice = listing.basePrice ?? listing.price ?? 0;
+    const numericPrice = listing.basePrice ?? 0;
     setEditData({
       title: listing.title,
       location: listing.location || "",
       basePrice: numericPrice,
-      price: numericPrice,
       units: listing.units ?? 1,
     });
     setPriceInput(`$${numericPrice.toFixed(2)}`);
@@ -144,7 +142,7 @@ export default function AdminPage() {
     setPriceInput("");
   };
 
-  // ✅ Save updates (sync basePrice + price)
+  // ✅ Save updates (only use basePrice)
   const handleSave = async (id: string) => {
     setSaving(true);
     try {
@@ -154,7 +152,6 @@ export default function AdminPage() {
         title: editData.title,
         location: editData.location,
         basePrice: numericPrice,
-        price: numericPrice,
         units: editData.units ?? 1,
       };
 
@@ -309,7 +306,7 @@ export default function AdminPage() {
                     <>
                       <td className="p-2">{l.title}</td>
                       <td className="p-2">{l.location || "—"}</td>
-                      <td className="p-2">${Number(l.basePrice ?? l.price ?? 0).toFixed(2)}</td>
+                      <td className="p-2">${Number(l.basePrice ?? 0).toFixed(2)}</td>
                       <td className="p-2">{l.units ?? 1}</td>
                       <td className="p-2">
                         {l.created_at ? new Date(l.created_at).toLocaleString() : "—"}
