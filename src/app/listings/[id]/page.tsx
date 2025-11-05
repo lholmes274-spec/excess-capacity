@@ -58,19 +58,21 @@ export default function ListingDetailPage() {
         </p>
       )}
 
-      {/* ✅ Notes */}
-      {listing.notes && (
-        <p className="mt-3 text-sm text-gray-600 italic">{listing.notes}</p>
+      {/* ✅ Notes (supports both "notes" and "note" fields) */}
+      {(listing.notes || listing.note) && (
+        <p className="mt-3 text-sm text-gray-600 italic">
+          {listing.notes || listing.note}
+        </p>
       )}
 
-      {/* ✅ Pickup / Instructions */}
-      {listing.pickup_instructions && (
+      {/* ✅ Pickup Instructions (supports both "pickup_instru" and "pickup_instructions") */}
+      {(listing.pickup_instru || listing.pickup_instructions) && (
         <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <h3 className="font-semibold text-orange-800 mb-2">
             Pickup & Instructions
           </h3>
           <p className="text-gray-700 text-sm whitespace-pre-line">
-            {listing.pickup_instructions}
+            {listing.pickup_instru || listing.pickup_instructions}
           </p>
         </div>
       )}
