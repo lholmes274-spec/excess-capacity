@@ -34,6 +34,9 @@ export const metadata = {
       "Discover and rent workspaces, parking, storage, and more across the U.S.",
     images: ["https://prosperityhub.app/og-image.jpg"],
   },
+  other: {
+    "fb:app_id": "2963411410513274", // ✅ Added Facebook App ID
+  },
 };
 
 export default function RootLayout({
