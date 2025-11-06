@@ -253,7 +253,7 @@ export default function Home() {
             {listings.map((listing) => (
               <Link
                 key={listing.id}
-                href={`/listings/${listing.id}`}
+                href={`/listings/${listing.id}`} // ✅ Clean route, no ?v=
                 className="block bg-white rounded-xl border border-amber-200 shadow-md hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 p-6"
               >
                 <div className="flex-grow">
