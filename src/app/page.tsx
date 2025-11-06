@@ -36,7 +36,7 @@ export default function Home() {
     fetchListings();
   }, []);
 
-  // ✅ Add new listing (Auth-ready)
+  // ✅ Add listing
   async function addListing(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
@@ -65,6 +65,7 @@ export default function Home() {
           contact_email: form.contact_email,
           pickup_instru: form.pickup_instru,
           owner_id: user?.id || null,
+          demo_mode: false, // ✅ Default all new listings as real (not demo)
         },
       ]);
 
@@ -100,7 +101,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-amber-50 via-yellow-50 to-amber-100 py-10 px-4 sm:px-8 lg:px-16">
       <div className="max-w-5xl mx-auto bg-white/90 backdrop-blur-md rounded-2xl shadow-2xl p-6 md:p-10 border border-amber-200">
-        {/* 🌐 Brand Intro */}
+        {/* 🌐 Intro */}
         <h1 className="text-center text-5xl font-extrabold mb-2">
           <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-600 via-yellow-500 to-amber-700 drop-shadow-md">
             Dynamic Excess Capacity Sharing
@@ -138,102 +139,21 @@ export default function Home() {
           />
           <input
             type="text"
-            placeholder="Type"
+            placeholder="Type (service, storage, housing, etc.)"
             value={form.type}
             onChange={(e) => setForm({ ...form, type: e.target.value })}
             className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
           />
-          <input
-            type="text"
-            placeholder="State"
-            value={form.state}
-            onChange={(e) => setForm({ ...form, state: e.target.value })}
-            className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
-          />
-          <input
-            type="text"
-            placeholder="City"
-            value={form.city}
-            onChange={(e) => setForm({ ...form, city: e.target.value })}
-            className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
-          />
-          <input
-            type="text"
-            placeholder="Zip Code"
-            value={form.zip}
-            onChange={(e) => setForm({ ...form, zip: e.target.value })}
-            className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
-          />
 
+          {/* Contact + Pickup */}
           <textarea
             placeholder="Description"
             value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            onChange={(e) =>
+              setForm({ ...form, description: e.target.value })
+            }
             className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm md:col-span-2 min-h-[100px]"
           />
-
-          {/* Pickup & Contact */}
-          <div className="md:col-span-2 mt-2 border-t border-amber-200 pt-4">
-            <h3 className="text-lg font-semibold text-amber-700 mb-3">
-              Pickup & Contact
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input
-                type="text"
-                placeholder="Address Line 1"
-                value={form.address_line1}
-                onChange={(e) =>
-                  setForm({ ...form, address_line1: e.target.value })
-                }
-                className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
-              />
-              <input
-                type="text"
-                placeholder="Address Line 2 (optional)"
-                value={form.address_line2}
-                onChange={(e) =>
-                  setForm({ ...form, address_line2: e.target.value })
-                }
-                className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
-              />
-              <input
-                type="text"
-                placeholder="Contact Name"
-                value={form.contact_name}
-                onChange={(e) =>
-                  setForm({ ...form, contact_name: e.target.value })
-                }
-                className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
-              />
-              <input
-                type="text"
-                placeholder="Contact Phone"
-                value={form.contact_phone}
-                onChange={(e) =>
-                  setForm({ ...form, contact_phone: e.target.value })
-                }
-                className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
-              />
-              <input
-                type="email"
-                placeholder="Contact Email"
-                value={form.contact_email}
-                onChange={(e) =>
-                  setForm({ ...form, contact_email: e.target.value })
-                }
-                className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
-              />
-              <textarea
-                placeholder="Pickup Instructions (e.g., gate code, hours, where to park)"
-                value={form.pickup_instru}
-                onChange={(e) =>
-                  setForm({ ...form, pickup_instru: e.target.value })
-                }
-                className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm md:col-span-2 min-h-[100px]"
-              />
-            </div>
-          </div>
 
           <button
             type="submit"
@@ -243,7 +163,7 @@ export default function Home() {
           </button>
         </form>
 
-        {/* Listings Section */}
+        {/* Listings */}
         <h2 className="text-3xl font-bold mb-6 text-gray-800 text-center md:text-left">
           Available Listings
         </h2>
@@ -255,20 +175,18 @@ export default function Home() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {listings.map((listing) => (
-              <Link
+              <div
                 key={listing.id}
-                href={`/listings/${listing.id}`}
-                className="bg-white rounded-xl border border-amber-200 shadow-md hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 p-6 flex flex-col justify-between"
+                className={`bg-white rounded-xl border border-amber-200 shadow-md hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 p-6 flex flex-col justify-between ${
+                  listing.demo_mode ? "opacity-80" : ""
+                }`}
               >
                 <div>
                   <h3 className="text-xl font-semibold text-amber-700 mb-2 capitalize">
                     {listing.title}
                   </h3>
                   <p className="text-sm text-gray-600 mb-1">
-                    📍{" "}
-                    {listing.city
-                      ? `${listing.city}, ${listing.state}`
-                      : "Unknown"}
+                    📍 {listing.city}, {listing.state}
                   </p>
                   <p className="text-lg text-green-600 font-semibold">
                     ${listing.basePrice}
@@ -276,17 +194,20 @@ export default function Home() {
                 </div>
 
                 <Link
-                  href={`/book/${listing.id}`}
-                  className="mt-5 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium rounded-lg shadow-md hover:shadow-xl hover:scale-105 hover:from-green-600 hover:to-emerald-700 transition-all text-center"
+                  href={`/listings/${listing.id}`}
+                  className={`mt-5 py-2.5 text-white font-medium rounded-lg shadow-md text-center transition-all ${
+                    listing.demo_mode
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-gradient-to-r from-green-500 to-emerald-600 hover:scale-105 hover:from-green-600 hover:to-emerald-700"
+                  }`}
                 >
-                  Book Now
+                  {listing.demo_mode ? "Demo Listing" : "Book Now"}
                 </Link>
-              </Link>
+              </div>
             ))}
           </div>
         )}
       </div>
-      {/* 🚫 Removed gold footer — global blue footer will render automatically */}
     </main>
   );
 }

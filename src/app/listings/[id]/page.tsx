@@ -1,4 +1,3 @@
-// src/app/listings/[id]/page.tsx
 // @ts-nocheck
 "use client";
 
@@ -26,31 +25,24 @@ export default function ListingDetailPage() {
     fetchListing();
   }, [id]);
 
-  if (loading)
-    return <div className="p-8 text-gray-500">Loading listing...</div>;
-  if (!listing)
-    return <div className="p-8 text-red-500">Listing not found.</div>;
+  if (loading) return <div className="p-8 text-gray-500">Loading...</div>;
+  if (!listing) return <div className="p-8 text-red-500">Listing not found.</div>;
 
   return (
     <div className="max-w-3xl mx-auto p-8 bg-white shadow-md rounded-2xl mt-6 border border-gray-100">
-      {/* ✅ Title */}
       <h1 className="text-3xl font-bold text-orange-800 mb-2">
         {listing.title}
       </h1>
 
       <p className="text-sm text-gray-500 mb-4">— v2</p>
-
-      {/* ✅ Description */}
       <p className="text-gray-700 mb-4">{listing.description}</p>
 
-      {/* ✅ Location */}
       {listing.location && (
         <p className="text-gray-800 font-semibold mb-2">
           Location: <span className="text-gray-900">{listing.location}</span>
         </p>
       )}
 
-      {/* ✅ Dynamic Price */}
       {listing.basePrice && (
         <p className="text-2xl font-semibold text-green-700 mt-2">
           ${listing.basePrice}
@@ -69,19 +61,15 @@ export default function ListingDetailPage() {
         </p>
       )}
 
-      {/* ✅ Notes */}
       {(listing.notes || listing.note) && (
         <p className="mt-3 text-sm text-gray-600 italic">
           {listing.notes || listing.note}
         </p>
       )}
 
-      {/* ✅ Pickup Instructions */}
       {(listing.pickup_instru ||
         listing.pickup_instructions ||
-        listing.instructions ||
-        listing.pickup ||
-        listing.pickup_note) && (
+        listing.instructions) && (
         <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <h3 className="font-semibold text-orange-800 mb-2">
             Pickup & Instructions
@@ -89,9 +77,7 @@ export default function ListingDetailPage() {
           <p className="text-gray-700 text-sm whitespace-pre-line">
             {listing.pickup_instru ||
               listing.pickup_instructions ||
-              listing.instructions ||
-              listing.pickup ||
-              listing.pickup_note}
+              listing.instructions}
           </p>
         </div>
       )}
@@ -112,12 +98,20 @@ export default function ListingDetailPage() {
         </p>
       </div>
 
-      {/* ✅ CTA */}
+      {/* ✅ Checkout logic */}
       <button
-        className="mt-6 w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition"
-        onClick={() => alert("Demo Only – Checkout disabled")}
+        className={`mt-6 w-full text-white py-3 rounded-lg font-semibold transition ${
+          listing.demo_mode
+            ? "bg-gray-400 cursor-not-allowed"
+            : "bg-green-600 hover:bg-green-700"
+        }`}
+        onClick={() =>
+          listing.demo_mode
+            ? alert("Demo Only – Checkout disabled")
+            : alert("✅ Proceeding to Checkout (real listing)")
+        }
       >
-        Proceed to Checkout
+        {listing.demo_mode ? "Demo Mode Enabled" : "Proceed to Checkout"}
       </button>
     </div>
   );
