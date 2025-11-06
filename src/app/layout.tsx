@@ -46,6 +46,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      {/* ✅ Manual tag ensures Facebook detects it correctly */}
+      <head>
+        <meta property="fb:app_id" content="2963411410513274" />
+      </head>
+
       <body className={`${inter.className} bg-gray-50 text-gray-900`}>
         {/* ——— Header ——— */}
         <header className="bg-[#0f172a] text-white shadow-sm">
