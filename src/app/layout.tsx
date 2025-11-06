@@ -1,7 +1,6 @@
 import "./globals.css";
 import { Inter } from "next/font/google";
 import { Metadata } from "next";
-import Head from "next/head"; // ✅ Import Head for manual meta injection
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -44,10 +43,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      {/* ✅ This guarantees the tag renders for crawlers */}
-      <Head>
+      {/* ✅ Use static <head> tag (server-rendered) */}
+      <head>
         <meta property="fb:app_id" content="2963411410513274" />
-      </Head>
+      </head>
 
       <body className={`${inter.className} bg-gray-50 text-gray-900`}>
         {/* Header */}
