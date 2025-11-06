@@ -1,10 +1,11 @@
 import "./globals.css";
 import { Inter } from "next/font/google";
 import { Metadata } from "next";
+import Head from "next/head"; // ✅ Import Head for manual meta injection
 
 const inter = Inter({ subsets: ["latin"] });
 
-// ✅ Proper Metadata + Facebook Tag Integration
+// ✅ SEO & Social Metadata
 export const metadata: Metadata = {
   title: "Prosperity Hub",
   description:
@@ -43,21 +44,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head>
-        {/* ✅ Facebook & Open Graph Tags */}
+      {/* ✅ This guarantees the tag renders for crawlers */}
+      <Head>
         <meta property="fb:app_id" content="2963411410513274" />
-        <meta property="og:site_name" content="ProsperityHub.app" />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://prosperityhub.app" />
-        <meta
-          property="og:image"
-          content="https://prosperityhub.app/og-image.jpg"
-        />
-        <meta
-          property="og:description"
-          content="Manage and explore listings that unlock hidden potential — from storage and parking to tools and workspace sharing."
-        />
-      </head>
+      </Head>
 
       <body className={`${inter.className} bg-gray-50 text-gray-900`}>
         {/* Header */}
