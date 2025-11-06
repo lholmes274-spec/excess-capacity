@@ -1,10 +1,11 @@
 // src/app/layout.tsx
 import "./globals.css";
 import { Inter } from "next/font/google";
+import Head from "next/head";
 
 const inter = Inter({ subsets: ["latin"] });
 
-// ✅ Complete SEO + Social Media Metadata
+// ✅ Core SEO + Social Metadata (kept same)
 export const metadata = {
   title: "Prosperity Hub",
   description:
@@ -18,7 +19,7 @@ export const metadata = {
     images: [
       {
         url: "https://prosperityhub.app/og-image.jpg",
-        width: 1200, // ✅ Fixes 'processed asynchronously' warning
+        width: 1200,
         height: 630,
         alt: "Prosperity Hub platform preview",
         type: "image/jpeg",
@@ -34,9 +35,6 @@ export const metadata = {
       "Discover and rent workspaces, parking, storage, and more across the U.S.",
     images: ["https://prosperityhub.app/og-image.jpg"],
   },
-  other: {
-    "fb:app_id": "2963411410513274", // ✅ Added Facebook App ID
-  },
 };
 
 export default function RootLayout({
@@ -46,10 +44,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      {/* ✅ Manual tag ensures Facebook detects it correctly */}
-      <head>
+      <Head>
+        {/* ✅ Force-load Facebook App ID tag */}
         <meta property="fb:app_id" content="2963411410513274" />
-      </head>
+      </Head>
 
       <body className={`${inter.className} bg-gray-50 text-gray-900`}>
         {/* ——— Header ——— */}
