@@ -1,4 +1,3 @@
-// src/app/listings/[id]/page.tsx
 // @ts-nocheck
 "use client";
 
@@ -45,7 +44,8 @@ export default function ListingDetailPage() {
         {listing.title}
       </h1>
 
-      <p className="text-sm text-gray-500 mb-4">— v2</p>
+      {/* ❌ Removed the version line (“— v2”) */}
+
       <p className="text-gray-700 mb-4">{listing.description}</p>
 
       {listing.location && (
@@ -118,7 +118,9 @@ export default function ListingDetailPage() {
         }`}
         onClick={handleCheckout}
       >
-        {listing.demo_mode ? "Demo Listing – Checkout Disabled" : "Proceed to Checkout"}
+        {listing.demo_mode
+          ? "Demo Listing – Checkout Disabled"
+          : "Proceed to Checkout"}
       </button>
     </div>
   );
