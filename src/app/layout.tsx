@@ -35,10 +35,6 @@ export const metadata: Metadata = {
       "Discover and rent workspaces, parking, storage, and more across the U.S.",
     images: ["https://prosperityhub.app/og-image.jpg"],
   },
-  // ✅ Facebook App ID added here (works in production)
-  other: {
-    "fb:app_id": "2963411410513274",
-  },
 };
 
 export default function RootLayout({
@@ -49,7 +45,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* ✅ Manual injection fallback — this forces it in all environments */}
+        {/* ✅ Facebook App ID — required for Open Graph validation */}
         <meta property="fb:app_id" content="2963411410513274" />
       </head>
 
