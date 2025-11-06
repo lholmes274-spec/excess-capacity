@@ -1,3 +1,4 @@
+// src/app/listings/[id]/page.tsx
 // @ts-nocheck
 "use client";
 
@@ -98,7 +99,7 @@ export default function ListingDetailPage() {
         </p>
       </div>
 
-      {/* ✅ Checkout logic */}
+      {/* ✅ Checkout logic (works after viewing) */}
       <button
         className={`mt-6 w-full text-white py-3 rounded-lg font-semibold transition ${
           listing.demo_mode
