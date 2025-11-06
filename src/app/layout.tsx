@@ -1,4 +1,3 @@
-// src/app/layout.tsx
 import "./globals.css";
 import { Inter } from "next/font/google";
 import { Metadata } from "next";
@@ -45,8 +44,19 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* ✅ Facebook App ID — required for Open Graph validation */}
+        {/* ✅ Facebook & Open Graph Tags */}
         <meta property="fb:app_id" content="2963411410513274" />
+        <meta property="og:site_name" content="ProsperityHub.app" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://prosperityhub.app" />
+        <meta
+          property="og:image"
+          content="https://prosperityhub.app/og-image.jpg"
+        />
+        <meta
+          property="og:description"
+          content="Manage and explore listings that unlock hidden potential — from storage and parking to tools and workspace sharing."
+        />
       </head>
 
       <body className={`${inter.className} bg-gray-50 text-gray-900`}>
