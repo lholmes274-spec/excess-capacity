@@ -251,38 +251,27 @@ export default function Home() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {listings.map((listing) => (
-              <div
+              <Link
                 key={listing.id}
-                className="bg-white rounded-xl border border-amber-200 shadow-md hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 p-6 flex flex-col justify-between"
+                href={`/listings/${listing.id}`}
+                className="block bg-white rounded-xl border border-amber-200 shadow-md hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 p-6"
               >
-                <div>
-                  <h3 className="text-xl font-semibold text-amber-700 mb-2 capitalize">
-                    {listing.title}
-                  </h3>
-                  <p className="text-sm text-gray-600 mb-1">
-                    📍 {listing.city ? `${listing.city}, ${listing.state}` : "—"}
-                  </p>
-                  <p className="text-lg text-green-600 font-semibold">
-                    ${listing.basePrice}
-                  </p>
-                </div>
-
-                {listing.demo_mode ? (
-                  <button
-                    disabled
-                    className="mt-5 py-2.5 bg-gray-400 text-white font-medium rounded-lg shadow-md cursor-not-allowed"
-                  >
-                    Demo Listing
-                  </button>
-                ) : (
-                  <Link
-                    href={`/book/${listing.id}`}
-                    className="mt-5 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium rounded-lg shadow-md hover:shadow-xl hover:scale-105 transition-all text-center"
-                  >
-                    Book Now
-                  </Link>
-                )}
-              </div>
+                <h3 className="text-xl font-semibold text-amber-700 mb-2 capitalize">
+                  {listing.title}
+                </h3>
+                <p className="text-sm text-gray-600 mb-1">
+                  📍{" "}
+                  {listing.city ? `${listing.city}, ${listing.state}` : "—"}
+                </p>
+                <p className="text-lg text-green-600 font-semibold mb-3">
+                  ${listing.basePrice}
+                </p>
+                <p className="text-gray-500 text-sm italic">
+                  {listing.demo_mode
+                    ? "Demo Listing – View only"
+                    : "Click to view details"}
+                </p>
+              </Link>
             ))}
           </div>
         )}
