@@ -251,9 +251,10 @@ export default function Home() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {listings.map((listing) => (
-              <div
+              <Link
                 key={listing.id}
-                className="bg-white rounded-xl border border-amber-200 shadow-md hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 p-6 flex flex-col justify-between"
+                href={`/listings/${listing.id}`}
+                className="block bg-white rounded-xl border border-amber-200 shadow-md hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 p-6"
               >
                 <div className="flex-grow">
                   <h3 className="text-xl font-semibold text-amber-700 mb-2 capitalize">
@@ -270,22 +271,25 @@ export default function Home() {
                   </p>
                 </div>
 
+                {/* ✅ Buttons */}
                 {listing.demo_mode ? (
                   <button
                     disabled
-                    className="mt-5 py-2.5 bg-gray-400 text-white font-medium rounded-lg shadow-md cursor-not-allowed"
+                    className="mt-5 w-full py-2.5 bg-gray-400 text-white font-medium rounded-lg shadow-md cursor-not-allowed"
                   >
                     Demo Listing
                   </button>
                 ) : (
-                  <Link
-                    href={`/listings/${listing.id}`}
-                    className="mt-5 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium rounded-lg shadow-md hover:shadow-xl hover:scale-105 transition-all text-center"
-                  >
-                    Book Now
-                  </Link>
+                  <div className="mt-5">
+                    <span className="block text-sm text-gray-500 italic text-center">
+                      Click to view or book
+                    </span>
+                    <div className="mt-2 w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium rounded-lg shadow-md py-2.5 text-center">
+                      Book Now
+                    </div>
+                  </div>
                 )}
-              </div>
+              </Link>
             ))}
           </div>
         )}

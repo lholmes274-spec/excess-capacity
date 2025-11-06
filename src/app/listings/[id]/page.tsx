@@ -17,7 +17,7 @@ export default function ListingDetailPage() {
     const fetchListing = async () => {
       const { data, error } = await supabase
         .from("listings")
-        .select("*")
+        .select("*, id") // ✅ ensure id column is fetched
         .eq("id", id)
         .single();
 
@@ -30,13 +30,12 @@ export default function ListingDetailPage() {
   if (loading) return <div className="p-8 text-gray-500">Loading...</div>;
   if (!listing) return <div className="p-8 text-red-500">Listing not found.</div>;
 
-  // ✅ Handle Checkout
   const handleCheckout = () => {
     if (listing.demo_mode) {
       alert("Demo Only – Checkout disabled");
     } else {
-      // Redirect to your checkout page
-      router.push(`/checkout?id=${listing.id}`);
+      // ✅ Navigate to checkout page with listing ID
+      router.push(`/checkout?listing_id=${listing.id}`);
     }
   };
 
