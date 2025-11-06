@@ -3,11 +3,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 
 export default function ListingDetailPage() {
   const { id } = useParams();
+  const router = useRouter();
   const [listing, setListing] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -28,6 +29,16 @@ export default function ListingDetailPage() {
 
   if (loading) return <div className="p-8 text-gray-500">Loading...</div>;
   if (!listing) return <div className="p-8 text-red-500">Listing not found.</div>;
+
+  // ✅ Handle Checkout
+  const handleCheckout = () => {
+    if (listing.demo_mode) {
+      alert("Demo Only – Checkout disabled");
+    } else {
+      // Redirect to your checkout page
+      router.push(`/checkout?id=${listing.id}`);
+    }
+  };
 
   return (
     <div className="max-w-3xl mx-auto p-8 bg-white shadow-md rounded-2xl mt-6 border border-gray-100">
@@ -99,20 +110,16 @@ export default function ListingDetailPage() {
         </p>
       </div>
 
-      {/* ✅ Checkout logic (works after viewing) */}
+      {/* ✅ Checkout Button */}
       <button
         className={`mt-6 w-full text-white py-3 rounded-lg font-semibold transition ${
           listing.demo_mode
             ? "bg-gray-400 cursor-not-allowed"
             : "bg-green-600 hover:bg-green-700"
         }`}
-        onClick={() =>
-          listing.demo_mode
-            ? alert("Demo Only – Checkout disabled")
-            : alert("✅ Proceeding to Checkout (real listing)")
-        }
+        onClick={handleCheckout}
       >
-        {listing.demo_mode ? "Demo Mode Enabled" : "Proceed to Checkout"}
+        {listing.demo_mode ? "Demo Listing – Checkout Disabled" : "Proceed to Checkout"}
       </button>
     </div>
   );
