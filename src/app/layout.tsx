@@ -1,12 +1,12 @@
 // src/app/layout.tsx
 import "./globals.css";
 import { Inter } from "next/font/google";
-import Head from "next/head";
+import { Metadata } from "next";
 
 const inter = Inter({ subsets: ["latin"] });
 
-// ✅ Core SEO + Social Metadata (kept same)
-export const metadata = {
+// ✅ Proper Metadata + Facebook Tag Integration
+export const metadata: Metadata = {
   title: "Prosperity Hub",
   description:
     "Discover and rent workspaces, parking, storage, and more across the U.S.",
@@ -35,6 +35,10 @@ export const metadata = {
       "Discover and rent workspaces, parking, storage, and more across the U.S.",
     images: ["https://prosperityhub.app/og-image.jpg"],
   },
+  // ✅ Facebook App ID added here (works in production)
+  other: {
+    "fb:app_id": "2963411410513274",
+  },
 };
 
 export default function RootLayout({
@@ -44,13 +48,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <Head>
-        {/* ✅ Force-load Facebook App ID tag */}
+      <head>
+        {/* ✅ Manual injection fallback — this forces it in all environments */}
         <meta property="fb:app_id" content="2963411410513274" />
-      </Head>
+      </head>
 
       <body className={`${inter.className} bg-gray-50 text-gray-900`}>
-        {/* ——— Header ——— */}
+        {/* Header */}
         <header className="bg-[#0f172a] text-white shadow-sm">
           <nav className="container mx-auto flex justify-between items-center px-6 py-4">
             <h1 className="text-lg font-semibold">Prosperity Hub</h1>
@@ -79,10 +83,10 @@ export default function RootLayout({
           </nav>
         </header>
 
-        {/* ——— Page Content ——— */}
+        {/* Main Content */}
         <main className="container mx-auto px-6 py-8">{children}</main>
 
-        {/* ——— Global Footer ——— */}
+        {/* Footer */}
         <footer className="bg-[#0f172a] text-gray-300 text-center py-6 mt-10">
           <p className="text-sm">
             © {new Date().getFullYear()} ProsperityHub.app. All rights reserved.
