@@ -3,9 +3,9 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 
-// ✅ Initialize Stripe with your LIVE secret key
+// ✅ Initialize Stripe (LIVE secret key)
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-04-10",
+  apiVersion: "2024-06-20",
 });
 
 // ✅ Initialize Supabase client (server-side)
@@ -14,18 +14,26 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+// ✅ Tell Next.js not to parse the body automatically
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
 export async function POST(req: Request) {
-  const body = await req.text();
   const sig = headers().get("stripe-signature");
+  const body = await req.text();
 
   if (!sig) {
+    console.error("❌ Missing Stripe signature header");
     return NextResponse.json({ error: "Missing Stripe signature" }, { status: 400 });
   }
 
   let event: Stripe.Event;
 
   try {
-    // ✅ Verify the Stripe event signature
+    // ✅ Verify the event came from Stripe
     event = stripe.webhooks.constructEvent(
       body,
       sig,
@@ -38,10 +46,10 @@ export async function POST(req: Request) {
 
   try {
     switch (event.type) {
-      // ✅ Checkout completed — save payment to Supabase
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
 
+        // ✅ Record payment in Supabase
         const { error } = await supabase.from("payments").insert([
           {
             stripe_session_id: session.id,
@@ -55,17 +63,16 @@ export async function POST(req: Request) {
 
         if (error) console.error("❌ Error inserting payment:", error);
         else console.log("✅ Payment recorded:", session.id);
+
         break;
       }
 
-      // ✅ Handle successful PaymentIntents (backup)
       case "payment_intent.succeeded": {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         console.log(`💰 PaymentIntent succeeded: ${paymentIntent.id}`);
         break;
       }
 
-      // ⚠️ Unhandled events
       default:
         console.log(`ℹ️ Unhandled event type: ${event.type}`);
     }
@@ -77,7 +84,7 @@ export async function POST(req: Request) {
   }
 }
 
-// ⛔ Block GET requests (to prevent 405 errors from browsers)
+// ⛔ Handle GET requests (browsers)
 export async function GET() {
   return NextResponse.json({ error: "Method Not Allowed" }, { status: 405 });
 }
