@@ -60,6 +60,21 @@ export default function RootLayout({
                 </a>
               </li>
               <li>
+                <a href="/services" className="hover:text-blue-300 transition">
+                  Services
+                </a>
+              </li>
+              <li>
+                <a href="/about" className="hover:text-blue-300 transition">
+                  About
+                </a>
+              </li>
+              <li>
+                <a href="/contact" className="hover:text-blue-300 transition">
+                  Contact
+                </a>
+              </li>
+              <li>
                 <a href="/admin" className="hover:text-blue-300 transition">
                   Admin
                 </a>
@@ -72,6 +87,14 @@ export default function RootLayout({
               <li>
                 <a href="/privacy" className="hover:text-blue-300 transition">
                   Privacy
+                </a>
+              </li>
+              <li>
+                <a
+                  href="/signup"
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+                >
+                  Join Free
                 </a>
               </li>
             </ul>
