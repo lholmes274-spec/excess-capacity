@@ -3,9 +3,13 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 
+// ✅ Required for Next.js 14+ (fixes the Vercel build error)
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 // ✅ Initialize Stripe (LIVE secret key)
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-06-20",
+  apiVersion: "2024-04-10",
 });
 
 // ✅ Initialize Supabase client (server-side)
@@ -13,13 +17,6 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
-
-// ✅ Tell Next.js not to parse the body automatically
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
 
 export async function POST(req: Request) {
   const sig = headers().get("stripe-signature");
