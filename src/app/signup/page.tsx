@@ -1,13 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import Link from "next/link"; // 👈 added import for Link
+import Link from "next/link"; // 👈 already imported
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const router = useRouter();
+
+  // ✅ Redirect user if already logged in
+  useEffect(() => {
+    const checkUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        router.push("/subscribe"); // 👈 redirect confirmed/logged-in users
+      }
+    };
+    checkUser();
+  }, [router]);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,7 +74,7 @@ export default function SignupPage() {
         </button>
       </form>
 
-      {/* 👇 Added visible Subscribe link below form */}
+      {/* 👇 Subscribe link (still visible if not logged in) */}
       <div className="mt-6">
         <Link href="/subscribe" className="text-blue-600 hover:underline">
           Subscribe
