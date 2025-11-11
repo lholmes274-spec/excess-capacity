@@ -29,23 +29,33 @@ export default function Home() {
     demo_mode: false,
   });
 
-  // ✅ Auto-redirect unsubscribed users
+  // ✅ Auto-redirect unsubscribed users (REAL check against profiles.is_subscribed)
   useEffect(() => {
     const checkSubscription = async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
+      // Not logged in → go sign up
       if (!user) {
         router.push("/signup");
         return;
       }
 
-      // ⬇️ Placeholder logic (always redirect to /subscribe for now)
-      const isSubscribed = false;
-      if (!isSubscribed) {
+      // Look up the user's subscription status from profiles
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("is_subscribed")
+        .eq("id", user.id)
+        .single();
+
+      // If no profile or error, or not subscribed → send to /subscribe
+      if (error || !profile?.is_subscribed) {
         router.push("/subscribe");
+        return;
       }
+
+      // If subscribed, stay on Home (do nothing)
     };
 
     checkSubscription();
@@ -311,9 +321,7 @@ export default function Home() {
                   </h3>
                   <p className="text-sm text-gray-600 mb-1">
                     📍{" "}
-                    {listing.city
-                      ? `${listing.city}, ${listing.state}`
-                      : "—"}
+                    {listing.city ? `${listing.city}, ${listing.state}` : "—"}
                   </p>
                   <p className="text-lg text-green-600 font-semibold">
                     ${listing.basePrice}
