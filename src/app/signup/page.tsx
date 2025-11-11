@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation"; // 👈 added import
 import { supabase } from "@/lib/supabaseClient";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const router = useRouter(); // 👈 added router
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,6 +29,11 @@ export default function SignupPage() {
       setMessage(
         "Please check your email and click the confirmation link to finish signing up."
       );
+
+      // 👇 Redirect user after signup (optional immediate redirect)
+      setTimeout(() => {
+        router.push("/subscribe");
+      }, 2000); // wait 2 seconds for a smoother transition
     }
   };
 
