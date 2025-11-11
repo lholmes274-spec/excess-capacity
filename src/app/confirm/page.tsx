@@ -9,19 +9,19 @@ export default function ConfirmPage() {
 
   useEffect(() => {
     const handleSession = async () => {
-      // check if session is already restored
+      // ✅ Check if session is already restored
       const { data } = await supabase.auth.getSession();
 
       if (data.session) {
-        router.push("/"); // already logged in
+        router.push("/subscribe"); // redirect directly to subscription
       } else {
-        // listen for Supabase to set the new session from the email link
+        // ✅ Wait for Supabase to set the new session after email confirmation
         const { data: listener } = supabase.auth.onAuthStateChange(
           (_event, session) => {
             if (session) {
-              router.push("/"); // auto-login then redirect home
+              router.push("/subscribe"); // redirect after login
             } else {
-              router.push("/login"); // fallback
+              router.push("/signup"); // fallback if no session
             }
           }
         );
