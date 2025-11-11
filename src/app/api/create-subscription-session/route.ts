@@ -7,18 +7,25 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST() {
   try {
-    // Create a recurring subscription checkout
+    // ✅ Create a recurring subscription checkout session
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
+      payment_method_types: ["card"],
       line_items: [
         {
-          price: "price_XXXXXXX", // ⬅️ replace with your actual Stripe Price ID ($9.99/month)
+          // ⬅️ Replace with your real Price ID from your Stripe Dashboard
+          price: "price_XXXXXXX",
           quantity: 1,
         },
       ],
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/canceled`,
+      success_url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://prosperityhub.app"}/success`,
+      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://prosperityhub.app"}/canceled`,
     });
+
+    if (!session?.url) {
+      console.error("Stripe session returned no URL");
+      return NextResponse.json({ error: "No checkout URL returned" }, { status: 400 });
+    }
 
     return NextResponse.json({ url: session.url });
   } catch (error: any) {
