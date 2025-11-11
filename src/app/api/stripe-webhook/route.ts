@@ -46,8 +46,8 @@ export async function POST(req: Request) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
 
-        // ✅ Record payment in Supabase
-        const { error } = await supabase.from("payments").insert([
+        // ✅ Record payment in Supabase (optional but useful)
+        const { error: paymentError } = await supabase.from("payments").insert([
           {
             stripe_session_id: session.id,
             amount: session.amount_total ? session.amount_total / 100 : null,
@@ -58,8 +58,25 @@ export async function POST(req: Request) {
           },
         ]);
 
-        if (error) console.error("❌ Error inserting payment:", error);
+        if (paymentError) console.error("❌ Error inserting payment:", paymentError);
         else console.log("✅ Payment recorded:", session.id);
+
+        // ✅ Upgrade user's membership tier in profiles table
+        const userId = session.metadata?.userId;
+        if (userId) {
+          const { error: updateError } = await supabase
+            .from("profiles")
+            .update({ membership_tier: "pro" })
+            .eq("id", userId);
+
+          if (updateError) {
+            console.error("❌ Error upgrading membership:", updateError);
+          } else {
+            console.log(`✅ User ${userId} upgraded to Pro membership`);
+          }
+        } else {
+          console.warn("⚠️ No userId found in Stripe session metadata");
+        }
 
         break;
       }
