@@ -8,8 +8,8 @@ import { useRouter } from "next/navigation"; // ✅ Added for redirect
 
 export default function Home() {
   const [listings, setListings] = useState<any[]>([]);
-  const router = useRouter(); // ✅ Router initialized for redirect
-  const [showConfirmMessage, setShowConfirmMessage] = useState(false); // ✅ Added for redirect feedback
+  const router = useRouter();
+  const [showConfirmMessage, setShowConfirmMessage] = useState(false);
 
   const [form, setForm] = useState({
     title: "",
@@ -29,15 +29,36 @@ export default function Home() {
     demo_mode: false,
   });
 
+  // ✅ Auto-redirect unsubscribed users
+  useEffect(() => {
+    const checkSubscription = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        router.push("/signup");
+        return;
+      }
+
+      // ⬇️ Placeholder logic (always redirect to /subscribe for now)
+      const isSubscribed = false;
+      if (!isSubscribed) {
+        router.push("/subscribe");
+      }
+    };
+
+    checkSubscription();
+  }, [router]);
+
   // ✅ Detect Supabase email confirmation and redirect to /login
   useEffect(() => {
     const hash = window.location.hash;
-
     if (hash.includes("type=signup") || hash.includes("access_token")) {
-      setShowConfirmMessage(true); // Show success message first
+      setShowConfirmMessage(true);
       setTimeout(() => {
         router.push("/login");
-      }, 2000); // Wait 2 seconds, then redirect
+      }, 2000);
     }
   }, [router]);
 
@@ -281,7 +302,7 @@ export default function Home() {
             {listings.map((listing) => (
               <Link
                 key={listing.id}
-                href={`/listings/${listing.id}`} // ✅ Clean route
+                href={`/listings/${listing.id}`}
                 className="block bg-white rounded-xl border border-amber-200 shadow-md hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 p-6"
               >
                 <div className="flex-grow">
