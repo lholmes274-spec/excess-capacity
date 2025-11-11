@@ -1,0 +1,160 @@
+"use client";
+
+import { Suspense, useEffect, useState } from "react";
+import Link from "next/link";
+import { createClient } from "@supabase/supabase-js";
+import { useSearchParams } from "next/navigation";
+
+// ✅ Explicit dynamic rendering (disables prerendering)
+export const dynamic = "force-dynamic";
+
+// ✅ Supabase client (browser-side)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+type Listing = {
+  id: number;
+  title: string;
+  description: string;
+  basePrice: number;
+  type?: string | null;
+  city?: string | null;
+  state?: string | null;
+  image_url?: string | null;
+};
+
+function ListingsContent() {
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [filteredListings, setFilteredListings] = useState<Listing[]>([]);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  const searchParams = useSearchParams();
+  const selectedType = searchParams.get("type");
+
+  // ✅ Fetch listings dynamically
+  useEffect(() => {
+    async function fetchListings() {
+      try {
+        const { data, error } = await supabase
+          .from("listings")
+          .select("*")
+          .order("id", { ascending: false });
+
+        if (error) throw error;
+        setListings(data || []);
+      } catch (err) {
+        console.error("❌ Error fetching listings:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchListings();
+  }, []);
+
+  // ✅ Filter listings
+  useEffect(() => {
+    let filtered = [...listings];
+
+    if (selectedType) {
+      filtered = filtered.filter(
+        (listing) =>
+          listing.type?.toLowerCase() === selectedType.toLowerCase()
+      );
+    }
+
+    if (search.trim()) {
+      filtered = filtered.filter((listing) =>
+        [listing.title, listing.description, listing.city, listing.state]
+          .filter(Boolean)
+          .some((field) =>
+            field!.toLowerCase().includes(search.toLowerCase())
+          )
+      );
+    }
+
+    setFilteredListings(filtered);
+  }, [listings, search, selectedType]);
+
+  if (loading) {
+    return (
+      <main className="flex items-center justify-center min-h-screen">
+        <p className="text-gray-600">Loading listings...</p>
+      </main>
+    );
+  }
+
+  return (
+    <main className="container mx-auto px-6 py-10">
+      <h1 className="text-3xl font-bold text-center mb-6">
+        {selectedType
+          ? `Explore ${
+              selectedType.charAt(0).toUpperCase() + selectedType.slice(1)
+            } Listings`
+          : "Explore Available Listings"}
+      </h1>
+
+      {/* 🔍 Search Box */}
+      <div className="flex justify-center mb-8">
+        <input
+          type="text"
+          placeholder="Search listings by keyword, city, or state..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full sm:w-2/3 lg:w-1/2 p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
+      {filteredListings.length === 0 ? (
+        <p className="text-gray-600 text-center">
+          No listings found for this category or search term.
+        </p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredListings.map((listing) => (
+            <Link
+              key={listing.id}
+              href={`/listings/${listing.id}`}
+              className="block bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition p-4"
+            >
+              {listing.image_url ? (
+                <img
+                  src={listing.image_url}
+                  alt={listing.title}
+                  className="w-full h-48 object-cover rounded-lg mb-3"
+                />
+              ) : (
+                <div className="w-full h-48 bg-gray-200 rounded-lg mb-3 flex items-center justify-center text-gray-500 text-sm">
+                  No Image
+                </div>
+              )}
+
+              <h2 className="text-lg font-semibold mb-1">{listing.title}</h2>
+              <p className="text-sm text-gray-600 mb-2 line-clamp-2">
+                {listing.description}
+              </p>
+              <p className="text-blue-700 font-medium mb-2">
+                ${listing.basePrice} / day
+              </p>
+              {listing.city && listing.state && (
+                <p className="text-sm text-gray-500">
+                  {listing.city}, {listing.state}
+                </p>
+              )}
+            </Link>
+          ))}
+        </div>
+      )}
+    </main>
+  );
+}
+
+// ✅ Wrap the component in Suspense to fix useSearchParams warning
+export default function ListingsPage() {
+  return (
+    <Suspense fallback={<p className="text-center mt-10">Loading...</p>}>
+      <ListingsContent />
+    </Suspense>
+  );
+}

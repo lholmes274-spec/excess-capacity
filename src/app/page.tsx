@@ -4,9 +4,13 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
+import { useRouter } from "next/navigation"; // ✅ Added for redirect
 
 export default function Home() {
   const [listings, setListings] = useState<any[]>([]);
+  const router = useRouter(); // ✅ Router initialized for redirect
+  const [showConfirmMessage, setShowConfirmMessage] = useState(false); // ✅ Added for redirect feedback
+
   const [form, setForm] = useState({
     title: "",
     location: "",
@@ -24,6 +28,18 @@ export default function Home() {
     pickup_instructions: "",
     demo_mode: false,
   });
+
+  // ✅ Detect Supabase email confirmation and redirect to /login
+  useEffect(() => {
+    const hash = window.location.hash;
+
+    if (hash.includes("type=signup") || hash.includes("access_token")) {
+      setShowConfirmMessage(true); // Show success message first
+      setTimeout(() => {
+        router.push("/login");
+      }, 2000); // Wait 2 seconds, then redirect
+    }
+  }, [router]);
 
   // ✅ Fetch listings
   async function fetchListings() {
@@ -98,6 +114,13 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-amber-50 via-yellow-50 to-amber-100 py-10 px-4 sm:px-8 lg:px-16">
+      {/* ✅ Confirmation Message */}
+      {showConfirmMessage && (
+        <div className="fixed top-5 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-xl shadow-lg text-sm font-medium z-50">
+          ✅ Email confirmed — redirecting to login...
+        </div>
+      )}
+
       <div className="max-w-5xl mx-auto bg-white/90 backdrop-blur-md rounded-2xl shadow-2xl p-6 md:p-10 border border-amber-200">
         {/* 🌐 Brand Header */}
         <h1 className="text-center text-5xl font-extrabold mb-2 text-amber-700 drop-shadow-md">
@@ -164,7 +187,9 @@ export default function Home() {
           <textarea
             placeholder="Description"
             value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            onChange={(e) =>
+              setForm({ ...form, description: e.target.value })
+            }
             className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm md:col-span-2 min-h-[100px]"
           />
 
@@ -224,7 +249,10 @@ export default function Home() {
                 placeholder="Pickup Instructions (e.g., access code, directions)"
                 value={form.pickup_instructions}
                 onChange={(e) =>
-                  setForm({ ...form, pickup_instructions: e.target.value })
+                  setForm({
+                    ...form,
+                    pickup_instructions: e.target.value,
+                  })
                 }
                 className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm md:col-span-2 min-h-[100px]"
               />
@@ -253,7 +281,7 @@ export default function Home() {
             {listings.map((listing) => (
               <Link
                 key={listing.id}
-                href={`/listings/${listing.id}`} // ✅ Clean route, no ?v=
+                href={`/listings/${listing.id}`} // ✅ Clean route
                 className="block bg-white rounded-xl border border-amber-200 shadow-md hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 p-6"
               >
                 <div className="flex-grow">

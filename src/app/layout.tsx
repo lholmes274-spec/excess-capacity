@@ -1,10 +1,11 @@
 import "./globals.css";
 import { Inter } from "next/font/google";
-import { Metadata } from "next";
+import type { Metadata } from "next";
+import ClientLayout from "./ClientLayout";
 
 const inter = Inter({ subsets: ["latin"] });
 
-// ✅ SEO & Social Metadata
+// ✅ SEO & Social Metadata (Server-safe)
 export const metadata: Metadata = {
   title: "Prosperity Hub",
   description:
@@ -43,73 +44,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      {/* ✅ Use static <head> tag (server-rendered) */}
+      {/* ✅ Static metadata and social tags */}
       <head>
         <meta property="fb:app_id" content="2963411410513274" />
       </head>
 
       <body className={`${inter.className} bg-gray-50 text-gray-900`}>
-        {/* Header */}
-        <header className="bg-[#0f172a] text-white shadow-sm">
-          <nav className="container mx-auto flex justify-between items-center px-6 py-4">
-            <h1 className="text-lg font-semibold">Prosperity Hub</h1>
-            <ul className="flex space-x-6 text-sm font-medium">
-              <li>
-                <a href="/" className="hover:text-blue-300 transition">
-                  Home
-                </a>
-              </li>
-              <li>
-                <a href="/services" className="hover:text-blue-300 transition">
-                  Services
-                </a>
-              </li>
-              <li>
-                <a href="/about" className="hover:text-blue-300 transition">
-                  About
-                </a>
-              </li>
-              <li>
-                <a href="/contact" className="hover:text-blue-300 transition">
-                  Contact
-                </a>
-              </li>
-              <li>
-                <a href="/admin" className="hover:text-blue-300 transition">
-                  Admin
-                </a>
-              </li>
-              <li>
-                <a href="/terms" className="hover:text-blue-300 transition">
-                  Terms
-                </a>
-              </li>
-              <li>
-                <a href="/privacy" className="hover:text-blue-300 transition">
-                  Privacy
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/signup"
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-                >
-                  Join Free
-                </a>
-              </li>
-            </ul>
-          </nav>
-        </header>
-
-        {/* Main Content */}
-        <main className="container mx-auto px-6 py-8">{children}</main>
-
-        {/* Footer */}
-        <footer className="bg-[#0f172a] text-gray-300 text-center py-6 mt-10">
-          <p className="text-sm">
-            © {new Date().getFullYear()} ProsperityHub.app. All rights reserved.
-          </p>
-        </footer>
+        {/* ✅ Wrap all pages in ClientLayout */}
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   );
