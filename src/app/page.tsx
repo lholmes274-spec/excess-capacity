@@ -29,33 +29,30 @@ export default function Home() {
     demo_mode: false,
   });
 
-  // ✅ Auto-redirect unsubscribed users (REAL check against profiles.is_subscribed)
+  // ✅ Auto-redirect unsubscribed users (safe version)
   useEffect(() => {
     const checkSubscription = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data, error } = await supabase.auth.getUser();
+      if (error) return;
 
-      // Not logged in → go sign up
-      if (!user) {
-        router.push("/signup");
-        return;
-      }
+      const user = data?.user;
+      if (!user) return; // don't redirect instantly if not logged in
 
-      // Look up the user's subscription status from profiles
-      const { data: profile, error } = await supabase
+      // 👇 use (supabase as any) to bypass missing profiles type
+      const { data: profile, error: profileError } = await (supabase as any)
         .from("profiles")
         .select("is_subscribed")
         .eq("id", user.id)
         .single();
 
-      // If no profile or error, or not subscribed → send to /subscribe
-      if (error || !profile?.is_subscribed) {
-        router.push("/subscribe");
+      if (profileError) {
+        console.error("Error checking profile:", profileError);
         return;
       }
 
-      // If subscribed, stay on Home (do nothing)
+      if (!profile?.is_subscribed) {
+        router.push("/subscribe");
+      }
     };
 
     checkSubscription();
@@ -218,9 +215,7 @@ export default function Home() {
           <textarea
             placeholder="Description"
             value={form.description}
-            onChange={(e) =>
-              setForm({ ...form, description: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
             className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm md:col-span-2 min-h-[100px]"
           />
 
@@ -321,7 +316,9 @@ export default function Home() {
                   </h3>
                   <p className="text-sm text-gray-600 mb-1">
                     📍{" "}
-                    {listing.city ? `${listing.city}, ${listing.state}` : "—"}
+                    {listing.city
+                      ? `${listing.city}, ${listing.state}`
+                      : "—"}
                   </p>
                   <p className="text-lg text-green-600 font-semibold">
                     ${listing.basePrice}
