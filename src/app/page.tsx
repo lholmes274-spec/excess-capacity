@@ -1,4 +1,3 @@
-// src/app/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -29,33 +28,15 @@ export default function Home() {
     demo_mode: false,
   });
 
-  // ✅ Auto-redirect unsubscribed users (safe version)
+  // ✅ Only check if user is logged in (don’t auto-redirect unsubscribed)
   useEffect(() => {
-    const checkSubscription = async () => {
+    const checkUser = async () => {
       const { data, error } = await supabase.auth.getUser();
       if (error) return;
-
       const user = data?.user;
-      if (!user) return; // don't redirect instantly if not logged in
-
-      // 👇 use (supabase as any) to bypass missing profiles type
-      const { data: profile, error: profileError } = await (supabase as any)
-        .from("profiles")
-        .select("is_subscribed")
-        .eq("id", user.id)
-        .single();
-
-      if (profileError) {
-        console.error("Error checking profile:", profileError);
-        return;
-      }
-
-      if (!profile?.is_subscribed) {
-        router.push("/subscribe");
-      }
+      if (!user) router.push("/signup");
     };
-
-    checkSubscription();
+    checkUser();
   }, [router]);
 
   // ✅ Detect Supabase email confirmation and redirect to /login
@@ -83,15 +64,41 @@ export default function Home() {
     fetchListings();
   }, []);
 
-  // ✅ Add new listing
+  // ✅ Add new listing (restricted to subscribed users)
   async function addListing(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
     if (!form.title || !form.baseprice) {
       return alert("Please fill in the required fields.");
     }
 
     const { data: userData } = await supabase.auth.getUser();
     const user = userData?.user;
+
+    if (!user) {
+      alert("Please sign in before adding a listing.");
+      router.push("/signup");
+      return;
+    }
+
+    // Check subscription before allowing listing creation
+    const { data: profile, error: profileError } = await (supabase as any)
+      .from("profiles")
+      .select("is_subscribed")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError) {
+      console.error("Error fetching profile:", profileError);
+      alert("Unable to verify subscription status. Please try again.");
+      return;
+    }
+
+    if (!profile?.is_subscribed) {
+      alert("Please subscribe to unlock this feature.");
+      router.push("/subscribe");
+      return;
+    }
 
     const { error } = await supabase.from("listings").insert([
       {
