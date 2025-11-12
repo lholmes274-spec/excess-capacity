@@ -11,19 +11,13 @@ export default function ConfirmPage() {
   );
 
   useEffect(() => {
-    // ✅ Handle if this page opens in a *new tab* from email confirmation
-    if (window.opener && window.opener.location.href.includes("/signup")) {
-      // Refresh the original signup tab to /confirm and close this duplicate one
-      window.opener.location.href = "https://prosperityhub.app/confirm";
-      window.close();
-      return; // stop further execution in this tab
-    }
-
     const handleSession = async () => {
-      // ✅ Check if session already exists
+      // ✅ Check for existing session (Supabase auto-restores after email confirm)
       const { data } = await supabase.auth.getSession();
 
       if (data.session) {
+        // 🔒 Immediately log the user out to force manual login
+        await supabase.auth.signOut();
         setStatusMessage("✅ Email confirmed — please log in.");
         setTimeout(() => {
           router.push("/login");
@@ -33,8 +27,10 @@ export default function ConfirmPage() {
 
       // ✅ Wait for Supabase to establish session after confirmation
       const { data: listener } = supabase.auth.onAuthStateChange(
-        (_event, session) => {
+        async (_event, session) => {
           if (session) {
+            // 🔒 Sign out again to clear auto-login session
+            await supabase.auth.signOut();
             setStatusMessage("✅ Email confirmed — please log in.");
             setTimeout(() => {
               router.push("/login");
@@ -52,6 +48,13 @@ export default function ConfirmPage() {
 
       return () => listener.subscription.unsubscribe();
     };
+
+    // ✅ Handle “new tab” case for email confirmation
+    if (window.opener && window.opener.location.href.includes("/signup")) {
+      window.opener.location.href = "https://prosperityhub.app/confirm";
+      window.close();
+      return;
+    }
 
     handleSession();
   }, [router]);
