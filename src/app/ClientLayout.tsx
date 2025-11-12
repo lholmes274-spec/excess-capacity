@@ -12,7 +12,6 @@ export default function ClientLayout({
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
 
-  // ✅ Watch for Supabase auth state changes
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user));
 
@@ -25,7 +24,6 @@ export default function ClientLayout({
     return () => subscription.unsubscribe();
   }, []);
 
-  // ✅ Handle logout
   async function handleLogout() {
     await supabase.auth.signOut();
     router.push("/login");
@@ -33,7 +31,6 @@ export default function ClientLayout({
 
   return (
     <>
-      {/* Header */}
       <header className="bg-[#0f172a] text-white shadow-sm">
         <nav className="container mx-auto flex justify-between items-center px-6 py-4">
           <h1 className="text-lg font-semibold">
@@ -96,24 +93,15 @@ export default function ClientLayout({
                     Login
                   </a>
                 </li>
-                <li>
-                  <a
-                    href="/signup"
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-                  >
-                    Join Free
-                  </a>
-                </li>
+                {/* ❌ Removed Join Free button */}
               </>
             )}
           </ul>
         </nav>
       </header>
 
-      {/* Main */}
       <main className="container mx-auto px-6 py-8">{children}</main>
 
-      {/* Footer */}
       <footer className="bg-[#0f172a] text-gray-300 text-center py-6 mt-10">
         <p className="text-sm">
           © {new Date().getFullYear()} ProsperityHub.app. All rights reserved.
