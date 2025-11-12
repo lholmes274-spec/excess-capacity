@@ -9,7 +9,20 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [showConfirm, setShowConfirm] = useState(false); // ✅ Added state
   const router = useRouter();
+
+  // ✅ Detect when user clicks Supabase email confirmation link
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash.includes("type=signup") || hash.includes("access_token")) {
+      setShowConfirm(true);
+      // Optional: redirect to login after a short delay
+      setTimeout(() => {
+        router.push("/login");
+      }, 2500);
+    }
+  }, [router]);
 
   // ✅ Redirect user if already logged in
   useEffect(() => {
@@ -81,7 +94,17 @@ export default function SignupPage() {
         </Link>
       </div>
 
-      {message && <p className="mt-4 text-sm text-gray-600">{message}</p>}
+      {/* ✅ Confirmation message */}
+      {showConfirm && (
+        <p className="mt-4 text-green-600 text-sm font-medium text-center">
+          ✅ Email confirmed — please log in.
+        </p>
+      )}
+
+      {/* ✅ Regular signup status message */}
+      {message && !showConfirm && (
+        <p className="mt-4 text-sm text-gray-600">{message}</p>
+      )}
     </div>
   );
 }
