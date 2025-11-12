@@ -1,47 +1,49 @@
 "use client";
 
-import { useUser } from "@supabase/auth-helpers-react";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
 
-export default function SubscribeButton() {
-  const user = useUser(); // ✅ get the logged-in user
-  const [loading, setLoading] = useState(false);
+// ✅ Add props type declaration for session
+interface SubscribeButtonProps {
+  session: any; // You can replace 'any' with Supabase types later if desired
+}
+
+export default function SubscribeButton({ session }: SubscribeButtonProps) {
+  const router = useRouter();
 
   const handleSubscribe = async () => {
-    if (!user) {
+    if (!session?.user) {
       alert("Please sign in to subscribe.");
+      router.push("/login");
       return;
     }
 
-    setLoading(true);
     try {
-      const res = await fetch("/api/create-subscription-session", {
+      const response = await fetch("/api/stripe/create-subscription", {
         method: "POST",
-        body: JSON.stringify({ userId: user.id }), // ✅ include user ID
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: session.user.id }),
       });
-      const data = await res.json();
 
-      if (data.url) {
-        window.location.href = data.url; // ✅ redirect to Stripe checkout
+      const data = await response.json();
+
+      if (data?.url) {
+        window.location.href = data.url;
       } else {
-        alert("Unable to start checkout. Please try again.");
-        console.error("Missing session URL:", data);
+        alert("Something went wrong. Please try again.");
       }
     } catch (err) {
-      console.error("Error creating checkout session:", err);
-      alert("There was an issue connecting to Stripe. Please try again.");
-    } finally {
-      setLoading(false);
+      console.error(err);
+      alert("Error starting subscription.");
     }
   };
 
   return (
     <button
       onClick={handleSubscribe}
-      disabled={loading}
-      className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition disabled:opacity-50"
+      className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-md transition"
     >
-      {loading ? "Redirecting..." : "Subscribe for $9.99/month"}
+      Subscribe for $9.99/month
     </button>
   );
 }

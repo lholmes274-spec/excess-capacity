@@ -1,4 +1,13 @@
 /** @type {import('next').NextConfig} */
+
+// ✅ Force HTTP only (for local development)
+if (process.env.NODE_ENV === "development") {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"; // disables SSL certificate checks
+  process.env.NEXT_FORCE_HTTP = "true"; // 🧩 Added line to force HTTP only
+  process.env.NEXT_PUBLIC_SITE_URL = "http://127.0.0.1:5173"; // your dev URL
+  console.log("🔓 Running in local HTTP mode — HTTPS disabled for localhost");
+}
+
 const nextConfig = {
   reactStrictMode: true,
 
@@ -11,14 +20,10 @@ const nextConfig = {
   },
 
   // ✅ Force dynamic rendering (no static export issues)
-  experimental: {
-    appDir: true,
-  },
   output: "standalone",
   generateEtags: false,
 
   // ✅ Prevent /listings from being statically exported
-  // This ensures Next.js treats /listings and any similar pages as dynamic routes
   async redirects() {
     return [];
   },

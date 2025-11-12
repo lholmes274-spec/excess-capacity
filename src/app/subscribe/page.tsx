@@ -8,19 +8,18 @@ import SubscribeButton from "@/components/SubscribeButton";
 export default function SubscribePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [session, setSession] = useState<any>(null); // 🆕 added
 
   useEffect(() => {
     const checkAuth = async () => {
-      // ✅ Check if user is logged in
       const {
         data: { session },
       } = await supabase.auth.getSession();
 
       if (!session) {
-        // 🚫 Redirect if not logged in
-        router.push("/signup");
+        router.push("/login"); // 🆕 changed from /signup → /login
       } else {
-        // ✅ Show page when logged in
+        setSession(session); // 🆕 store session
         setLoading(false);
       }
     };
@@ -28,7 +27,6 @@ export default function SubscribePage() {
     checkAuth();
   }, [router]);
 
-  // 🔄 Loading screen while verifying session
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen text-gray-700">
@@ -37,7 +35,6 @@ export default function SubscribePage() {
     );
   }
 
-  // ✅ Main subscription page content
   return (
     <div className="flex flex-col items-center justify-center min-h-screen px-4">
       <h1 className="text-2xl font-semibold mb-4">
@@ -47,7 +44,7 @@ export default function SubscribePage() {
         Subscribe for <strong>$9.99/month</strong> to unlock full seller access
         and premium features.
       </p>
-      <SubscribeButton />
+      <SubscribeButton session={session} /> {/* 🆕 pass session */}
     </div>
   );
 }
