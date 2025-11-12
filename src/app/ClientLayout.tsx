@@ -75,14 +75,27 @@ export default function ClientLayout({
 
             {/* ✅ Auth Buttons */}
             {user ? (
-              <li>
-                <button
-                  onClick={handleLogout}
-                  className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
-                >
-                  Sign Out
-                </button>
-              </li>
+              <>
+                {/* 🆕 Subscribe Button for Logged-in Users */}
+                <li>
+                  <a
+                    href="/subscribe"
+                    className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
+                  >
+                    Subscribe
+                  </a>
+                </li>
+
+                {/* Sign Out */}
+                <li>
+                  <button
+                    onClick={handleLogout}
+                    className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
+                  >
+                    Sign Out
+                  </button>
+                </li>
+              </>
             ) : (
               <>
                 <li>
