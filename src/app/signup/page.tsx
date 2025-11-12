@@ -3,26 +3,13 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import Link from "next/link"; // 👈 already imported
+import Link from "next/link";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
-  const [showConfirm, setShowConfirm] = useState(false); // ✅ Added state
   const router = useRouter();
-
-  // ✅ Detect when user clicks Supabase email confirmation link
-  useEffect(() => {
-    const hash = window.location.hash;
-    if (hash.includes("type=signup") || hash.includes("access_token")) {
-      setShowConfirm(true);
-      // Optional: redirect to login after a short delay
-      setTimeout(() => {
-        router.push("/login");
-      }, 2500);
-    }
-  }, [router]);
 
   // ✅ Redirect user if already logged in
   useEffect(() => {
@@ -31,7 +18,7 @@ export default function SignupPage() {
         data: { user },
       } = await supabase.auth.getUser();
       if (user) {
-        router.push("/subscribe"); // 👈 redirect confirmed/logged-in users
+        router.push("/subscribe");
       }
     };
     checkUser();
@@ -41,27 +28,34 @@ export default function SignupPage() {
     e.preventDefault();
     setMessage("Creating your account...");
 
-    const { error } = await supabase.auth.signUp({
+    // ✅ Supabase will send confirmation email automatically
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        // ✅ redirect after confirming email
-        emailRedirectTo: "https://prosperityhub.app/confirm?fromSignup=true",
+        // ✅ Must include full redirect URL (the /confirm page)
+        emailRedirectTo: "https://prosperityhub.app/confirm",
       },
     });
 
     if (error) {
-      setMessage(error.message);
-    } else {
+      setMessage(`❌ ${error.message}`);
+    } else if (data.user && !data.session) {
+      // ✅ Supabase requires email confirmation first
       setMessage(
-        "Please check your email and click the confirmation link to finish signing up."
+        "✅ Please check your email and click the confirmation link to finish signing up."
       );
+    } else {
+      // ✅ If the user already exists and session restored
+      setMessage("You're already signed in.");
+      router.push("/subscribe");
     }
   };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen px-4">
       <h1 className="text-2xl font-semibold mb-6">Join Prosperity Hub</h1>
+
       <form onSubmit={handleSignup} className="w-full max-w-sm space-y-4">
         <input
           type="email"
@@ -87,24 +81,13 @@ export default function SignupPage() {
         </button>
       </form>
 
-      {/* 👇 Subscribe link (still visible if not logged in) */}
       <div className="mt-6">
         <Link href="/subscribe" className="text-blue-600 hover:underline">
           Subscribe
         </Link>
       </div>
 
-      {/* ✅ Confirmation message */}
-      {showConfirm && (
-        <p className="mt-4 text-green-600 text-sm font-medium text-center">
-          ✅ Email confirmed — please log in.
-        </p>
-      )}
-
-      {/* ✅ Regular signup status message */}
-      {message && !showConfirm && (
-        <p className="mt-4 text-sm text-gray-600">{message}</p>
-      )}
+      {message && <p className="mt-4 text-sm text-gray-600 text-center">{message}</p>}
     </div>
   );
 }
