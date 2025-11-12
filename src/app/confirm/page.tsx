@@ -6,9 +6,19 @@ import { supabase } from "@/lib/supabaseClient";
 
 export default function ConfirmPage() {
   const router = useRouter();
-  const [statusMessage, setStatusMessage] = useState("Verifying your account… please wait");
+  const [statusMessage, setStatusMessage] = useState(
+    "Verifying your account… please wait"
+  );
 
   useEffect(() => {
+    // ✅ Handle if this page opens in a *new tab* from email confirmation
+    if (window.opener && window.opener.location.href.includes("/signup")) {
+      // Refresh the original signup tab to /confirm and close this duplicate one
+      window.opener.location.href = "https://prosperityhub.app/confirm";
+      window.close();
+      return; // stop further execution in this tab
+    }
+
     const handleSession = async () => {
       // ✅ Check if session already exists
       const { data } = await supabase.auth.getSession();
@@ -22,19 +32,23 @@ export default function ConfirmPage() {
       }
 
       // ✅ Wait for Supabase to establish session after confirmation
-      const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-        if (session) {
-          setStatusMessage("✅ Email confirmed — please log in.");
-          setTimeout(() => {
-            router.push("/login");
-          }, 2500);
-        } else {
-          setStatusMessage("⚠️ Unable to verify session. Please log in manually.");
-          setTimeout(() => {
-            router.push("/login");
-          }, 3000);
+      const { data: listener } = supabase.auth.onAuthStateChange(
+        (_event, session) => {
+          if (session) {
+            setStatusMessage("✅ Email confirmed — please log in.");
+            setTimeout(() => {
+              router.push("/login");
+            }, 2500);
+          } else {
+            setStatusMessage(
+              "⚠️ Unable to verify session. Please log in manually."
+            );
+            setTimeout(() => {
+              router.push("/login");
+            }, 3000);
+          }
         }
-      });
+      );
 
       return () => listener.subscription.unsubscribe();
     };
@@ -44,7 +58,9 @@ export default function ConfirmPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen px-4 text-gray-700">
-      <h1 className="text-2xl font-semibold mb-4 text-center">{statusMessage}</h1>
+      <h1 className="text-2xl font-semibold mb-4 text-center">
+        {statusMessage}
+      </h1>
       <p className="text-sm text-gray-500 text-center">
         You’ll be redirected to the login page shortly.
       </p>

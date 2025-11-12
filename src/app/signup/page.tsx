@@ -46,7 +46,7 @@ export default function SignupPage() {
       password,
       options: {
         // ✅ redirect after confirming email
-        emailRedirectTo: "https://prosperityhub.app/confirm",
+        emailRedirectTo: "https://prosperityhub.app/confirm?fromSignup=true",
       },
     });
 
