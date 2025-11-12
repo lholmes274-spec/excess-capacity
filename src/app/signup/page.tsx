@@ -17,9 +17,7 @@ export default function SignupPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (user) {
-        router.push("/subscribe");
-      }
+      if (user) router.push("/subscribe");
     };
     checkUser();
   }, [router]);
@@ -28,27 +26,27 @@ export default function SignupPage() {
     e.preventDefault();
     setMessage("Creating your account...");
 
-    // ✅ Supabase will send confirmation email automatically
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        // ✅ Must include full redirect URL (the /confirm page)
+        // ✅ Supabase will send the email confirmation automatically
         emailRedirectTo: "https://prosperityhub.app/confirm",
       },
     });
 
     if (error) {
       setMessage(`❌ ${error.message}`);
-    } else if (data.user && !data.session) {
-      // ✅ Supabase requires email confirmation first
-      setMessage(
-        "✅ Please check your email and click the confirmation link to finish signing up."
-      );
     } else {
-      // ✅ If the user already exists and session restored
-      setMessage("You're already signed in.");
-      router.push("/subscribe");
+      // ✅ Friendly, polished confirmation message
+      setMessage(
+        "✅ Confirmation email sent! You can close this window now."
+      );
+
+      // ✅ Automatically close the signup page after a short delay
+      setTimeout(() => {
+        window.close();
+      }, 3000);
     }
   };
 
@@ -87,7 +85,9 @@ export default function SignupPage() {
         </Link>
       </div>
 
-      {message && <p className="mt-4 text-sm text-gray-600 text-center">{message}</p>}
+      {message && (
+        <p className="mt-4 text-sm text-gray-600 text-center">{message}</p>
+      )}
     </div>
   );
 }
