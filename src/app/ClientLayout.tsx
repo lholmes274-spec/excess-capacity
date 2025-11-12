@@ -13,8 +13,19 @@ export default function ClientLayout({
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+    // ✅ Use getSession instead of getUser for more accurate detection
+    const fetchSession = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      if (error || !data?.session) {
+        setUser(null);
+      } else {
+        setUser(data.session.user);
+      }
+    };
 
+    fetchSession();
+
+    // ✅ Real-time session listener
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -26,11 +37,13 @@ export default function ClientLayout({
 
   async function handleLogout() {
     await supabase.auth.signOut();
+    setUser(null); // immediately reflect logout in UI
     router.push("/login");
   }
 
   return (
     <>
+      {/* Header */}
       <header className="bg-[#0f172a] text-white shadow-sm">
         <nav className="container mx-auto flex justify-between items-center px-6 py-4">
           <h1 className="text-lg font-semibold">
@@ -76,17 +89,14 @@ export default function ClientLayout({
             {/* ✅ Auth Buttons */}
             {user ? (
               <>
-                {/* 🆕 Subscribe Button for Logged-in Users */}
                 <li>
                   <a
                     href="/subscribe"
-                    className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
                   >
                     Subscribe
                   </a>
                 </li>
-
-                {/* Sign Out */}
                 <li>
                   <button
                     onClick={handleLogout}
@@ -106,15 +116,16 @@ export default function ClientLayout({
                     Login
                   </a>
                 </li>
-                {/* ❌ Removed Join Free button */}
               </>
             )}
           </ul>
         </nav>
       </header>
 
+      {/* Main */}
       <main className="container mx-auto px-6 py-8">{children}</main>
 
+      {/* Footer */}
       <footer className="bg-[#0f172a] text-gray-300 text-center py-6 mt-10">
         <p className="text-sm">
           © {new Date().getFullYear()} ProsperityHub.app. All rights reserved.
