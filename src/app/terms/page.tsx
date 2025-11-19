@@ -17,9 +17,9 @@ export default function TermsPage() {
         </h2>
         <p className="text-gray-700 mb-4">
           Prosperity Hub connects individuals and businesses to share unused
-          capacity, such as workspaces, storage units, and tools. Our goal is to
-          help you earn income through shared access and create opportunities
-          within the community.
+          capacity, such as workspaces, storage units, and tools. Our mission is
+          to help users earn income through shared access while fostering
+          opportunities and community collaboration.
         </p>
 
         <h2 className="text-2xl font-semibold mt-8 mb-3 text-gray-900">
@@ -27,9 +27,10 @@ export default function TermsPage() {
         </h2>
         <ul className="list-disc list-inside text-gray-700 mb-4">
           <li>Provide accurate information in all listings and communications.</li>
-          <li>Use the platform respectfully and lawfully.</li>
+          <li>Use the platform respectfully and in compliance with all laws.</li>
           <li>
-            Ensure that your listings meet safety and local regulation standards.
+            Ensure that any listings or shared items meet safety and local
+            regulatory standards.
           </li>
           <li>Respect other users and complete transactions in good faith.</li>
         </ul>
@@ -38,36 +39,39 @@ export default function TermsPage() {
           3. Payments and Transactions
         </h2>
         <p className="text-gray-700 mb-4">
-          All payments are processed securely through our third-party partners.
-          Prosperity Hub does not store payment information. Any disputes
-          regarding payments should be reported immediately through the contact
-          options provided on the platform.
+          All payments are securely processed through trusted third-party
+          partners. Prosperity Hub does not store or process payment card
+          information. Any issues or disputes involving payments should be
+          reported promptly through our support team.
         </p>
 
         <h2 className="text-2xl font-semibold mt-8 mb-3 text-gray-900">
           4. Limitation of Liability
         </h2>
         <p className="text-gray-700 mb-4">
-          Prosperity Hub is not responsible for any direct, indirect, or
-          incidental damages arising from user interactions, listing misuse, or
-          third-party actions. Users participate at their own risk and discretion.
+          Prosperity Hub is not responsible for any direct, indirect,
+          incidental, or consequential damages arising from user interactions,
+          listing misuse, or actions taken by third parties. Users participate
+          at their own risk and discretion.
         </p>
 
         <h2 className="text-2xl font-semibold mt-8 mb-3 text-gray-900">
           5. Termination
         </h2>
         <p className="text-gray-700 mb-4">
-          Prosperity Hub reserves the right to suspend or terminate accounts that
-          violate these terms or engage in fraudulent or harmful behavior.
+          Prosperity Hub reserves the right to suspend or terminate accounts
+          that violate these terms or engage in fraudulent, harmful, or abusive
+          behavior.
         </p>
 
         <h2 className="text-2xl font-semibold mt-8 mb-3 text-gray-900">
           6. Updates to Terms
         </h2>
         <p className="text-gray-700 mb-4">
-          These terms may be updated periodically to reflect new policies or
-          regulations. Continued use of the platform after updates implies
-          agreement to the revised terms.
+          These Terms and Conditions may be updated from time to time to reflect
+          changes in policies, laws, or service features. Your continued use of
+          the platform after such updates constitutes acceptance of the revised
+          terms.
         </p>
 
         <h2 className="text-2xl font-semibold mt-8 mb-3 text-gray-900">
@@ -85,14 +89,12 @@ export default function TermsPage() {
           .
         </p>
 
-        {/* ✅ Trust acknowledgment */}
+        {/* ✅ Updated Legal Entity Reference */}
         <p className="text-gray-600 text-sm mt-10">
-          For legal and estate purposes, ProsperityHub.app is intended to be
-          assigned to the <strong>Prosperity Voyage Living Trust</strong> upon
-          its formal activation and registration.
+          ProsperityHub.app is owned and operated by{" "}
+          <strong>Prosperity Voyage LLC</strong>, the official business entity
+          responsible for all services provided through the platform.
         </p>
-
-        {/* 🚫 Removed duplicate footer — global layout footer will now appear */}
       </div>
     </main>
   );
