@@ -125,6 +125,14 @@ export default function Home() {
       console.error("❌ Error adding listing:", error);
       alert("❌ Failed to add listing. Check console for details.");
     } else {
+
+      // ⭐⭐⭐ GOOGLE ADS CONVERSION EVENT ⭐⭐⭐
+      if (typeof window !== "undefined" && (window as any).gtag) {
+        (window as any).gtag("event", "post_listing", {
+          send_to: "AW-17728116849",
+        });
+      }
+
       alert("✅ Listing added successfully!");
       setForm({
         title: "",
@@ -143,13 +151,13 @@ export default function Home() {
         pickup_instructions: "",
         demo_mode: false,
       });
+
       fetchListings();
     }
   }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-amber-50 via-yellow-50 to-amber-100 py-10 px-4 sm:px-8 lg:px-16">
-      {/* ✅ Confirmation Message */}
       {showConfirmMessage && (
         <div className="fixed top-5 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-xl shadow-lg text-sm font-medium z-50">
           ✅ Email confirmed — redirecting to login...
@@ -157,7 +165,7 @@ export default function Home() {
       )}
 
       <div className="max-w-5xl mx-auto bg-white/90 backdrop-blur-md rounded-2xl shadow-2xl p-6 md:p-10 border border-amber-200">
-        {/* 🌐 Brand Header */}
+
         <h1 className="text-center text-5xl font-extrabold mb-2 text-amber-700 drop-shadow-md">
           Dynamic Excess Capacity Sharing
         </h1>
@@ -165,7 +173,6 @@ export default function Home() {
           Manage & Explore Listings that unlock hidden potential.
         </p>
 
-        {/* 🧾 Add Listing Form */}
         <form
           onSubmit={addListing}
           className="grid grid-cols-1 md:grid-cols-2 gap-5 bg-gradient-to-br from-amber-50 to-yellow-100 rounded-xl p-6 border border-amber-200 shadow-inner mb-10"
@@ -226,7 +233,6 @@ export default function Home() {
             className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm md:col-span-2 min-h-[100px]"
           />
 
-          {/* 📦 Pickup & Contact Info */}
           <div className="md:col-span-2 mt-2 border-t border-amber-200 pt-4">
             <h3 className="text-lg font-semibold text-amber-700 mb-3">
               Pickup & Contact Information
@@ -300,7 +306,6 @@ export default function Home() {
           </button>
         </form>
 
-        {/* 🏠 Listings Section */}
         <h2 className="text-3xl font-bold mb-6 text-gray-800 text-center md:text-left">
           Available Listings
         </h2>
@@ -332,7 +337,6 @@ export default function Home() {
                   </p>
                 </div>
 
-                {/* ✅ Buttons */}
                 {listing.demo_mode ? (
                   <button
                     disabled
