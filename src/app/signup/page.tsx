@@ -30,7 +30,6 @@ function isValidEmail(email: string) {
 
 // --------------------------------------------------
 // OPTIONAL (Step 3) — REAL MAILBOX VALIDATION
-// Enable this once you create a Kickbox account
 // --------------------------------------------------
 // async function verifyMailboxExists(email: string) {
 //   const res = await fetch(
@@ -46,7 +45,6 @@ export default function SignupPage() {
   const [message, setMessage] = useState("");
   const router = useRouter();
 
-  // Redirect if logged in
   useEffect(() => {
     const checkUser = async () => {
       const {
@@ -97,8 +95,14 @@ export default function SignupPage() {
     } else {
       setMessage("✅ Confirmation email sent! You can close this window now.");
 
+      // --------------------------------------------------
+      // OPTION B — SAFE AUTO-CLOSE
+      // Only closes if this window was opened via window.open()
+      // --------------------------------------------------
       setTimeout(() => {
-        window.close();
+        if (window.opener) {
+          window.close();
+        }
       }, 3000);
     }
   };
