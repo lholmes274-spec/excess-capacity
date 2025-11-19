@@ -13,7 +13,6 @@ export default function ClientLayout({
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    // ✅ Use getSession instead of getUser for more accurate detection
     const fetchSession = async () => {
       const { data, error } = await supabase.auth.getSession();
       if (error || !data?.session) {
@@ -25,7 +24,6 @@ export default function ClientLayout({
 
     fetchSession();
 
-    // ✅ Real-time session listener
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -35,9 +33,23 @@ export default function ClientLayout({
     return () => subscription.unsubscribe();
   }, []);
 
+  // ⭐ GOOGLE ADS CONVERSION EVENT ⭐
+  const trackPostListingClick = () => {
+    if (typeof window !== "undefined" && window.gtag) {
+      window.gtag("event", "post_listing_click", {
+        send_to: "AW-17728116849",
+      });
+    }
+  };
+
+  const goToAddListing = () => {
+    trackPostListingClick();
+    router.push("/add-listing");
+  };
+
   async function handleLogout() {
     await supabase.auth.signOut();
-    setUser(null); // immediately reflect logout in UI
+    setUser(null);
     router.push("/login");
   }
 
@@ -71,11 +83,6 @@ export default function ClientLayout({
               </a>
             </li>
             <li>
-              <a href="/admin" className="hover:text-blue-300 transition">
-                Admin
-              </a>
-            </li>
-            <li>
               <a href="/terms" className="hover:text-blue-300 transition">
                 Terms
               </a>
@@ -86,7 +93,17 @@ export default function ClientLayout({
               </a>
             </li>
 
-            {/* ✅ Auth Buttons */}
+            {/* ⭐ NEW: Post a Listing Button ⭐ */}
+            <li>
+              <button
+                onClick={goToAddListing}
+                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+              >
+                Post a Listing
+              </button>
+            </li>
+
+            {/* Auth Buttons */}
             {user ? (
               <>
                 <li>

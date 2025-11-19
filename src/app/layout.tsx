@@ -44,13 +44,29 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      {/* ✅ Static metadata and social tags */}
       <head>
+        {/* Facebook App ID */}
         <meta property="fb:app_id" content="2963411410513274" />
+
+        {/* ✅ Google Ads Global Site Tag */}
+        <script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=AW-17728116849"
+        ></script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'AW-17728116849');
+            `,
+          }}
+        />
       </head>
 
       <body className={`${inter.className} bg-gray-50 text-gray-900`}>
-        {/* ✅ Wrap all pages in ClientLayout */}
+        {/* Wrap all pages in ClientLayout */}
         <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
