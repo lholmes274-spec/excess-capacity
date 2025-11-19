@@ -5,13 +5,48 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
 
+// --------------------------------------------------
+// ✅ BASIC EMAIL VALIDATION (Prevents common mistakes)
+// --------------------------------------------------
+function isValidEmail(email: string) {
+  const basicCheck = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  if (!basicCheck) return false;
+
+  const blockedDomains = [
+    "gmaill.com",
+    "yahho.com",
+    "yaho.com",
+    "hotmial.com",
+    "gmail.con",
+    "gmial.com",
+    "outlok.com",
+  ];
+
+  const domain = email.split("@")[1]?.toLowerCase();
+  if (blockedDomains.includes(domain)) return false;
+
+  return true;
+}
+
+// --------------------------------------------------
+// OPTIONAL (Step 3) — REAL MAILBOX VALIDATION
+// Enable this once you create a Kickbox account
+// --------------------------------------------------
+// async function verifyMailboxExists(email: string) {
+//   const res = await fetch(
+//     `https://api.kickbox.com/v2/verify?email=${email}&apikey=YOUR_API_KEY`
+//   );
+//   const data = await res.json();
+//   return data.result === "deliverable" || data.result === "risky";
+// }
+
 export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const router = useRouter();
 
-  // ✅ Redirect user if already logged in
+  // Redirect if logged in
   useEffect(() => {
     const checkUser = async () => {
       const {
@@ -24,13 +59,35 @@ export default function SignupPage() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+
     setMessage("Creating your account...");
 
+    // --------------------------------------------------
+    // STEP 2 — BASIC EMAIL VALIDATION
+    // --------------------------------------------------
+    if (!isValidEmail(email)) {
+      setMessage(
+        "❌ Invalid email address. Please double-check the spelling before continuing."
+      );
+      return;
+    }
+
+    // --------------------------------------------------
+    // OPTIONAL STEP 3 — REAL MAILBOX CHECK
+    // --------------------------------------------------
+    // const mailboxOK = await verifyMailboxExists(email);
+    // if (!mailboxOK) {
+    //   setMessage("❌ This email address cannot receive mail. Please use a valid email.");
+    //   return;
+    // }
+
+    // --------------------------------------------------
+    // SUPABASE SIGNUP (Will send confirmation email)
+    // --------------------------------------------------
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        // ✅ Supabase will send the email confirmation automatically
         emailRedirectTo: "https://prosperityhub.app/confirm",
       },
     });
@@ -38,12 +95,8 @@ export default function SignupPage() {
     if (error) {
       setMessage(`❌ ${error.message}`);
     } else {
-      // ✅ Friendly, polished confirmation message
-      setMessage(
-        "✅ Confirmation email sent! You can close this window now."
-      );
+      setMessage("✅ Confirmation email sent! You can close this window now.");
 
-      // ✅ Automatically close the signup page after a short delay
       setTimeout(() => {
         window.close();
       }, 3000);
