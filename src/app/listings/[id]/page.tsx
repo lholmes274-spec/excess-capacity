@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 
 export default function ListingDetailPage() {
-  const { id } = useParams();
+  const { id } = useParams();        // ⭐ id comes from /listings/[id]
   const router = useRouter();
   const [listing, setListing] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -18,7 +18,7 @@ export default function ListingDetailPage() {
       const { data, error } = await supabase
         .from("listings")
         .select("*")
-        .eq("id", Number(id))   // ⭐ FIXED: ensure number
+        .eq("id", Number(id))   // ⭐ ensure number
         .single();
 
       if (!error && data) setListing(data);
@@ -31,7 +31,7 @@ export default function ListingDetailPage() {
   if (loading) return <div className="p-8 text-gray-500">Loading...</div>;
   if (!listing) return <div className="p-8 text-red-500">Listing not found.</div>;
 
-  // ⭐ FIXED: prevent null crash
+  // ⭐ Prevent crash if null images
   const galleryImages = listing?.image_urls?.length
     ? listing.image_urls
     : listing?.image_url
@@ -42,7 +42,7 @@ export default function ListingDetailPage() {
     galleryImages?.[0] || null
   );
 
-  // ⭐ Update main image once listing loads
+  // ⭐ Update main image after load
   useEffect(() => {
     if (galleryImages.length > 0) {
       setMainImage(galleryImages[0]);
@@ -60,7 +60,7 @@ export default function ListingDetailPage() {
   return (
     <div className="max-w-3xl mx-auto p-8 bg-white shadow-md rounded-2xl mt-6 border border-gray-100">
 
-      {/* ⭐ FULL-WIDTH MAIN IMAGE */}
+      {/* ⭐ MAIN IMAGE */}
       {mainImage && (
         <div className="mb-6">
           <img
@@ -71,7 +71,7 @@ export default function ListingDetailPage() {
         </div>
       )}
 
-      {/* 🎥 VIDEO PREVIEW */}
+      {/* 🎥 VIDEO */}
       {listing.video_url && (
         <div className="mb-6">
           <video
@@ -83,7 +83,7 @@ export default function ListingDetailPage() {
         </div>
       )}
 
-      {/* ⭐ THUMBNAIL ROW */}
+      {/* ⭐ THUMBNAILS */}
       {galleryImages.length > 1 && (
         <div className="flex space-x-3 mb-8 overflow-x-auto">
           {galleryImages.map((img, index) => (
@@ -138,7 +138,7 @@ export default function ListingDetailPage() {
         </p>
       )}
 
-      {/* ⭐ PICKUP INSTRUCTIONS */}
+      {/* ⭐ PICKUP INFORMATION */}
       {(listing.pickup_instru ||
         listing.pickup_instructions ||
         listing.instructions) && (
@@ -154,7 +154,7 @@ export default function ListingDetailPage() {
         </div>
       )}
 
-      {/* ⭐ CONTACT INFO */}
+      {/* ⭐ CONTACT */}
       <div className="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
         <h3 className="font-semibold text-gray-800 mb-2">Contact Information</h3>
         <p>
