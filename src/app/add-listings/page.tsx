@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 
 export default function AddListingPage() {
   const router = useRouter();
+
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -15,8 +16,8 @@ export default function AddListingPage() {
     type: "",
   });
 
-  const [images, setImages] = useState<File[]>([]);       // ⭐ multiple images
-  const [previewUrls, setPreviewUrls] = useState<string[]>([]); // ⭐ previews
+  const [images, setImages] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
   const handleChange = (
@@ -31,7 +32,6 @@ export default function AddListingPage() {
     const selectedFiles = Array.from(e.target.files);
     setImages(selectedFiles);
 
-    // Preview URLs
     const urls = selectedFiles.map((file) => URL.createObjectURL(file));
     setPreviewUrls(urls);
   };
@@ -40,6 +40,7 @@ export default function AddListingPage() {
     e.preventDefault();
     setLoading(true);
 
+    // 🔒 Ensure user is logged in
     const { data: userData } = await supabase.auth.getUser();
     const userId = userData?.user?.id;
 
@@ -68,7 +69,6 @@ export default function AddListingPage() {
         return;
       }
 
-      // Get public URL
       const { data } = supabase.storage
         .from("listing-images")
         .getPublicUrl(filePath);
@@ -76,7 +76,6 @@ export default function AddListingPage() {
       if (data?.publicUrl) uploadedUrls.push(data.publicUrl);
     }
 
-    // ⭐ SAFE: first image becomes main thumbnail
     const primaryImage = uploadedUrls.length > 0 ? uploadedUrls[0] : null;
 
     // ⭐ INSERT LISTING
@@ -87,10 +86,12 @@ export default function AddListingPage() {
         description: form.description,
         baseprice: form.baseprice,
         location: form.location,
+
+        // 🔥 MATCHED EXACTLY TO YOUR CATEGORY CARDS
         type: form.type.toLowerCase().trim(),
 
-        image_url: primaryImage,       // ⭐ Backward compatibility
-        image_urls: uploadedUrls,      // ⭐ New multi-image field
+        image_url: primaryImage,
+        image_urls: uploadedUrls,
       },
     ]);
 
@@ -113,22 +114,36 @@ export default function AddListingPage() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
 
-        {/* ⭐ TYPE DROPDOWN */}
-        <label className="block font-medium">Select Listing Type</label>
+        {/* ⭐ UPDATED TYPE DROPDOWN MATCHING YOUR CATEGORY CARDS */}
+        <label className="block font-medium">Listing Type</label>
         <select
           name="type"
           value={form.type}
           onChange={handleChange}
           required
-          className="w-full border p-2 rounded"
+          className="w-full border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500"
         >
-          <option value="">-- Choose Type --</option>
-          <option value="vehicle">Vehicle</option>
-          <option value="tool">Tool</option>
-          <option value="space">Space / Storage</option>
-          <option value="home">Home</option>
-          <option value="consultant">Consultant</option>
-          <option value="recreation">Recreation</option>
+          <option value="">-- Select Listing Type --</option>
+
+          <optgroup label="Services">
+            <option value="service">Service</option>
+            <option value="consultant">Consultant</option>
+          </optgroup>
+
+          <optgroup label="Rentals & Items">
+            <option value="tool">Tool</option>
+            <option value="vehicle">Vehicle</option>
+            <option value="recreation">Recreation</option>
+            <option value="home">Home</option>
+          </optgroup>
+
+          <optgroup label="Spaces">
+            <option value="space">Space</option>
+          </optgroup>
+
+          <optgroup label="Misc">
+            <option value="other">Other</option>
+          </optgroup>
         </select>
 
         <input
@@ -137,7 +152,7 @@ export default function AddListingPage() {
           value={form.title}
           onChange={handleChange}
           placeholder="Listing Title"
-          className="w-full border p-2 rounded"
+          className="w-full border p-3 rounded-lg shadow-sm"
           required
         />
 
@@ -146,7 +161,7 @@ export default function AddListingPage() {
           value={form.description}
           onChange={handleChange}
           placeholder="Description"
-          className="w-full border p-2 rounded"
+          className="w-full border p-3 rounded-lg shadow-sm"
           rows={3}
         />
 
@@ -156,7 +171,7 @@ export default function AddListingPage() {
           value={form.baseprice}
           onChange={handleChange}
           placeholder="Base Price"
-          className="w-full border p-2 rounded"
+          className="w-full border p-3 rounded-lg shadow-sm"
           required
         />
 
@@ -165,8 +180,8 @@ export default function AddListingPage() {
           name="location"
           value={form.location}
           onChange={handleChange}
-          placeholder="Location"
-          className="w-full border p-2 rounded"
+          placeholder="Location (City, State)"
+          className="w-full border p-3 rounded-lg shadow-sm"
         />
 
         {/* ⭐ MULTIPLE IMAGE UPLOAD FIELD */}
@@ -181,7 +196,7 @@ export default function AddListingPage() {
           />
         </div>
 
-        {/* ⭐ IMAGE PREVIEW */}
+        {/* ⭐ IMAGE PREVIEW GRID */}
         {previewUrls.length > 0 && (
           <div className="grid grid-cols-3 gap-2 mt-2">
             {previewUrls.map((url, index) => (
@@ -197,7 +212,7 @@ export default function AddListingPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded transition"
+          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg transition"
         >
           {loading ? "Submitting..." : "Add Listing"}
         </button>
