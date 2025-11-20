@@ -10,7 +10,11 @@ export default function PrivacyPage() {
   return (
     <div className="max-w-4xl mx-auto px-6 py-16 text-gray-800">
       <h1 className="text-3xl font-bold mb-6">Privacy Policy</h1>
-      <p className="mb-4 text-sm text-gray-500">Last updated: October 27, 2025</p>
+
+      {/* ⭐ Always-visible Last Updated date */}
+      <p className="mb-4 text-sm text-gray-500">
+        Last updated: November 19, 2025
+      </p>
 
       <p className="mb-4">
         At <strong>Prosperity Hub</strong>, your privacy is important to us. This
@@ -76,7 +80,7 @@ export default function PrivacyPage() {
 
       <h2 className="text-xl font-semibold mt-8 mb-4">7. Updates to This Policy</h2>
       <p className="mb-4">
-        We may update this Privacy Policy from time to time. Any changes will be
+        We may update this Privacy Policy periodically. Any changes will be
         posted on this page with a revised “Last updated” date.
       </p>
 
