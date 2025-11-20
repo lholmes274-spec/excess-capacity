@@ -13,47 +13,99 @@ export default function ListingDetailPage() {
 
   useEffect(() => {
     if (!id) return;
+
     const fetchListing = async () => {
       const { data, error } = await supabase
         .from("listings")
-        .select("*, id") // ✅ ensure id column is fetched
+        .select("*, id")
         .eq("id", id)
         .single();
 
       if (!error && data) setListing(data);
       setLoading(false);
     };
+
     fetchListing();
   }, [id]);
 
   if (loading) return <div className="p-8 text-gray-500">Loading...</div>;
   if (!listing) return <div className="p-8 text-red-500">Listing not found.</div>;
 
+  // ⭐ Determine gallery images (multiple or single)
+  const galleryImages = listing.image_urls?.length
+    ? listing.image_urls
+    : listing.image_url
+    ? [listing.image_url]
+    : [];
+
+  const [mainImage, setMainImage] = useState(galleryImages[0]);
+
   const handleCheckout = () => {
     if (listing.demo_mode) {
       alert("Demo Only – Checkout disabled");
     } else {
-      // ✅ Navigate to checkout page with listing ID
       router.push(`/checkout?listing_id=${listing.id}`);
     }
   };
 
   return (
     <div className="max-w-3xl mx-auto p-8 bg-white shadow-md rounded-2xl mt-6 border border-gray-100">
-      <h1 className="text-3xl font-bold text-orange-800 mb-2">
-        {listing.title}
-      </h1>
 
-      {/* ❌ Removed the version line (“— v2”) */}
+      {/* ⭐ FULL-WIDTH MAIN IMAGE */}
+      {mainImage && (
+        <div className="mb-6">
+          <img
+            src={mainImage}
+            alt="Listing Image"
+            className="w-full h-72 object-cover rounded-xl shadow-sm"
+          />
+        </div>
+      )}
 
+      {/* 🎥 VIDEO PREVIEW IF AVAILABLE */}
+      {listing.video_url && (
+        <div className="mb-6">
+          <video
+            src={listing.video_url}
+            controls
+            className="w-full rounded-xl shadow-sm border border-gray-300 bg-black"
+            style={{ maxHeight: "400px" }}
+          >
+            Your browser does not support the video tag.
+          </video>
+        </div>
+      )}
+
+      {/* ⭐ THUMBNAIL ROW */}
+      {galleryImages.length > 1 && (
+        <div className="flex space-x-3 mb-8 overflow-x-auto">
+          {galleryImages.map((img, index) => (
+            <img
+              key={index}
+              src={img}
+              onClick={() => setMainImage(img)}
+              className={`h-20 w-24 object-cover rounded-lg cursor-pointer border ${
+                mainImage === img ? "border-blue-500" : "border-gray-300"
+              }`}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* ⭐ TITLE */}
+      <h1 className="text-3xl font-bold text-orange-800 mb-2">{listing.title}</h1>
+
+      {/* ⭐ DESCRIPTION */}
       <p className="text-gray-700 mb-4">{listing.description}</p>
 
+      {/* ⭐ LOCATION */}
       {listing.location && (
         <p className="text-gray-800 font-semibold mb-2">
           Location: <span className="text-gray-900">{listing.location}</span>
         </p>
       )}
 
+      {/* ⭐ PRICE */}
       {listing.basePrice && (
         <p className="text-2xl font-semibold text-green-700 mt-2">
           ${listing.basePrice}
@@ -72,12 +124,14 @@ export default function ListingDetailPage() {
         </p>
       )}
 
+      {/* ⭐ NOTES */}
       {(listing.notes || listing.note) && (
         <p className="mt-3 text-sm text-gray-600 italic">
           {listing.notes || listing.note}
         </p>
       )}
 
+      {/* ⭐ PICKUP INSTRUCTIONS */}
       {(listing.pickup_instru ||
         listing.pickup_instructions ||
         listing.instructions) && (
@@ -93,11 +147,9 @@ export default function ListingDetailPage() {
         </div>
       )}
 
-      {/* ✅ Contact */}
+      {/* ⭐ CONTACT INFO */}
       <div className="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
-        <h3 className="font-semibold text-gray-800 mb-2">
-          Contact Information
-        </h3>
+        <h3 className="font-semibold text-gray-800 mb-2">Contact Information</h3>
         <p>
           <strong>Contact:</strong> {listing.contact_name || "—"}
         </p>
@@ -109,7 +161,7 @@ export default function ListingDetailPage() {
         </p>
       </div>
 
-      {/* ✅ Checkout Button */}
+      {/* ⭐ CHECKOUT BUTTON */}
       <button
         className={`mt-6 w-full text-white py-3 rounded-lg font-semibold transition ${
           listing.demo_mode
