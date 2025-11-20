@@ -11,45 +11,44 @@ export default function AddListingPage() {
   const [form, setForm] = useState({
     title: "",
     description: "",
-    baseprice: "",
-    location: "",
+    basePrice: "",
     type: "",
+    location: "",
+    state: "",
+    city: "",
+    zip: "",
+    address_line1: "",
+    address_line2: "",
+    contact_name: "",
+    contact_phone: "",
+    contact_email: "",
+    pickup_instructions: "",
+    demo_mode: false,
   });
 
   const [images, setImages] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // ✅ MAX-SAFETY handleChange
+  // Handle input changes
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => {
-    const target = e.target;
-    const name = target.name;
-
-    const value =
-      target instanceof HTMLInputElement && target.type === "checkbox"
-        ? target.checked
-        : target.value;
-
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // ⭐ MULTIPLE IMAGE SELECTION + PREVIEW
+  // Handle image selection + preview
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
-    const selectedFiles = Array.from(e.target.files);
-    setImages(selectedFiles);
+    const files = Array.from(e.target.files);
 
-    const urls = selectedFiles.map((file) => URL.createObjectURL(file));
-    setPreviewUrls(urls);
+    setImages(files);
+    setPreviewUrls(files.map((file) => URL.createObjectURL(file)));
   };
 
+  // Submit form
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -63,11 +62,12 @@ export default function AddListingPage() {
       return;
     }
 
+    // Upload multiple images to Supabase Storage
     let uploadedUrls: string[] = [];
 
     for (const image of images) {
-      const fileExt = image.name.split(".").pop();
-      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      const ext = image.name.split(".").pop();
+      const fileName = `${crypto.randomUUID()}.${ext}`;
       const filePath = `listing-images/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
@@ -75,8 +75,8 @@ export default function AddListingPage() {
         .upload(filePath, image);
 
       if (uploadError) {
-        console.error(uploadError);
         alert("Image upload failed.");
+        console.error(uploadError);
         setLoading(false);
         return;
       }
@@ -88,16 +88,27 @@ export default function AddListingPage() {
       if (data?.publicUrl) uploadedUrls.push(data.publicUrl);
     }
 
-    const primaryImage = uploadedUrls.length > 0 ? uploadedUrls[0] : null;
+    const primaryImage = uploadedUrls[0] || null;
 
+    // Insert listing
     const { error } = await supabase.from("listings").insert([
       {
-        user_id: userId,
+        owner_id: userId,
         title: form.title,
         description: form.description,
-        baseprice: form.baseprice,
+        basePrice: Number(form.basePrice),
+        type: form.type.toLowerCase(),
         location: form.location,
-        type: form.type.toLowerCase().trim(),
+        state: form.state,
+        city: form.city,
+        zip: form.zip,
+        address_line1: form.address_line1,
+        address_line2: form.address_line2,
+        contact_name: form.contact_name,
+        contact_phone: form.contact_phone,
+        contact_email: form.contact_email,
+        pickup_instructions: form.pickup_instructions,
+        demo_mode: form.demo_mode,
         image_url: primaryImage,
         image_urls: uploadedUrls,
       },
@@ -106,117 +117,205 @@ export default function AddListingPage() {
     setLoading(false);
 
     if (error) {
-      console.error(error);
-      alert("Error adding listing.");
-    } else {
-      alert("Listing added successfully!");
-      router.push("/");
+      console.error("Error adding listing:", error);
+      alert("Error adding listing. Check console for details.");
+      return;
     }
+
+    alert("Listing added successfully!");
+    router.push("/");
   };
 
   return (
-    <div className="max-w-lg mx-auto p-6">
-      <h1 className="text-2xl font-semibold mb-6 text-center">
+    <div className="max-w-2xl mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-6 text-center text-orange-800">
         Add a New Listing
       </h1>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <label className="block font-medium">Listing Type</label>
-        <select
-          name="type"
-          value={form.type}
-          onChange={handleChange}
-          required
-          className="w-full border p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500"
-        >
-          <option value="">-- Select Listing Type --</option>
+      <form onSubmit={handleSubmit} className="space-y-5">
 
-          <optgroup label="Services">
-            <option value="service">Service</option>
-            <option value="consultant">Consultant</option>
-          </optgroup>
+        {/* Listing Type */}
+        <div>
+          <label className="block font-semibold mb-1">Listing Type</label>
+          <select
+            name="type"
+            required
+            value={form.type}
+            onChange={handleChange}
+            className="w-full p-3 border rounded-lg bg-white"
+          >
+            <option value="">Select Type</option>
 
-          <optgroup label="Rentals & Items">
-            <option value="tool">Tool</option>
-            <option value="vehicle">Vehicle</option>
-            <option value="recreation">Recreation</option>
-            <option value="home">Home</option>
-          </optgroup>
+            <optgroup label="Services">
+              <option value="service">Service</option>
+              <option value="consultant">Consultant</option>
+            </optgroup>
 
-          <optgroup label="Spaces">
-            <option value="space">Space</option>
-          </optgroup>
+            <optgroup label="Rentals & Items">
+              <option value="tool">Tool</option>
+              <option value="vehicle">Vehicle</option>
+              <option value="recreation">Recreation</option>
+              <option value="home">Home</option>
+            </optgroup>
 
-          <optgroup label="Misc">
-            <option value="other">Other</option>
-          </optgroup>
-        </select>
+            <optgroup label="Spaces">
+              <option value="space">Space</option>
+            </optgroup>
 
+            <optgroup label="Other">
+              <option value="other">Other</option>
+            </optgroup>
+          </select>
+        </div>
+
+        {/* Title */}
         <input
-          type="text"
           name="title"
           value={form.title}
           onChange={handleChange}
           placeholder="Listing Title"
-          className="w-full border p-3 rounded-lg shadow-sm"
+          className="w-full p-3 border rounded-lg"
           required
         />
 
+        {/* Description */}
         <textarea
           name="description"
           value={form.description}
           onChange={handleChange}
           placeholder="Description"
-          className="w-full border p-3 rounded-lg shadow-sm"
+          className="w-full p-3 border rounded-lg"
           rows={3}
         />
 
+        {/* Base Price */}
         <input
-          type="text"
-          name="baseprice"
-          value={form.baseprice}
+          name="basePrice"
+          value={form.basePrice}
           onChange={handleChange}
           placeholder="Base Price"
-          className="w-full border p-3 rounded-lg shadow-sm"
+          className="w-full p-3 border rounded-lg"
           required
         />
 
+        {/* Location */}
         <input
-          type="text"
           name="location"
           value={form.location}
           onChange={handleChange}
           placeholder="Location (City, State)"
-          className="w-full border p-3 rounded-lg shadow-sm"
+          className="w-full p-3 border rounded-lg"
         />
 
+        {/* Address Section */}
+        <div className="space-y-3">
+          <input
+            name="address_line1"
+            value={form.address_line1}
+            onChange={handleChange}
+            placeholder="Address Line 1"
+            className="w-full p-3 border rounded-lg"
+          />
+
+          <input
+            name="address_line2"
+            value={form.address_line2}
+            onChange={handleChange}
+            placeholder="Address Line 2 (optional)"
+            className="w-full p-3 border rounded-lg"
+          />
+
+          <input
+            name="city"
+            value={form.city}
+            onChange={handleChange}
+            placeholder="City"
+            className="w-full p-3 border rounded-lg"
+          />
+
+          <input
+            name="state"
+            value={form.state}
+            onChange={handleChange}
+            placeholder="State"
+            className="w-full p-3 border rounded-lg"
+          />
+
+          <input
+            name="zip"
+            value={form.zip}
+            onChange={handleChange}
+            placeholder="Zip Code"
+            className="w-full p-3 border rounded-lg"
+          />
+        </div>
+
+        {/* Contact Information */}
+        <div className="space-y-3">
+          <input
+            name="contact_name"
+            value={form.contact_name}
+            onChange={handleChange}
+            placeholder="Contact Name"
+            className="w-full p-3 border rounded-lg"
+          />
+
+          <input
+            name="contact_phone"
+            value={form.contact_phone}
+            onChange={handleChange}
+            placeholder="Contact Phone"
+            className="w-full p-3 border rounded-lg"
+          />
+
+          <input
+            name="contact_email"
+            value={form.contact_email}
+            onChange={handleChange}
+            placeholder="Contact Email"
+            className="w-full p-3 border rounded-lg"
+          />
+
+          <textarea
+            name="pickup_instructions"
+            value={form.pickup_instructions}
+            onChange={handleChange}
+            placeholder="Pickup Instructions"
+            className="w-full p-3 border rounded-lg"
+            rows={2}
+          />
+        </div>
+
+        {/* Image Upload */}
         <div>
-          <label className="block font-medium mb-1">Upload Images</label>
+          <label className="block font-semibold mb-1">Upload Images</label>
           <input
             type="file"
             accept="image/*"
             multiple
             onChange={handleImageSelect}
-            className="w-full border p-2 rounded bg-white"
+            className="w-full p-2 border rounded-lg bg-white"
           />
         </div>
 
+        {/* Image Preview */}
         {previewUrls.length > 0 && (
-          <div className="grid grid-cols-3 gap-2 mt-2">
-            {previewUrls.map((url, index) => (
+          <div className="grid grid-cols-3 gap-2">
+            {previewUrls.map((src, i) => (
               <img
-                key={index}
-                src={url}
+                key={i}
+                src={src}
                 className="w-full h-24 object-cover rounded border"
               />
             ))}
           </div>
         )}
 
+        {/* Submit */}
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg transition"
+          className="w-full bg-orange-600 hover:bg-orange-700 text-white p-3 rounded-lg font-semibold transition"
         >
           {loading ? "Submitting..." : "Add Listing"}
         </button>
