@@ -28,20 +28,10 @@ function isValidEmail(email: string) {
   return true;
 }
 
-// --------------------------------------------------
-// OPTIONAL (Step 3) — REAL MAILBOX VALIDATION
-// --------------------------------------------------
-// async function verifyMailboxExists(email: string) {
-//   const res = await fetch(
-//     `https://api.kickbox.com/v2/verify?email=${email}&apikey=YOUR_API_KEY`
-//   );
-//   const data = await res.json();
-//   return data.result === "deliverable" || data.result === "risky";
-// }
-
 export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState("");
   const router = useRouter();
 
@@ -61,7 +51,7 @@ export default function SignupPage() {
     setMessage("Creating your account...");
 
     // --------------------------------------------------
-    // STEP 2 — BASIC EMAIL VALIDATION
+    // STEP 1 — BASIC EMAIL VALIDATION
     // --------------------------------------------------
     if (!isValidEmail(email)) {
       setMessage(
@@ -71,16 +61,15 @@ export default function SignupPage() {
     }
 
     // --------------------------------------------------
-    // OPTIONAL STEP 3 — REAL MAILBOX CHECK
+    // STEP 2 — PASSWORD MATCH VALIDATION
     // --------------------------------------------------
-    // const mailboxOK = await verifyMailboxExists(email);
-    // if (!mailboxOK) {
-    //   setMessage("❌ This email address cannot receive mail. Please use a valid email.");
-    //   return;
-    // }
+    if (password !== confirmPassword) {
+      setMessage("❌ Passwords do not match. Please try again.");
+      return;
+    }
 
     // --------------------------------------------------
-    // SUPABASE SIGNUP (Will send confirmation email)
+    // STEP 3 — SUPABASE SIGNUP
     // --------------------------------------------------
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -96,8 +85,7 @@ export default function SignupPage() {
       setMessage("✅ Confirmation email sent! You can close this window now.");
 
       // --------------------------------------------------
-      // OPTION B — SAFE AUTO-CLOSE
-      // Only closes if this window was opened via window.open()
+      // SAFE AUTO-CLOSE (Only works if opened via window.open)
       // --------------------------------------------------
       setTimeout(() => {
         if (window.opener) {
@@ -120,6 +108,7 @@ export default function SignupPage() {
           onChange={(e) => setEmail(e.target.value)}
           required
         />
+
         <input
           type="password"
           placeholder="Password"
@@ -128,6 +117,17 @@ export default function SignupPage() {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
+
+        {/* NEW Confirm Password Field */}
+        <input
+          type="password"
+          placeholder="Confirm Password"
+          className="w-full border p-3 rounded"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          required
+        />
+
         <button
           type="submit"
           className="w-full bg-blue-600 text-white p-3 rounded hover:bg-blue-700 transition"
