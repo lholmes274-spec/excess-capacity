@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
-import { useRouter } from "next/navigation"; // ✅ Added for redirect
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   const [listings, setListings] = useState<any[]>([]);
@@ -28,7 +28,6 @@ export default function Home() {
     demo_mode: false,
   });
 
-  // ✅ Only check if user is logged in (don’t auto-redirect unsubscribed)
   useEffect(() => {
     const checkUser = async () => {
       const { data, error } = await supabase.auth.getUser();
@@ -39,7 +38,6 @@ export default function Home() {
     checkUser();
   }, [router]);
 
-  // ✅ Detect Supabase email confirmation and redirect to /login
   useEffect(() => {
     const hash = window.location.hash;
     if (hash.includes("type=signup") || hash.includes("access_token")) {
@@ -50,7 +48,6 @@ export default function Home() {
     }
   }, [router]);
 
-  // ✅ Fetch listings
   async function fetchListings() {
     const { data, error } = await supabase
       .from("listings")
@@ -64,7 +61,6 @@ export default function Home() {
     fetchListings();
   }, []);
 
-  // ✅ Add new listing (restricted to subscribed users)
   async function addListing(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
@@ -81,7 +77,6 @@ export default function Home() {
       return;
     }
 
-    // Check subscription before allowing listing creation
     const { data: profile, error: profileError } = await (supabase as any)
       .from("profiles")
       .select("is_subscribed")
@@ -125,8 +120,6 @@ export default function Home() {
       console.error("❌ Error adding listing:", error);
       alert("❌ Failed to add listing. Check console for details.");
     } else {
-
-      // ⭐⭐⭐ GOOGLE ADS CONVERSION EVENT ⭐⭐⭐
       if (typeof window !== "undefined" && (window as any).gtag) {
         (window as any).gtag("event", "post_listing", {
           send_to: "AW-17728116849",
@@ -184,6 +177,7 @@ export default function Home() {
             onChange={(e) => setForm({ ...form, title: e.target.value })}
             className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
           />
+
           <input
             type="text"
             placeholder="Location"
@@ -191,6 +185,7 @@ export default function Home() {
             onChange={(e) => setForm({ ...form, location: e.target.value })}
             className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
           />
+
           <input
             type="text"
             placeholder="Base Price"
@@ -198,13 +193,37 @@ export default function Home() {
             onChange={(e) => setForm({ ...form, baseprice: e.target.value })}
             className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
           />
-          <input
-            type="text"
-            placeholder="Type (service, storage, housing, etc.)"
+
+          {/* ⭐⭐⭐ UPDATED TYPE DROPDOWN ⭐⭐⭐ */}
+          <select
             value={form.type}
             onChange={(e) => setForm({ ...form, type: e.target.value })}
-            className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
-          />
+            className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm bg-white"
+            required
+          >
+            <option value="">Select Type</option>
+
+            <optgroup label="Services">
+              <option value="service">Service</option>
+              <option value="consultant">Consultant</option>
+            </optgroup>
+
+            <optgroup label="Rentals & Items">
+              <option value="tool">Tool</option>
+              <option value="vehicle">Vehicle</option>
+              <option value="recreation">Recreation</option>
+              <option value="home">Home</option>
+            </optgroup>
+
+            <optgroup label="Spaces">
+              <option value="space">Space</option>
+            </optgroup>
+
+            <optgroup label="Other">
+              <option value="other">Other</option>
+            </optgroup>
+          </select>
+
           <input
             type="text"
             placeholder="State"
@@ -226,6 +245,7 @@ export default function Home() {
             onChange={(e) => setForm({ ...form, zip: e.target.value })}
             className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
           />
+
           <textarea
             placeholder="Description"
             value={form.description}
@@ -257,6 +277,7 @@ export default function Home() {
                 }
                 className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
               />
+
               <input
                 type="text"
                 placeholder="Contact Name"
@@ -266,6 +287,7 @@ export default function Home() {
                 }
                 className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
               />
+
               <input
                 type="text"
                 placeholder="Contact Phone"
@@ -275,6 +297,7 @@ export default function Home() {
                 }
                 className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
               />
+
               <input
                 type="email"
                 placeholder="Contact Email"
@@ -284,6 +307,7 @@ export default function Home() {
                 }
                 className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
               />
+
               <textarea
                 placeholder="Pickup Instructions (e.g., access code, directions)"
                 value={form.pickup_instructions}
