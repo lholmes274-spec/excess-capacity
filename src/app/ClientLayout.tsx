@@ -13,7 +13,6 @@ export default function ClientLayout({
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    // ✅ Use getSession instead of getUser for more accurate detection
     const fetchSession = async () => {
       const { data, error } = await supabase.auth.getSession();
       if (error || !data?.session) {
@@ -25,7 +24,6 @@ export default function ClientLayout({
 
     fetchSession();
 
-    // ✅ Real-time session listener
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -37,7 +35,7 @@ export default function ClientLayout({
 
   async function handleLogout() {
     await supabase.auth.signOut();
-    setUser(null); // immediately reflect logout in UI
+    setUser(null);
     router.push("/login");
   }
 
@@ -49,6 +47,7 @@ export default function ClientLayout({
           <h1 className="text-lg font-semibold">
             <a href="/">Prosperity Hub</a>
           </h1>
+
           <ul className="flex space-x-6 text-sm font-medium items-center">
             <li>
               <a href="/" className="hover:text-blue-300 transition">
@@ -70,6 +69,19 @@ export default function ClientLayout({
                 Contact
               </a>
             </li>
+
+            {/* ⭐⭐ SHOW "ADD LISTING" ONLY WHEN LOGGED IN ⭐⭐ */}
+            {user && (
+              <li>
+                <a
+                  href="/add-listing"
+                  className="hover:text-blue-300 transition font-semibold"
+                >
+                  Add Listing
+                </a>
+              </li>
+            )}
+
             <li>
               <a href="/admin" className="hover:text-blue-300 transition">
                 Admin
@@ -86,7 +98,7 @@ export default function ClientLayout({
               </a>
             </li>
 
-            {/* ✅ Auth Buttons */}
+            {/* AUTH BUTTONS */}
             {user ? (
               <>
                 <li>
@@ -107,16 +119,14 @@ export default function ClientLayout({
                 </li>
               </>
             ) : (
-              <>
-                <li>
-                  <a
-                    href="/login"
-                    className="bg-gray-200 text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-300 transition"
-                  >
-                    Login
-                  </a>
-                </li>
-              </>
+              <li>
+                <a
+                  href="/login"
+                  className="bg-gray-200 text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-300 transition"
+                >
+                  Login
+                </a>
+              </li>
             )}
           </ul>
         </nav>
@@ -134,5 +144,3 @@ export default function ClientLayout({
     </>
   );
 }
-
-
