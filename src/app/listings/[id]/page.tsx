@@ -11,7 +11,7 @@ export default function ListingDetailPage() {
   const [listing, setListing] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // ⭐ Gallery selected image
+  // ⭐ Selected image for gallery
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   // ⭐ Build complete image list (new + old fields)
@@ -23,20 +23,27 @@ export default function ListingDetailPage() {
       images = [...listing.image_urls];
     }
 
-    // Primary single image
+    // Primary single image field
     if (listing.image_url) {
       images.push(listing.image_url);
     }
 
-    // Old fields like image_url1, image_url2, image_url3...
+    // Old fields: image_url1, image_url2, image_url3...
     Object.keys(listing).forEach((key) => {
       if (key.startsWith("image_url") && key !== "image_url") {
         if (listing[key]) images.push(listing[key]);
       }
     });
 
-    // Remove duplicates and empty
-    return images.filter((x) => x);
+    // ⭐ FILTER OUT ALL INVALID URLs (Option A)
+    return images.filter(
+      (url) =>
+        typeof url === "string" &&
+        url.startsWith("http") &&
+        url.length > 10 &&
+        !url.includes("undefined") &&
+        !url.includes("null")
+    );
   };
 
   useEffect(() => {
@@ -53,8 +60,9 @@ export default function ListingDetailPage() {
         setListing(data);
 
         const imgs = buildImageList(data);
+
         if (imgs.length > 0) {
-          setSelectedImage(imgs[0]);
+          setSelectedImage(imgs[0]); // always show a real valid image
         }
       }
 
@@ -75,6 +83,8 @@ export default function ListingDetailPage() {
     }
   };
 
+  const finalImages = buildImageList(listing);
+
   return (
     <div className="max-w-3xl mx-auto p-8 bg-white shadow-md rounded-2xl mt-6 border border-gray-100">
 
@@ -93,10 +103,10 @@ export default function ListingDetailPage() {
           </div>
         )}
 
-        {/* ⭐ THUMBNAILS */}
-        {listing && buildImageList(listing).length > 1 && (
+        {/* ⭐ THUMBNAILS — Valid only */}
+        {finalImages.length > 1 && (
           <div className="flex gap-3 mt-3 overflow-x-auto">
-            {buildImageList(listing).map((img, idx) => (
+            {finalImages.map((img, idx) => (
               <img
                 key={idx}
                 src={img}
