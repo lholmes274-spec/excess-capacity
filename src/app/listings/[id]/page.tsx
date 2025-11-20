@@ -17,8 +17,8 @@ export default function ListingDetailPage() {
     const fetchListing = async () => {
       const { data, error } = await supabase
         .from("listings")
-        .select("*, id")
-        .eq("id", id)
+        .select("*")
+        .eq("id", Number(id))   // ⭐ FIXED: ensure number
         .single();
 
       if (!error && data) setListing(data);
@@ -31,14 +31,23 @@ export default function ListingDetailPage() {
   if (loading) return <div className="p-8 text-gray-500">Loading...</div>;
   if (!listing) return <div className="p-8 text-red-500">Listing not found.</div>;
 
-  // ⭐ Determine gallery images (multiple or single)
-  const galleryImages = listing.image_urls?.length
+  // ⭐ FIXED: prevent null crash
+  const galleryImages = listing?.image_urls?.length
     ? listing.image_urls
-    : listing.image_url
+    : listing?.image_url
     ? [listing.image_url]
     : [];
 
-  const [mainImage, setMainImage] = useState(galleryImages[0]);
+  const [mainImage, setMainImage] = useState(
+    galleryImages?.[0] || null
+  );
+
+  // ⭐ Update main image once listing loads
+  useEffect(() => {
+    if (galleryImages.length > 0) {
+      setMainImage(galleryImages[0]);
+    }
+  }, [listing]);
 
   const handleCheckout = () => {
     if (listing.demo_mode) {
@@ -62,7 +71,7 @@ export default function ListingDetailPage() {
         </div>
       )}
 
-      {/* 🎥 VIDEO PREVIEW IF AVAILABLE */}
+      {/* 🎥 VIDEO PREVIEW */}
       {listing.video_url && (
         <div className="mb-6">
           <video
@@ -70,9 +79,7 @@ export default function ListingDetailPage() {
             controls
             className="w-full rounded-xl shadow-sm border border-gray-300 bg-black"
             style={{ maxHeight: "400px" }}
-          >
-            Your browser does not support the video tag.
-          </video>
+          />
         </div>
       )}
 
