@@ -122,7 +122,7 @@ function ListingsContent() {
             return (
               <Link
                 key={listing.id}
-                href={`/listings/${listing.id}`}
+                href={`/listing/${listing.id}`}   // ⭐ FIXED ROUTE HERE
                 className="block bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition p-4"
               >
                 {thumbnail ? (
