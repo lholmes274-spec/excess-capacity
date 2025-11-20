@@ -11,8 +11,33 @@ export default function ListingDetailPage() {
   const [listing, setListing] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // ⭐ NEW — selected image for gallery
+  // ⭐ Gallery selected image
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  // ⭐ Build complete image list (new + old fields)
+  const buildImageList = (listing) => {
+    let images = [];
+
+    // New multi-image array
+    if (listing.image_urls && Array.isArray(listing.image_urls)) {
+      images = [...listing.image_urls];
+    }
+
+    // Primary single image
+    if (listing.image_url) {
+      images.push(listing.image_url);
+    }
+
+    // Old fields like image_url1, image_url2, image_url3...
+    Object.keys(listing).forEach((key) => {
+      if (key.startsWith("image_url") && key !== "image_url") {
+        if (listing[key]) images.push(listing[key]);
+      }
+    });
+
+    // Remove duplicates and empty
+    return images.filter((x) => x);
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -27,11 +52,9 @@ export default function ListingDetailPage() {
       if (!error && data) {
         setListing(data);
 
-        // ⭐ determine main image
-        if (data.image_urls && data.image_urls.length > 0) {
-          setSelectedImage(data.image_urls[0]);
-        } else if (data.image_url) {
-          setSelectedImage(data.image_url);
+        const imgs = buildImageList(data);
+        if (imgs.length > 0) {
+          setSelectedImage(imgs[0]);
         }
       }
 
@@ -55,7 +78,7 @@ export default function ListingDetailPage() {
   return (
     <div className="max-w-3xl mx-auto p-8 bg-white shadow-md rounded-2xl mt-6 border border-gray-100">
 
-      {/* ⭐⭐ NEW IMAGE GALLERY ⭐⭐ */}
+      {/* ⭐⭐ IMAGE GALLERY ⭐⭐ */}
       <div className="mb-6">
 
         {/* ⭐ MAIN IMAGE */}
@@ -70,12 +93,12 @@ export default function ListingDetailPage() {
           </div>
         )}
 
-        {/* ⭐ THUMBNAIL ROW */}
-        {listing.image_urls && listing.image_urls.length > 1 && (
+        {/* ⭐ THUMBNAILS */}
+        {listing && buildImageList(listing).length > 1 && (
           <div className="flex gap-3 mt-3 overflow-x-auto">
-            {listing.image_urls.map((img: string, index: number) => (
+            {buildImageList(listing).map((img, idx) => (
               <img
-                key={index}
+                key={idx}
                 src={img}
                 onClick={() => setSelectedImage(img)}
                 className={`w-20 h-20 object-cover rounded-lg border cursor-pointer transition ${
