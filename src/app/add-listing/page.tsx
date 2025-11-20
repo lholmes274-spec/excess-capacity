@@ -20,10 +20,24 @@ export default function AddListingPage() {
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
+  // ✅ MAX-SAFETY handleChange
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const target = e.target;
+    const name = target.name;
+
+    const value =
+      target instanceof HTMLInputElement && target.type === "checkbox"
+        ? target.checked
+        : target.value;
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   // ⭐ MULTIPLE IMAGE SELECTION + PREVIEW
@@ -40,7 +54,6 @@ export default function AddListingPage() {
     e.preventDefault();
     setLoading(true);
 
-    // 🔒 Ensure user is logged in
     const { data: userData } = await supabase.auth.getUser();
     const userId = userData?.user?.id;
 
@@ -50,7 +63,6 @@ export default function AddListingPage() {
       return;
     }
 
-    // ⭐ UPLOAD MULTIPLE IMAGES
     let uploadedUrls: string[] = [];
 
     for (const image of images) {
@@ -78,7 +90,6 @@ export default function AddListingPage() {
 
     const primaryImage = uploadedUrls.length > 0 ? uploadedUrls[0] : null;
 
-    // ⭐ INSERT LISTING
     const { error } = await supabase.from("listings").insert([
       {
         user_id: userId,
@@ -86,10 +97,7 @@ export default function AddListingPage() {
         description: form.description,
         baseprice: form.baseprice,
         location: form.location,
-
-        // 🔥 MATCHED EXACTLY TO YOUR CATEGORY CARDS
         type: form.type.toLowerCase().trim(),
-
         image_url: primaryImage,
         image_urls: uploadedUrls,
       },
@@ -113,8 +121,6 @@ export default function AddListingPage() {
       </h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-
-        {/* ⭐ UPDATED TYPE DROPDOWN MATCHING YOUR CATEGORY CARDS */}
         <label className="block font-medium">Listing Type</label>
         <select
           name="type"
@@ -184,7 +190,6 @@ export default function AddListingPage() {
           className="w-full border p-3 rounded-lg shadow-sm"
         />
 
-        {/* ⭐ MULTIPLE IMAGE UPLOAD FIELD */}
         <div>
           <label className="block font-medium mb-1">Upload Images</label>
           <input
@@ -196,7 +201,6 @@ export default function AddListingPage() {
           />
         </div>
 
-        {/* ⭐ IMAGE PREVIEW GRID */}
         {previewUrls.length > 0 && (
           <div className="grid grid-cols-3 gap-2 mt-2">
             {previewUrls.map((url, index) => (

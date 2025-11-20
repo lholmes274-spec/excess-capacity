@@ -10,30 +10,11 @@ export default function Home() {
   const router = useRouter();
   const [showConfirmMessage, setShowConfirmMessage] = useState(false);
 
-  const [form, setForm] = useState({
-    title: "",
-    location: "",
-    baseprice: "",
-    type: "",
-    state: "",
-    city: "",
-    zip: "",
-    description: "",
-    address_line1: "",
-    address_line2: "",
-    contact_name: "",
-    contact_phone: "",
-    contact_email: "",
-    pickup_instructions: "",
-    demo_mode: false,
-  });
-
   useEffect(() => {
     const checkUser = async () => {
       const { data, error } = await supabase.auth.getUser();
-      if (error) return;
-      const user = data?.user;
-      if (!user) router.push("/signup");
+      if (!error && data?.user) return;
+      router.push("/signup");
     };
     checkUser();
   }, [router]);
@@ -42,115 +23,26 @@ export default function Home() {
     const hash = window.location.hash;
     if (hash.includes("type=signup") || hash.includes("access_token")) {
       setShowConfirmMessage(true);
-      setTimeout(() => {
-        router.push("/login");
-      }, 2000);
+      setTimeout(() => router.push("/login"), 2000);
     }
   }, [router]);
 
   async function fetchListings() {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("listings")
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (!error && data) setListings(data);
+    if (data) setListings(data);
   }
 
   useEffect(() => {
     fetchListings();
   }, []);
 
-  async function addListing(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-
-    if (!form.title || !form.baseprice) {
-      return alert("Please fill in the required fields.");
-    }
-
-    const { data: userData } = await supabase.auth.getUser();
-    const user = userData?.user;
-
-    if (!user) {
-      alert("Please sign in before adding a listing.");
-      router.push("/signup");
-      return;
-    }
-
-    const { data: profile, error: profileError } = await (supabase as any)
-      .from("profiles")
-      .select("is_subscribed")
-      .eq("id", user.id)
-      .single();
-
-    if (profileError) {
-      console.error("Error fetching profile:", profileError);
-      alert("Unable to verify subscription status. Please try again.");
-      return;
-    }
-
-    if (!profile?.is_subscribed) {
-      alert("Please subscribe to unlock this feature.");
-      router.push("/subscribe");
-      return;
-    }
-
-    const { error } = await supabase.from("listings").insert([
-      {
-        title: form.title,
-        location: form.location,
-        basePrice: Number(form.baseprice),
-        type: form.type,
-        state: form.state,
-        city: form.city,
-        zip: form.zip,
-        description: form.description,
-        address_line1: form.address_line1,
-        address_line2: form.address_line2,
-        contact_name: form.contact_name,
-        contact_phone: form.contact_phone,
-        contact_email: form.contact_email,
-        pickup_instructions: form.pickup_instructions,
-        demo_mode: form.demo_mode,
-        owner_id: user?.id || null,
-      },
-    ]);
-
-    if (error) {
-      console.error("❌ Error adding listing:", error);
-      alert("❌ Failed to add listing. Check console for details.");
-    } else {
-      if (typeof window !== "undefined" && (window as any).gtag) {
-        (window as any).gtag("event", "post_listing", {
-          send_to: "AW-17728116849",
-        });
-      }
-
-      alert("✅ Listing added successfully!");
-      setForm({
-        title: "",
-        location: "",
-        baseprice: "",
-        type: "",
-        state: "",
-        city: "",
-        zip: "",
-        description: "",
-        address_line1: "",
-        address_line2: "",
-        contact_name: "",
-        contact_phone: "",
-        contact_email: "",
-        pickup_instructions: "",
-        demo_mode: false,
-      });
-
-      fetchListings();
-    }
-  }
-
   return (
     <main className="min-h-screen bg-gradient-to-br from-amber-50 via-yellow-50 to-amber-100 py-10 px-4 sm:px-8 lg:px-16">
+
       {showConfirmMessage && (
         <div className="fixed top-5 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-xl shadow-lg text-sm font-medium z-50">
           ✅ Email confirmed — redirecting to login...
@@ -159,6 +51,7 @@ export default function Home() {
 
       <div className="max-w-5xl mx-auto bg-white/90 backdrop-blur-md rounded-2xl shadow-2xl p-6 md:p-10 border border-amber-200">
 
+        {/* HERO */}
         <h1 className="text-center text-5xl font-extrabold mb-2 text-amber-700 drop-shadow-md">
           Dynamic Excess Capacity Sharing
         </h1>
@@ -166,177 +59,34 @@ export default function Home() {
           Manage & Explore Listings that unlock hidden potential.
         </p>
 
-        <form
-          onSubmit={addListing}
-          className="grid grid-cols-1 md:grid-cols-2 gap-5 bg-gradient-to-br from-amber-50 to-yellow-100 rounded-xl p-6 border border-amber-200 shadow-inner mb-10"
+        {/* CTA BUTTONS */}
+        <div className="flex justify-center gap-6 mb-10">
+          <Link
+            href="/add-listing"
+            className="bg-amber-600 hover:bg-amber-700 text-white font-semibold px-6 py-3 rounded-lg shadow-lg transition"
+          >
+            ➕ Add Listing
+          </Link>
+
+          <a
+            href="#listings"
+            className="bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold px-6 py-3 rounded-lg shadow"
+          >
+            📦 Explore Listings
+          </a>
+        </div>
+
+        {/* LISTINGS SECTION */}
+        <h2
+          id="listings"
+          className="text-3xl font-bold mb-6 text-gray-800 text-center md:text-left"
         >
-          <input
-            type="text"
-            placeholder="Title"
-            value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
-            className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
-          />
-
-          <input
-            type="text"
-            placeholder="Location"
-            value={form.location}
-            onChange={(e) => setForm({ ...form, location: e.target.value })}
-            className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
-          />
-
-          <input
-            type="text"
-            placeholder="Base Price"
-            value={form.baseprice}
-            onChange={(e) => setForm({ ...form, baseprice: e.target.value })}
-            className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
-          />
-
-          {/* ⭐⭐⭐ UPDATED TYPE DROPDOWN ⭐⭐⭐ */}
-          <select
-            value={form.type}
-            onChange={(e) => setForm({ ...form, type: e.target.value })}
-            className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm bg-white"
-            required
-          >
-            <option value="">Select Type</option>
-
-            <optgroup label="Services">
-              <option value="service">Service</option>
-              <option value="consultant">Consultant</option>
-            </optgroup>
-
-            <optgroup label="Rentals & Items">
-              <option value="tool">Tool</option>
-              <option value="vehicle">Vehicle</option>
-              <option value="recreation">Recreation</option>
-              <option value="home">Home</option>
-            </optgroup>
-
-            <optgroup label="Spaces">
-              <option value="space">Space</option>
-            </optgroup>
-
-            <optgroup label="Other">
-              <option value="other">Other</option>
-            </optgroup>
-          </select>
-
-          <input
-            type="text"
-            placeholder="State"
-            value={form.state}
-            onChange={(e) => setForm({ ...form, state: e.target.value })}
-            className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
-          />
-          <input
-            type="text"
-            placeholder="City"
-            value={form.city}
-            onChange={(e) => setForm({ ...form, city: e.target.value })}
-            className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
-          />
-          <input
-            type="text"
-            placeholder="Zip Code"
-            value={form.zip}
-            onChange={(e) => setForm({ ...form, zip: e.target.value })}
-            className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
-          />
-
-          <textarea
-            placeholder="Description"
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm md:col-span-2 min-h-[100px]"
-          />
-
-          <div className="md:col-span-2 mt-2 border-t border-amber-200 pt-4">
-            <h3 className="text-lg font-semibold text-amber-700 mb-3">
-              Pickup & Contact Information
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input
-                type="text"
-                placeholder="Address Line 1"
-                value={form.address_line1}
-                onChange={(e) =>
-                  setForm({ ...form, address_line1: e.target.value })
-                }
-                className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
-              />
-              <input
-                type="text"
-                placeholder="Address Line 2 (optional)"
-                value={form.address_line2}
-                onChange={(e) =>
-                  setForm({ ...form, address_line2: e.target.value })
-                }
-                className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
-              />
-
-              <input
-                type="text"
-                placeholder="Contact Name"
-                value={form.contact_name}
-                onChange={(e) =>
-                  setForm({ ...form, contact_name: e.target.value })
-                }
-                className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
-              />
-
-              <input
-                type="text"
-                placeholder="Contact Phone"
-                value={form.contact_phone}
-                onChange={(e) =>
-                  setForm({ ...form, contact_phone: e.target.value })
-                }
-                className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
-              />
-
-              <input
-                type="email"
-                placeholder="Contact Email"
-                value={form.contact_email}
-                onChange={(e) =>
-                  setForm({ ...form, contact_email: e.target.value })
-                }
-                className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm"
-              />
-
-              <textarea
-                placeholder="Pickup Instructions (e.g., access code, directions)"
-                value={form.pickup_instructions}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    pickup_instructions: e.target.value,
-                  })
-                }
-                className="p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-400 shadow-sm md:col-span-2 min-h-[100px]"
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            className="col-span-1 md:col-span-2 bg-gradient-to-r from-amber-500 to-yellow-600 text-white font-semibold py-3 rounded-lg shadow-lg hover:shadow-2xl hover:from-amber-600 hover:to-yellow-700 transition-all duration-300 mt-4"
-          >
-            Add Listing
-          </button>
-        </form>
-
-        <h2 className="text-3xl font-bold mb-6 text-gray-800 text-center md:text-left">
           Available Listings
         </h2>
 
         {listings.length === 0 ? (
           <p className="text-center text-gray-500 py-10 text-lg">
-            No listings available. Add your first one above!
+            No listings available. Add your first one!
           </p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -354,21 +104,14 @@ export default function Home() {
                     📍{" "}
                     {listing.city
                       ? `${listing.city}, ${listing.state}`
-                      : "—"}
+                      : listing.location || "—"}
                   </p>
                   <p className="text-lg text-green-600 font-semibold">
                     ${listing.basePrice}
                   </p>
                 </div>
 
-                {listing.demo_mode ? (
-                  <button
-                    disabled
-                    className="mt-5 w-full py-2.5 bg-gray-400 text-white font-medium rounded-lg shadow-md cursor-not-allowed"
-                  >
-                    Demo Listing
-                  </button>
-                ) : (
+                {!listing.demo_mode ? (
                   <div className="mt-5">
                     <span className="block text-sm text-gray-500 italic text-center">
                       Click to view or book
@@ -377,6 +120,13 @@ export default function Home() {
                       Book Now
                     </div>
                   </div>
+                ) : (
+                  <button
+                    disabled
+                    className="mt-5 w-full py-2.5 bg-gray-400 text-white font-medium rounded-lg shadow-md cursor-not-allowed"
+                  >
+                    Demo Listing
+                  </button>
                 )}
               </Link>
             ))}
