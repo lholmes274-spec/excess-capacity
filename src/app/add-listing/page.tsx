@@ -12,7 +12,7 @@ export default function AddListingPage() {
   const [form, setForm] = useState({
     title: "",
     description: "",
-    baseprice: "",   // ✅ FIXED
+    baseprice: "",
     type: "",
     location: "",
     state: "",
@@ -24,6 +24,7 @@ export default function AddListingPage() {
     contact_phone: "",
     contact_email: "",
     pickup_instructions: "",
+    private_instructions: "",          // ⭐ NEW FIELD
     demo_mode: false,
   });
 
@@ -97,7 +98,7 @@ export default function AddListingPage() {
         owner_id: userId,
         title: form.title,
         description: form.description,
-        baseprice: Number(form.baseprice),   // ✅ FIXED
+        baseprice: Number(form.baseprice),
         type: form.type.toLowerCase(),
         location: form.location,
         state: form.state,
@@ -109,6 +110,7 @@ export default function AddListingPage() {
         contact_phone: form.contact_phone,
         contact_email: form.contact_email,
         pickup_instructions: form.pickup_instructions,
+        private_instructions: form.private_instructions,   // ⭐ NEW FIELD
         demo_mode: form.demo_mode,
         image_url: primaryImage,
         image_urls: uploadedUrls,
@@ -191,8 +193,8 @@ export default function AddListingPage() {
 
         {/* Base Price */}
         <input
-          name="baseprice"        // ✅ FIXED
-          value={form.baseprice}  // ✅ FIXED
+          name="baseprice"
+          value={form.baseprice}
           onChange={handleChange}
           placeholder="Base Price"
           className="w-full p-3 border rounded-lg"
@@ -284,6 +286,21 @@ export default function AddListingPage() {
             placeholder="Pickup Instructions"
             className="w-full p-3 border rounded-lg"
             rows={2}
+          />
+        </div>
+
+        {/* ⭐ NEW PRIVATE INSTRUCTIONS FIELD */}
+        <div>
+          <label className="block font-semibold mb-1">
+            Private Instructions (shown only after booking)
+          </label>
+          <textarea
+            name="private_instructions"
+            value={form.private_instructions}
+            onChange={handleChange}
+            placeholder="Gate code, access instructions, lockbox location, etc."
+            className="w-full p-3 border rounded-lg"
+            rows={3}
           />
         </div>
 

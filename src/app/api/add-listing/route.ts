@@ -21,6 +21,7 @@ export async function POST(req: Request) {
       contact_phone,
       contact_email,
       pickup_instructions,
+      private_instructions,   // ⭐ NEW FIELD
       demo_mode,
       image_url,
       image_urls,
@@ -33,7 +34,7 @@ export async function POST(req: Request) {
         owner_id,
         title,
         description,
-        baseprice: Number(baseprice),  // ✅ FIXED
+        baseprice: Number(baseprice),
         type: type.toLowerCase(),
         location,
         state,
@@ -45,6 +46,7 @@ export async function POST(req: Request) {
         contact_phone,
         contact_email,
         pickup_instructions,
+        private_instructions,   // ⭐ NEW FIELD
         demo_mode,
         image_url,
         image_urls,
