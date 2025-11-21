@@ -24,13 +24,21 @@ export default function AddListingPage() {
     contact_phone: "",
     contact_email: "",
     pickup_instructions: "",
-    private_instructions: "",          // ⭐ NEW FIELD
+    private_instructions: "",
     demo_mode: false,
   });
+
+  // ⭐ New state for email validation
+  const [isEmailValid, setIsEmailValid] = useState<boolean | null>(null);
 
   const [images, setImages] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // Email validator
+  const validateEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
 
   // Handle input changes
   const handleChange = (
@@ -38,7 +46,18 @@ export default function AddListingPage() {
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    setForm({ ...form, [name]: value });
+
+    // ⭐ Live email validation
+    if (name === "contact_email") {
+      if (value.trim() === "") {
+        setIsEmailValid(null); // no icon when empty
+      } else {
+        setIsEmailValid(validateEmail(value));
+      }
+    }
   };
 
   // Handle image selection + preview
@@ -64,7 +83,7 @@ export default function AddListingPage() {
       return;
     }
 
-    // Upload multiple images
+    // Upload images
     let uploadedUrls: string[] = [];
 
     for (const image of images) {
@@ -92,7 +111,7 @@ export default function AddListingPage() {
 
     const primaryImage = uploadedUrls[0] || null;
 
-    // Insert listing into Supabase
+    // Insert into Supabase
     const { error } = await supabase.from("listings").insert([
       {
         owner_id: userId,
@@ -110,7 +129,7 @@ export default function AddListingPage() {
         contact_phone: form.contact_phone,
         contact_email: form.contact_email,
         pickup_instructions: form.pickup_instructions,
-        private_instructions: form.private_instructions,   // ⭐ NEW FIELD
+        private_instructions: form.private_instructions,
         demo_mode: form.demo_mode,
         image_url: primaryImage,
         image_urls: uploadedUrls,
@@ -271,13 +290,25 @@ export default function AddListingPage() {
             className="w-full p-3 border rounded-lg"
           />
 
-          <input
-            name="contact_email"
-            value={form.contact_email}
-            onChange={handleChange}
-            placeholder="Contact Email"
-            className="w-full p-3 border rounded-lg"
-          />
+          {/* ⭐ Email with green checkmark */}
+          <div className="relative">
+            <input
+              name="contact_email"
+              value={form.contact_email}
+              onChange={handleChange}
+              placeholder="Contact Email"
+              className={`w-full p-3 border rounded-lg pr-10 ${
+                isEmailValid === false ? "border-gray-300" : ""
+              }`}
+            />
+
+            {/* Green Checkmark */}
+            {isEmailValid && (
+              <span className="absolute right-3 top-3 text-green-600 text-xl font-bold">
+                ✔
+              </span>
+            )}
+          </div>
 
           <textarea
             name="pickup_instructions"
@@ -289,7 +320,7 @@ export default function AddListingPage() {
           />
         </div>
 
-        {/* ⭐ NEW PRIVATE INSTRUCTIONS FIELD */}
+        {/* Private Instructions */}
         <div>
           <label className="block font-semibold mb-1">
             Private Instructions (shown only after booking)
@@ -316,7 +347,7 @@ export default function AddListingPage() {
           />
         </div>
 
-        {/* Image Preview */}
+        {/* Preview */}
         {previewUrls.length > 0 && (
           <div className="grid grid-cols-3 gap-2">
             {previewUrls.map((src, i) => (
