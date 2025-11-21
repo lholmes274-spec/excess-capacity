@@ -22,8 +22,14 @@ export async function POST(req: Request) {
       );
     }
 
-    // Create Supabase server client (reads auth cookies)
-    const supabase = createRouteHandlerClient({ cookies });
+    // ✅ FIXED: Create Supabase server client with required project config
+    const supabase = createRouteHandlerClient(
+      { cookies },
+      {
+        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      }
+    );
 
     // Fetch listing
     const { data: listing, error } = await supabase
@@ -47,7 +53,7 @@ export async function POST(req: Request) {
     const userId = user?.id;
     const userEmail = user?.email;
 
-    // ❗ MUST be logged in
+    // ❗ MUST be logged in (or redirect logic if guest checkout)
     if (!userId || !userEmail) {
       return NextResponse.json(
         { error: "User not authenticated" },
