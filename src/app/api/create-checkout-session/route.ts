@@ -1,8 +1,10 @@
 // rebuild
 // @ts-nocheck
+
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { supabase } from "@/lib/supabaseClient";
+import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
+import { cookies } from "next/headers";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: "2024-04-10",
@@ -20,6 +22,9 @@ export async function POST(req: Request) {
       );
     }
 
+    // Create Supabase server client (reads auth cookies)
+    const supabase = createRouteHandlerClient({ cookies });
+
     // Fetch listing
     const { data: listing, error } = await supabase
       .from("listings")
@@ -34,15 +39,15 @@ export async function POST(req: Request) {
       );
     }
 
-    // Fetch user session
+    // Get authenticated user (server-side)
     const {
-      data: { session },
-    } = await supabase.auth.getSession();
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    const userId = session?.user?.id;
-    const userEmail = session?.user?.email;
+    const userId = user?.id;
+    const userEmail = user?.email;
 
-    // ❗ We MUST have the user info for secure access
+    // ❗ MUST be logged in
     if (!userId || !userEmail) {
       return NextResponse.json(
         { error: "User not authenticated" },
