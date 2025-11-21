@@ -22,6 +22,7 @@ function CheckoutContent() {
         const res = await fetch("/api/create-checkout-session", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",  // ⭐ CRITICAL FIX — send Supabase auth cookies
           body: JSON.stringify({ listing_id }),
         });
 
