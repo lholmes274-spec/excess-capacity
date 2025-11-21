@@ -1,20 +1,33 @@
 // @ts-nocheck
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { motion } from "framer-motion";
 
-export default function SuccessPage() {
+/* -----------------------------
+   Loading Component (fallback)
+------------------------------*/
+function Loading({ message }) {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 text-gray-600">
+      <p className="text-lg">{message}</p>
+    </div>
+  );
+}
+
+/* -----------------------------
+   Main Success Page Content
+------------------------------*/
+function SuccessContent() {
   const searchParams = useSearchParams();
   const session_id = searchParams.get("session_id");
 
   const [loading, setLoading] = useState(true);
   const [secureError, setSecureError] = useState<string | null>(null);
   const [listing, setListing] = useState<any>(null);
-  const [sessionEmail, setSessionEmail] = useState<string | null>(null);
 
   useEffect(() => {
     async function verifyAndLoad() {
@@ -25,9 +38,7 @@ export default function SuccessPage() {
       }
 
       try {
-        //---------------------------
-        // 1. GET LOGGED-IN USER
-        //---------------------------
+        // 1. Get logged-in user
         const { data: userData } = await supabase.auth.getUser();
         const loggedInEmail = userData?.user?.email;
 
@@ -37,9 +48,7 @@ export default function SuccessPage() {
           return;
         }
 
-        //---------------------------
-        // 2. VERIFY STRIPE SESSION
-        //---------------------------
+        // 2. Verify Stripe session
         const stripeRes = await fetch("/api/verify-stripe-session", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -54,33 +63,22 @@ export default function SuccessPage() {
 
         const stripeData = await stripeRes.json();
 
-        if (!stripeData || !stripeData.metadata) {
+        if (!stripeData?.metadata) {
           setSecureError("No metadata found.");
           setLoading(false);
           return;
         }
 
-        const {
-          user_email,
-          listing_id,
-        } = stripeData.metadata;
+        const { user_email, listing_id } = stripeData.metadata;
 
-        setSessionEmail(user_email);
-
-        //---------------------------
-        // 3. SECURITY CHECK — emails must match
-        //---------------------------
+        // 3. Emails must match
         if (loggedInEmail !== user_email) {
-          setSecureError(
-            "Access denied. This booking does not belong to your account."
-          );
+          setSecureError("Access denied. This booking does not belong to you.");
           setLoading(false);
           return;
         }
 
-        //---------------------------
-        // 4. FETCH LISTING
-        //---------------------------
+        // 4. Fetch listing from Supabase
         const { data: listingData, error: listingError } = await supabase
           .from("listings")
           .select("*")
@@ -105,43 +103,35 @@ export default function SuccessPage() {
     verifyAndLoad();
   }, [session_id]);
 
-  // --------------------------------------------------------
-  // LOADING VIEW
-  // --------------------------------------------------------
-  if (loading) {
-    return (
-      <main className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
-        <p className="text-gray-600 text-lg">Loading your booking…</p>
-      </main>
-    );
-  }
+  /* -----------------------------
+     Loading State
+  ------------------------------*/
+  if (loading) return <Loading message="Loading your booking…" />;
 
-  // --------------------------------------------------------
-  // SECURITY ERROR VIEW
-  // --------------------------------------------------------
+  /* -----------------------------
+     Security Error
+  ------------------------------*/
   if (secureError) {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center bg-red-50 text-center p-6">
-        <p className="text-red-600 text-xl font-semibold mb-3">
-          ❌ {secureError}
-        </p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-red-50 text-center p-6">
+        <p className="text-red-600 text-xl font-semibold mb-3">❌ {secureError}</p>
         <Link
           href="/"
           className="px-6 py-3 bg-gray-700 text-white rounded-lg shadow hover:bg-gray-800 transition"
         >
           Back to Home
         </Link>
-      </main>
+      </div>
     );
   }
 
-  // --------------------------------------------------------
-  // SUCCESS VIEW with PRIVATE INSTRUCTIONS
-  // --------------------------------------------------------
+  /* -----------------------------
+     SUCCESS VIEW WITH PRIVATE ACCESS
+  ------------------------------*/
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-green-50 to-green-100 text-center p-6">
 
-      {/* Animated Checkmark */}
+      {/* Existing Animated Checkmark */}
       <motion.div
         initial={{ scale: 0, rotate: -45 }}
         animate={{ scale: 1, rotate: 0 }}
@@ -188,7 +178,7 @@ export default function SuccessPage() {
           🔒 Your Booking Details
         </h2>
 
-        {/* FULL ADDRESS */}
+        {/* Address */}
         <p className="mb-3">
           <strong>Address:</strong><br/>
           {listing.address_line1}<br/>
@@ -196,7 +186,7 @@ export default function SuccessPage() {
           {listing.city}, {listing.state} {listing.zip}
         </p>
 
-        {/* PRIVATE INSTRUCTIONS */}
+        {/* Private Instructions */}
         {listing.private_instructions && (
           <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-4">
             <h3 className="font-semibold text-green-700 mb-2">
@@ -208,7 +198,7 @@ export default function SuccessPage() {
           </div>
         )}
 
-        {/* PUBLIC PICKUP INFO */}
+        {/* Public Pickup Instructions */}
         {listing.pickup_instructions && (
           <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <h3 className="font-semibold text-yellow-700 mb-2">
@@ -221,7 +211,6 @@ export default function SuccessPage() {
         )}
       </div>
 
-      {/* Back Button */}
       <div className="mt-10">
         <Link
           href="/"
@@ -235,5 +224,16 @@ export default function SuccessPage() {
         © {new Date().getFullYear()} ProsperityHub. All rights reserved.
       </footer>
     </div>
+  );
+}
+
+/* -----------------------------
+   PAGE WRAPPER WITH SUSPENSE
+------------------------------*/
+export default function SuccessPageWrapper() {
+  return (
+    <Suspense fallback={<Loading message="Loading success page…" />}>
+      <SuccessContent />
+    </Suspense>
   );
 }
