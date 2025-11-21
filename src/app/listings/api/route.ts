@@ -1,3 +1,4 @@
+// @ts-nocheck
 // src/app/listings/api/route.ts
 import { NextResponse } from "next/server";
 

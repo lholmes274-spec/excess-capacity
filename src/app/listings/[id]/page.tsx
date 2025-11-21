@@ -11,36 +11,24 @@ export default function ListingDetailPage() {
   const [listing, setListing] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // ⭐ Selected image for gallery
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  // ⭐ Build complete image list (new + old fields)
+  // Build final image list from new schema only
   const buildImageList = (listing) => {
     let images = [];
 
-    // New multi-image array
-    if (listing.image_urls && Array.isArray(listing.image_urls)) {
-      images = [...listing.image_urls];
+    // Primary image
+    if (listing.image_url) images.push(listing.image_url);
+
+    // Gallery images
+    if (Array.isArray(listing.image_urls)) {
+      images = [...images, ...listing.image_urls];
     }
 
-    // Primary single image field
-    if (listing.image_url) {
-      images.push(listing.image_url);
-    }
-
-    // Old fields: image_url1, image_url2, image_url3...
-    Object.keys(listing).forEach((key) => {
-      if (key.startsWith("image_url") && key !== "image_url") {
-        if (listing[key]) images.push(listing[key]);
-      }
-    });
-
-    // ⭐ FILTER OUT ALL INVALID URLs (Option A)
     return images.filter(
       (url) =>
         typeof url === "string" &&
         url.startsWith("http") &&
-        url.length > 10 &&
         !url.includes("undefined") &&
         !url.includes("null")
     );
@@ -60,10 +48,7 @@ export default function ListingDetailPage() {
         setListing(data);
 
         const imgs = buildImageList(data);
-
-        if (imgs.length > 0) {
-          setSelectedImage(imgs[0]); // always show a real valid image
-        }
+        if (imgs.length > 0) setSelectedImage(imgs[0]);
       }
 
       setLoading(false);
@@ -73,7 +58,10 @@ export default function ListingDetailPage() {
   }, [id]);
 
   if (loading) return <div className="p-8 text-gray-500">Loading...</div>;
-  if (!listing) return <div className="p-8 text-red-500">Listing not found.</div>;
+  if (!listing)
+    return <div className="p-8 text-red-500">Listing not found.</div>;
+
+  const finalImages = buildImageList(listing);
 
   const handleCheckout = () => {
     if (listing.demo_mode) {
@@ -83,19 +71,16 @@ export default function ListingDetailPage() {
     }
   };
 
-  const finalImages = buildImageList(listing);
-
   return (
     <div className="max-w-3xl mx-auto p-8 bg-white shadow-md rounded-2xl mt-6 border border-gray-100">
 
-      {/* ⭐⭐ IMAGE GALLERY ⭐⭐ */}
+      {/* MAIN IMAGE */}
       <div className="mb-6">
-
-        {/* ⭐ MAIN IMAGE */}
         {selectedImage ? (
           <img
             src={selectedImage}
             className="w-full h-80 object-cover rounded-lg shadow border"
+            alt={listing.title}
           />
         ) : (
           <div className="w-full h-80 bg-gray-200 rounded-lg flex items-center justify-center text-gray-500">
@@ -103,7 +88,7 @@ export default function ListingDetailPage() {
           </div>
         )}
 
-        {/* ⭐ THUMBNAILS — Valid only */}
+        {/* GALLERY THUMBNAILS */}
         {finalImages.length > 1 && (
           <div className="flex gap-3 mt-3 overflow-x-auto">
             {finalImages.map((img, idx) => (
@@ -122,64 +107,58 @@ export default function ListingDetailPage() {
         )}
       </div>
 
-      {/* ⭐ TITLE */}
+      {/* TITLE */}
       <h1 className="text-3xl font-bold text-orange-800 mb-2">
         {listing.title}
       </h1>
 
-      {/* ⭐ DESCRIPTION */}
+      {/* DESCRIPTION */}
       <p className="text-gray-700 mb-4">{listing.description}</p>
 
-      {/* ⭐ LOCATION */}
-      {listing.location && (
+      {/* LOCATION */}
+      {(listing.city || listing.location) && (
         <p className="text-gray-800 font-semibold mb-2">
-          Location: <span className="text-gray-900">{listing.location}</span>
+          Location:{" "}
+          <span className="text-gray-900">
+            {listing.city
+              ? `${listing.city}, ${listing.state}`
+              : listing.location}
+          </span>
         </p>
       )}
 
-      {/* ⭐ PRICE WITH LOGIC */}
-      {listing.basePrice && (
+      {/* PRICE */}
+      {listing.baseprice !== null && (
         <p className="text-2xl font-semibold text-green-700 mt-2">
-          ${listing.basePrice}
+          ${listing.baseprice}
           <span className="text-base font-normal text-gray-600">
             {" "}
-            {listing.type?.toLowerCase() === "service"
+            {listing.type === "service"
               ? "per hour"
-              : listing.type?.toLowerCase() === "housing"
+              : listing.type === "housing"
               ? "per night"
-              : listing.type?.toLowerCase() === "storage"
+              : listing.type === "storage"
               ? "per month"
-              : listing.type?.toLowerCase() === "vehicle"
+              : listing.type === "vehicle"
               ? "per day"
               : "per unit"}
           </span>
         </p>
       )}
 
-      {/* ⭐ NOTES */}
-      {(listing.notes || listing.note) && (
-        <p className="mt-3 text-sm text-gray-600 italic">
-          {listing.notes || listing.note}
-        </p>
-      )}
-
-      {/* ⭐ PICKUP / INSTRUCTIONS */}
-      {(listing.pickup_instru ||
-        listing.pickup_instructions ||
-        listing.instructions) && (
+      {/* PICKUP / INSTRUCTIONS */}
+      {listing.pickup_instructions && (
         <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <h3 className="font-semibold text-orange-800 mb-2">
             Pickup & Instructions
           </h3>
           <p className="text-gray-700 text-sm whitespace-pre-line">
-            {listing.pickup_instru ||
-              listing.pickup_instructions ||
-              listing.instructions}
+            {listing.pickup_instructions}
           </p>
         </div>
       )}
 
-      {/* ⭐ CONTACT INFO */}
+      {/* CONTACT INFO */}
       <div className="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
         <h3 className="font-semibold text-gray-800 mb-2">
           Contact Information
@@ -195,7 +174,7 @@ export default function ListingDetailPage() {
         </p>
       </div>
 
-      {/* ⭐ CHECKOUT BUTTON */}
+      {/* CHECKOUT BUTTON */}
       <button
         className={`mt-6 w-full text-white py-3 rounded-lg font-semibold transition ${
           listing.demo_mode
