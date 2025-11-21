@@ -59,7 +59,7 @@ export default function Home() {
           Manage & Explore Listings that unlock hidden potential.
         </p>
 
-        {/* CTA BUTTONS */}
+        {/* CTA BUTTONS — Only Add Listing Now */}
         <div className="flex justify-center gap-6 mb-10">
           <Link
             href="/add-listing"
@@ -67,13 +67,6 @@ export default function Home() {
           >
             ➕ Add Listing
           </Link>
-
-          <a
-            href="#listings"
-            className="bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold px-6 py-3 rounded-lg shadow"
-          >
-            📦 Explore Listings
-          </a>
         </div>
 
         {/* LISTINGS SECTION */}
