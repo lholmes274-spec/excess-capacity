@@ -8,7 +8,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { motion } from "framer-motion";
 
 /* -----------------------------
-   Loading Component (fallback)
+   Loading Component
 ------------------------------*/
 function Loading({ message }) {
   return (
@@ -28,27 +28,24 @@ function SuccessContent() {
   const [loading, setLoading] = useState(true);
   const [secureError, setSecureError] = useState<string | null>(null);
   const [listing, setListing] = useState<any>(null);
+  const [loggedInEmail, setLoggedInEmail] = useState<string | null>(null);
+  const [sessionMetadata, setSessionMetadata] = useState<any>(null);
 
   useEffect(() => {
-    async function verifyAndLoad() {
+    async function load() {
       if (!session_id) {
-        setSecureError("Missing session ID");
+        setSecureError("Missing session ID.");
         setLoading(false);
         return;
       }
 
       try {
-        // 1. Get logged-in user
+        // Check login status (optional)
         const { data: userData } = await supabase.auth.getUser();
-        const loggedInEmail = userData?.user?.email;
+        const email = userData?.user?.email || null;
+        setLoggedInEmail(email);
 
-        if (!loggedInEmail) {
-          setSecureError("You must be logged in to view booking details.");
-          setLoading(false);
-          return;
-        }
-
-        // 2. Verify Stripe session
+        // 1. Verify Stripe session
         const stripeRes = await fetch("/api/verify-stripe-session", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -56,29 +53,25 @@ function SuccessContent() {
         });
 
         if (!stripeRes.ok) {
-          setSecureError("Unable to verify your payment.");
+          setSecureError("Unable to verify payment information.");
           setLoading(false);
           return;
         }
 
         const stripeData = await stripeRes.json();
+        const metadata = stripeData?.metadata;
 
-        if (!stripeData?.metadata) {
-          setSecureError("No metadata found.");
+        if (!metadata) {
+          setSecureError("Payment metadata missing.");
           setLoading(false);
           return;
         }
 
-        const { user_email, listing_id } = stripeData.metadata;
+        setSessionMetadata(metadata);
 
-        // 3. Emails must match
-        if (loggedInEmail !== user_email) {
-          setSecureError("Access denied. This booking does not belong to you.");
-          setLoading(false);
-          return;
-        }
+        // 2. Fetch listing
+        const { listing_id } = metadata;
 
-        // 4. Fetch listing from Supabase
         const { data: listingData, error: listingError } = await supabase
           .from("listings")
           .select("*")
@@ -86,7 +79,7 @@ function SuccessContent() {
           .single();
 
         if (listingError || !listingData) {
-          setSecureError("Listing not found.");
+          setSecureError("Listing details unavailable.");
           setLoading(false);
           return;
         }
@@ -95,12 +88,12 @@ function SuccessContent() {
         setLoading(false);
       } catch (err) {
         console.error("Success page error:", err);
-        setSecureError("Unexpected error loading booking.");
+        setSecureError("Unexpected error loading payment details.");
         setLoading(false);
       }
     }
 
-    verifyAndLoad();
+    load();
   }, [session_id]);
 
   /* -----------------------------
@@ -109,7 +102,7 @@ function SuccessContent() {
   if (loading) return <Loading message="Loading your booking…" />;
 
   /* -----------------------------
-     Security Error
+     Stripe Error
   ------------------------------*/
   if (secureError) {
     return (
@@ -125,13 +118,15 @@ function SuccessContent() {
     );
   }
 
+  const isLoggedIn = Boolean(loggedInEmail);
+
   /* -----------------------------
-     SUCCESS VIEW WITH PRIVATE ACCESS
+     SUCCESS PAGE (Guest + Logged-In)
   ------------------------------*/
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-green-50 to-green-100 text-center p-6">
 
-      {/* Existing Animated Checkmark */}
+      {/* Animated Checkmark */}
       <motion.div
         initial={{ scale: 0, rotate: -45 }}
         animate={{ scale: 1, rotate: 0 }}
@@ -167,58 +162,74 @@ function SuccessContent() {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4, duration: 0.8 }}
       >
-        Thank you for your purchase through{" "}
-        <span className="font-semibold text-green-700">ProsperityHub</span>.
-        Your secure booking details are shown below.
+        Thank you for your purchase. A confirmation email has been sent.
       </motion.p>
 
-      {/* PRIVATE DETAILS SECTION */}
-      <div className="max-w-xl w-full bg-white shadow-lg border border-gray-200 rounded-2xl p-6 text-left">
-        <h2 className="text-xl font-semibold text-green-700 mb-4">
-          🔒 Your Booking Details
-        </h2>
+      {/* GUEST VIEW (NO PRIVATE DETAILS) */}
+      {!isLoggedIn && (
+        <div className="max-w-xl w-full bg-white shadow-lg border border-gray-200 rounded-2xl p-6 text-left">
+          <h2 className="text-xl font-semibold text-green-700 mb-2">
+            Public Pickup Instructions
+          </h2>
 
-        {/* Address */}
-        <p className="mb-3">
-          <strong>Address:</strong><br/>
-          {listing.address_line1}<br/>
-          {listing.address_line2 && <>{listing.address_line2}<br/></>}
-          {listing.city}, {listing.state} {listing.zip}
-        </p>
-
-        {/* Private Instructions */}
-        {listing.private_instructions && (
-          <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-4">
-            <h3 className="font-semibold text-green-700 mb-2">
-              Private Instructions
-            </h3>
-            <p className="text-gray-700 whitespace-pre-line">
-              {listing.private_instructions}
-            </p>
-          </div>
-        )}
-
-        {/* Public Pickup Instructions */}
-        {listing.pickup_instructions && (
-          <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <h3 className="font-semibold text-yellow-700 mb-2">
-              Pickup Instructions
-            </h3>
+          {listing.pickup_instructions ? (
             <p className="text-gray-700 whitespace-pre-line">
               {listing.pickup_instructions}
             </p>
-          </div>
-        )}
-      </div>
+          ) : (
+            <p className="text-gray-500">No pickup instructions provided.</p>
+          )}
 
-      <div className="mt-10">
-        <Link
-          href="/"
-          className="px-6 py-3 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition"
-        >
-          Back to Marketplace
-        </Link>
-      </div>
+          <p className="mt-4 text-sm text-gray-500">
+            Login to view private address & full booking details.
+          </p>
+        </div>
+      )}
+
+      {/* LOGGED-IN VIEW (FULL PRIVATE DETAILS) */}
+      {isLoggedIn && (
+        <div className="max-w-xl w-full bg-white shadow-lg border border-gray-200 rounded-2xl p-6 text-left">
+          <h2 className="text-xl font-semibold text-green-700 mb-4">
+            🔒 Your Booking Details
+          </h2>
+
+          <p className="mb-3">
+            <strong>Address:</strong><br />
+            {listing.address_line1}<br />
+            {listing.address_line2 && <>{listing.address_line2}<br /></>}
+            {listing.city}, {listing.state} {listing.zip}
+          </p>
+
+          {listing.private_instructions && (
+            <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-4">
+              <h3 className="font-semibold text-green-700 mb-2">
+                Private Instructions
+              </h3>
+              <p className="text-gray-700 whitespace-pre-line">
+                {listing.private_instructions}
+              </p>
+            </div>
+          )}
+
+          {listing.pickup_instructions && (
+            <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <h3 className="font-semibold text-yellow-700 mb-2">
+                Pickup Instructions
+              </h3>
+              <p className="text-gray-700 whitespace-pre-line">
+                {listing.pickup_instructions}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      <Link
+        href="/"
+        className="mt-10 px-6 py-3 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition"
+      >
+        Back to Marketplace
+      </Link>
 
       <footer className="mt-10 text-sm text-gray-500">
         © {new Date().getFullYear()} ProsperityHub. All rights reserved.
@@ -228,7 +239,7 @@ function SuccessContent() {
 }
 
 /* -----------------------------
-   PAGE WRAPPER WITH SUSPENSE
+   Wrapper
 ------------------------------*/
 export default function SuccessPageWrapper() {
   return (
