@@ -22,7 +22,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ FIXED: Create Supabase server client with required project config
+    // Create Supabase server client (optional for guests)
     const supabase = createRouteHandlerClient(
       { cookies },
       {
@@ -45,21 +45,18 @@ export async function POST(req: Request) {
       );
     }
 
-    // Get authenticated user (server-side)
+    // Try to get authenticated user (if logged in)
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
-    const userId = user?.id;
-    const userEmail = user?.email;
+    // For logged-in users:
+    const userId = user?.id || null;
+    const userEmail = user?.email || null;
 
-    // ❗ MUST be logged in (or redirect logic if guest checkout)
-    if (!userId || !userEmail) {
-      return NextResponse.json(
-        { error: "User not authenticated" },
-        { status: 401 }
-      );
-    }
+    // ⭐ Guest checkout logic:
+    // - If no Supabase user found → let Stripe collect email
+    // - Do NOT block checkout with 401
 
     const checkout = await stripe.checkout.sessions.create({
       mode: "payment",
@@ -79,10 +76,15 @@ export async function POST(req: Request) {
       metadata: {
         listing_id: listing.id,
         listing_title: listing.title,
+        // These might be null for guest checkout, that is OK
         user_id: userId,
         user_email: userEmail,
       },
-      customer_email: userEmail,
+
+      // If user is logged in → prefill email
+      // If guest → Stripe will ask for email
+      customer_email: userEmail || undefined,
+
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/canceled`,
     });
