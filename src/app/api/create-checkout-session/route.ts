@@ -19,7 +19,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 🔹 Fetch the listing from Supabase
+    // Fetch listing
     const { data: listing, error } = await supabase
       .from("listings")
       .select("*")
@@ -27,15 +27,29 @@ export async function POST(req: Request) {
       .single();
 
     if (error || !listing) {
-      console.error("Supabase fetch error:", error);
       return NextResponse.json(
         { error: "Listing not found" },
         { status: 404 }
       );
     }
 
-    // 🔹 Create a Stripe Checkout session
-    const session = await stripe.checkout.sessions.create({
+    // Fetch user session
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    const userId = session?.user?.id;
+    const userEmail = session?.user?.email;
+
+    // ❗ We MUST have the user info for secure access
+    if (!userId || !userEmail) {
+      return NextResponse.json(
+        { error: "User not authenticated" },
+        { status: 401 }
+      );
+    }
+
+    const checkout = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
       line_items: [
@@ -44,20 +58,25 @@ export async function POST(req: Request) {
             currency: "usd",
             product_data: {
               name: listing.title,
-              description: listing.description || "Service booking",
             },
-            unit_amount: Math.round(Number(listing.basePrice) * 100),
+            unit_amount: Math.round(Number(listing.baseprice) * 100),
           },
           quantity: 1,
         },
       ],
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success`,
+      metadata: {
+        listing_id: listing.id,
+        listing_title: listing.title,
+        user_id: userId,
+        user_email: userEmail,
+      },
+      customer_email: userEmail,
+      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/canceled`,
     });
 
-    return NextResponse.json({ url: session.url });
+    return NextResponse.json({ url: checkout.url });
   } catch (err: any) {
-    console.error("Stripe session error:", err);
     return NextResponse.json(
       { error: err.message || "Internal Server Error" },
       { status: 500 }

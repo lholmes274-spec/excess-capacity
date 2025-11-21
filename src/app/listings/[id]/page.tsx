@@ -115,7 +115,7 @@ export default function ListingDetailPage() {
       {/* DESCRIPTION */}
       <p className="text-gray-700 mb-4">{listing.description}</p>
 
-      {/* LOCATION */}
+      {/* LOCATION (City, State only — NO address, NO private details) */}
       {(listing.city || listing.location) && (
         <p className="text-gray-800 font-semibold mb-2">
           Location:{" "}
@@ -146,7 +146,7 @@ export default function ListingDetailPage() {
         </p>
       )}
 
-      {/* PICKUP / INSTRUCTIONS */}
+      {/* PUBLIC PICKUP INSTRUCTIONS ONLY */}
       {listing.pickup_instructions && (
         <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <h3 className="font-semibold text-orange-800 mb-2">
@@ -157,6 +157,9 @@ export default function ListingDetailPage() {
           </p>
         </div>
       )}
+
+      {/* PRIVATE INSTRUCTIONS ARE NOT SHOWN HERE */}
+      {/* address_line1, address_line2, zip, and private_instructions are intentionally hidden */}
 
       {/* CONTACT INFO */}
       <div className="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
