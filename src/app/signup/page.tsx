@@ -11,8 +11,8 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSignUp = async () => {
-    if (!email || !password) {
+  const handleSignup = async () => {
+    if (!email || !password || !confirmPassword) {
       alert("Please fill out all fields.");
       return;
     }
@@ -34,14 +34,14 @@ export default function SignupPage() {
     if (error) {
       alert(error.message);
     } else {
-      alert("Account created! Check your email to verify.");
+      window.location.href = "/dashboard";
     }
   };
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleLogin = async () => {
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/` },
+      options: { redirectTo: `${window.location.origin}/dashboard` },
     });
   };
 
@@ -74,18 +74,18 @@ export default function SignupPage() {
         <input
           type="password"
           placeholder="Confirm Password"
-          className="w-full p-3 border rounded-lg mb-3"
+          className="w-full p-3 border rounded-lg mb-4"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
         />
 
-        {/* Sign Up Button */}
+        {/* Signup Button */}
         <button
-          onClick={handleSignUp}
+          onClick={handleSignup}
           disabled={loading}
           className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition"
         >
-          {loading ? "Creating..." : "Sign Up"}
+          {loading ? "Creating account..." : "Sign Up"}
         </button>
 
         {/* OR Divider */}
@@ -95,37 +95,24 @@ export default function SignupPage() {
           <div className="flex-grow border-t"></div>
         </div>
 
-        {/* Google Login */}
+        {/* Google Signup */}
         <button
-          onClick={handleGoogleSignIn}
+          onClick={handleGoogleLogin}
           className="w-full border border-gray-300 py-3 rounded-lg flex items-center justify-center gap-3 text-gray-700 hover:bg-gray-100"
         >
           <img src="/google-icon.png" className="w-5 h-5" />
           Sign up with Google
         </button>
 
-        {/* (Optional) Apple Login */}
-        {/* <button
-          onClick={() => supabase.auth.signInWithOAuth({ provider: "apple" })}
-          className="mt-3 w-full border border-gray-300 py-3 rounded-lg flex items-center justify-center gap-3 text-gray-700 hover:bg-gray-100"
-        >
-          <img src="/apple-icon.png" className="w-5 h-5" />
-          Sign up with Apple
-        </button> */}
-
-        {/* Already have an account? */}
+        {/* Login Redirect */}
         <p className="text-center text-gray-600 mt-6">
-          Already have an account?{" "}
+          Already have an account?
           <Link href="/login" className="text-blue-600 hover:underline">
-            Login
+            &nbsp;Login
           </Link>
         </p>
       </div>
 
-      {/* DARK FOOTER */}
-      <footer className="w-full text-center bg-[#0B132B] text-white py-6 mt-10">
-        © {new Date().getFullYear()} ProsperityHub.app. All rights reserved.
-      </footer>
     </div>
   );
 }

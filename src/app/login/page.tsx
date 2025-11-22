@@ -32,10 +32,10 @@ export default function LoginPage() {
     }
   };
 
-  // ⭐ CLEAN Google OAuth login (no custom redirect needed)
   const handleGoogleLogin = async () => {
     await supabase.auth.signInWithOAuth({
       provider: "google",
+      options: { redirectTo: `${window.location.origin}/dashboard` },
     });
   };
 
@@ -80,12 +80,12 @@ export default function LoginPage() {
           <div className="flex-grow border-t"></div>
         </div>
 
-        {/* ⭐ Google Login */}
+        {/* Google Login */}
         <button
           onClick={handleGoogleLogin}
-          className="w-full border border-gray-300 py-3 rounded-lg flex items-center justify-center gap-3 text-gray-700 hover:bg-gray-100 transition"
+          className="w-full border border-gray-300 py-3 rounded-lg flex items-center justify-center gap-3 text-gray-700 hover:bg-gray-100"
         >
-          <img src="/google-icon.png" alt="Google" className="w-5 h-5" />
+          <img src="/google-icon.png" className="w-5 h-5" />
           Sign in with Google
         </button>
 
@@ -98,10 +98,6 @@ export default function LoginPage() {
         </p>
       </div>
 
-      {/* DARK FOOTER */}
-      <footer className="w-full text-center bg-[#0B132B] text-white py-6 mt-10">
-        © {new Date().getFullYear()} ProsperityHub.app. All rights reserved.
-      </footer>
     </div>
   );
 }
