@@ -1,14 +1,25 @@
 // @ts-nocheck
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // If logged in → redirect to dashboard immediately
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      if (data?.user) router.push("/dashboard");
+    };
+    checkUser();
+  }, []);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -28,7 +39,7 @@ export default function LoginPage() {
     if (error) {
       alert(error.message);
     } else {
-      window.location.href = "/dashboard";
+      router.push("/dashboard");
     }
   };
 
@@ -46,7 +57,6 @@ export default function LoginPage() {
 
       <div className="bg-white shadow-lg border border-gray-200 rounded-xl p-8 w-full max-w-md">
 
-        {/* Email */}
         <input
           type="email"
           placeholder="Email"
@@ -55,7 +65,6 @@ export default function LoginPage() {
           onChange={(e) => setEmail(e.target.value)}
         />
 
-        {/* Password */}
         <input
           type="password"
           placeholder="Password"
@@ -64,7 +73,6 @@ export default function LoginPage() {
           onChange={(e) => setPassword(e.target.value)}
         />
 
-        {/* Login Button */}
         <button
           onClick={handleLogin}
           disabled={loading}
@@ -73,14 +81,12 @@ export default function LoginPage() {
           {loading ? "Logging in..." : "Login"}
         </button>
 
-        {/* OR Divider */}
         <div className="flex items-center my-6">
           <div className="flex-grow border-t"></div>
           <span className="mx-4 text-gray-500">OR</span>
           <div className="flex-grow border-t"></div>
         </div>
 
-        {/* Google Login */}
         <button
           onClick={handleGoogleLogin}
           className="w-full border border-gray-300 py-3 rounded-lg flex items-center justify-center gap-3 text-gray-700 hover:bg-gray-100"
@@ -89,7 +95,6 @@ export default function LoginPage() {
           Sign in with Google
         </button>
 
-        {/* Signup Redirect */}
         <p className="text-center text-gray-600 mt-6">
           Don’t have an account?
           <Link href="/signup" className="text-blue-600 hover:underline">
