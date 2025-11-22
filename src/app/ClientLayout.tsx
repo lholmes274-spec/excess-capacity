@@ -82,6 +82,30 @@ export default function ClientLayout({
               </li>
             )}
 
+            {/* ⭐⭐ "MY BOOKINGS" ⭐⭐ */}
+            {user && (
+              <li>
+                <a
+                  href="/my-bookings"
+                  className="hover:text-blue-300 transition"
+                >
+                  My Bookings
+                </a>
+              </li>
+            )}
+
+            {/* ⭐⭐ NEW — "MY LISTINGS" ⭐⭐ */}
+            {user && (
+              <li>
+                <a
+                  href="/my-listings"
+                  className="hover:text-blue-300 transition"
+                >
+                  My Listings
+                </a>
+              </li>
+            )}
+
             <li>
               <a href="/admin" className="hover:text-blue-300 transition">
                 Admin
