@@ -54,7 +54,10 @@ export async function POST(req: Request) {
       const metadata_user_email = session.metadata?.user_email || null;
       const guest_email = session.customer_email || null;
 
+      // Final email for booking
       const final_email = metadata_user_email || guest_email;
+
+      // Convert Stripe cents to dollars
       const amount =
         session.amount_total !== null
           ? session.amount_total / 100
@@ -69,18 +72,18 @@ export async function POST(req: Request) {
 
       const owner_id = listingData?.owner_id || null;
 
-      // ⭐ Insert booking into Supabase (FIXED user_email field)
+      // ⭐ Insert booking (MATCHES YOUR DATABASE)
       const { error: bookingError } = await supabase
         .from("bookings")
         .insert([
           {
             listing_id,
+            owner_id,
             user_id: user_id || null,
-            user_email: final_email,   // ⭐ FIX: matches MyBookings page
+            booker_email: final_email,   // ⭐ FIXED: correct column
             amount_paid: amount,
             stripe_session_id: session.id,
             status: "paid",
-            owner_id,
           },
         ]);
 
@@ -98,7 +101,7 @@ export async function POST(req: Request) {
   }
 }
 
-// Prevent accidental GET calls to webhook
+// Block accidental GET
 export async function GET() {
   return NextResponse.json(
     { error: "Method Not Allowed" },
