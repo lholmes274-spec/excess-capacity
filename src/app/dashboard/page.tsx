@@ -12,7 +12,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     const loadUser = async () => {
-      const { data, error } = await supabase.auth.getUser();
+      const { data } = await supabase.auth.getUser();
       if (!data?.user) {
         router.push("/login");
       } else {
@@ -25,24 +25,24 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
 
-      {/* ---- Top Brand Banner (thin + elegant) ---- */}
+      {/* Top Banner */}
       <div className="w-full bg-gradient-to-r from-yellow-300 to-yellow-500 text-black py-3 text-center font-semibold">
         Prosperity Hub™ — Dynamic Excess Capacity Sharing Platform
       </div>
 
-      {/* ---- Dashboard Container ---- */}
+      {/* Dashboard Container */}
       <div className="flex justify-center px-4 mt-10">
         <div className="w-full max-w-2xl">
 
-          {/* Welcome Header */}
           <h1 className="text-2xl font-bold mb-6">
             Welcome{user ? `, ${user.email}` : ""} 👋
           </h1>
 
-          {/* Quick Actions Grid */}
+          {/* Dashboard Options */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-            <Link href="/add-listings">
+            {/* FIXED: Correct Add Listing Link */}
+            <Link href="/add-listing">
               <div className="p-6 bg-white rounded-xl shadow hover:shadow-lg transition cursor-pointer text-center">
                 <h3 className="text-lg font-semibold">Add Listing</h3>
               </div>
@@ -60,7 +60,8 @@ export default function Dashboard() {
               </div>
             </Link>
 
-            <Link href="/">
+            {/* FIXED: Browse Listings → /listings */}
+            <Link href="/listings">
               <div className="p-6 bg-white rounded-xl shadow hover:shadow-lg transition cursor-pointer text-center">
                 <h3 className="text-lg font-semibold">Browse Listings</h3>
               </div>
@@ -68,7 +69,6 @@ export default function Dashboard() {
 
           </div>
 
-          {/* Demo Listings */}
           <div className="mt-10 text-center">
             <Link
               href="/demo"
@@ -80,7 +80,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ---- Footer ---- */}
+      {/* Footer */}
       <footer className="mt-auto py-10 text-center text-gray-600 text-sm border-t bg-white">
         <div className="flex justify-center space-x-6 mb-3">
           <Link href="/about" className="hover:text-black">About</Link>
