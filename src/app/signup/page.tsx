@@ -23,6 +23,17 @@ export default function SignupPage() {
     checkUser();
   }, []);
 
+  // Auto redirect after success
+  useEffect(() => {
+    if (signupSuccess) {
+      const timer = setTimeout(() => {
+        router.push("/login");
+      }, 3000); // 3 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [signupSuccess]);
+
   const handleSignup = async () => {
     if (!email || !password || !confirmPassword) {
       alert("Please fill out all fields.");
@@ -46,6 +57,7 @@ export default function SignupPage() {
     if (error) {
       alert(error.message);
     } else {
+      // EMAIL CONFIRMATION IS SENT HERE — ALWAYS
       setSignupSuccess(true);
     }
   };
@@ -66,6 +78,9 @@ export default function SignupPage() {
         {signupSuccess && (
           <div className="mb-4 p-3 text-green-800 bg-green-100 border border-green-300 rounded-lg text-center">
             Account created! Check your email to confirm your account.
+            <div className="mt-2 text-sm text-gray-600">
+              Redirecting to login...
+            </div>
           </div>
         )}
 

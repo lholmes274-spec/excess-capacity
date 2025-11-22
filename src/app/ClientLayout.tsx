@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 export default function ClientLayout({
   children,
@@ -14,21 +15,17 @@ export default function ClientLayout({
 
   useEffect(() => {
     const fetchSession = async () => {
-      const { data, error } = await supabase.auth.getSession();
-      if (error || !data?.session) {
-        setUser(null);
-      } else {
-        setUser(data.session.user);
-      }
+      const { data } = await supabase.auth.getSession();
+      setUser(data?.session?.user ?? null);
     };
 
     fetchSession();
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user ?? null);
+      }
+    );
 
     return () => subscription.unsubscribe();
   }, []);
@@ -44,95 +41,99 @@ export default function ClientLayout({
       {/* Header */}
       <header className="bg-[#0f172a] text-white shadow-sm">
         <nav className="container mx-auto flex justify-between items-center px-6 py-4">
+          
           <h1 className="text-lg font-semibold">
-            <a href="/">Prosperity Hub</a>
+            <Link href="/">Prosperity Hub</Link>
           </h1>
 
           <ul className="flex space-x-6 text-sm font-medium items-center">
+            
             <li>
-              <a href="/" className="hover:text-blue-300 transition">
+              <Link href="/" className="hover:text-blue-300 transition">
                 Home
-              </a>
-            </li>
-            <li>
-              <a href="/services" className="hover:text-blue-300 transition">
-                Services
-              </a>
-            </li>
-            <li>
-              <a href="/about" className="hover:text-blue-300 transition">
-                About
-              </a>
-            </li>
-            <li>
-              <a href="/contact" className="hover:text-blue-300 transition">
-                Contact
-              </a>
+              </Link>
             </li>
 
-            {/* ⭐⭐ SHOW "ADD LISTING" ONLY WHEN LOGGED IN ⭐⭐ */}
+            <li>
+              <Link href="/services" className="hover:text-blue-300 transition">
+                Services
+              </Link>
+            </li>
+
+            <li>
+              <Link href="/about" className="hover:text-blue-300 transition">
+                About
+              </Link>
+            </li>
+
+            <li>
+              <Link href="/contact" className="hover:text-blue-300 transition">
+                Contact
+              </Link>
+            </li>
+
             {user && (
               <li>
-                <a
+                <Link
                   href="/add-listing"
                   className="hover:text-blue-300 transition font-semibold"
                 >
                   Add Listing
-                </a>
+                </Link>
               </li>
             )}
 
-            {/* ⭐⭐ "MY BOOKINGS" ⭐⭐ */}
             {user && (
               <li>
-                <a
+                <Link
                   href="/my-bookings"
                   className="hover:text-blue-300 transition"
                 >
                   My Bookings
-                </a>
+                </Link>
               </li>
             )}
 
-            {/* ⭐⭐ NEW — "MY LISTINGS" ⭐⭐ */}
             {user && (
               <li>
-                <a
+                <Link
                   href="/my-listings"
                   className="hover:text-blue-300 transition"
                 >
                   My Listings
-                </a>
+                </Link>
               </li>
             )}
 
             <li>
-              <a href="/admin" className="hover:text-blue-300 transition">
+              <Link href="/admin" className="hover:text-blue-300 transition">
                 Admin
-              </a>
-            </li>
-            <li>
-              <a href="/terms" className="hover:text-blue-300 transition">
-                Terms
-              </a>
-            </li>
-            <li>
-              <a href="/privacy" className="hover:text-blue-300 transition">
-                Privacy
-              </a>
+              </Link>
             </li>
 
-            {/* AUTH BUTTONS */}
+            <li>
+              <Link href="/terms" className="hover:text-blue-300 transition">
+                Terms
+              </Link>
+            </li>
+
+            <li>
+              <Link href="/privacy" className="hover:text-blue-300 transition">
+                Privacy
+              </Link>
+            </li>
+
             {user ? (
               <>
                 <li>
-                  <a
+                  <Link
                     href="/subscribe"
                     className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
                   >
                     Subscribe
-                  </a>
+                  </Link>
                 </li>
+
                 <li>
                   <button
                     onClick={handleLogout}
@@ -144,12 +145,12 @@ export default function ClientLayout({
               </>
             ) : (
               <li>
-                <a
+                <Link
                   href="/login"
                   className="bg-gray-200 text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-300 transition"
                 >
                   Login
-                </a>
+                </Link>
               </li>
             )}
           </ul>
