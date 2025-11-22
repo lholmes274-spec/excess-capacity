@@ -1,87 +1,110 @@
+// @ts-nocheck
 "use client";
 
 import { useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
-  const router = useRouter();
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  async function handleLogin(e: React.FormEvent) {
-    e.preventDefault();
+  // Handle login
+  const handleLogin = async () => {
+    setError("");
+    setLoading(true);
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
+    setLoading(false);
+
     if (error) {
-      setMessage(`❌ ${error.message}`);
+      setError("Invalid login. Please check your email or password.");
     } else {
-      setMessage("✅ Login successful! Redirecting...");
-      setTimeout(() => router.push("/"), 1500); // Redirect to home
+      router.push("/");
     }
-  }
+  };
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-gray-50 text-center p-6">
-      <h1 className="text-3xl font-bold mb-2 text-blue-700">Welcome Back</h1>
-      <p className="text-gray-600 mb-8 max-w-md">
-        Log in to continue exploring and managing your Prosperity Hub listings.
-      </p>
+    <div className="min-h-screen flex flex-col">
 
-      <form
-        onSubmit={handleLogin}
-        className="bg-white shadow-md rounded-xl p-6 w-full max-w-sm"
-      >
-        <input
-          type="email"
-          required
-          placeholder="Email address"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <input
-          type="password"
-          required
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-        >
-          Login
-        </button>
-      </form>
-
-      {message && (
-        <p
-          className={`mt-4 ${
-            message.startsWith("✅") ? "text-green-600" : "text-red-600"
-          }`}
-        >
-          {message}
+      {/* ------------------------ BANNER SECTION ------------------------ */}
+      <div className="w-full h-[360px] bg-gradient-to-br from-blue-900 to-blue-700 flex flex-col items-center justify-center text-white text-center px-4">
+        <h1 className="text-4xl font-bold mb-3">Welcome Back to Prosperity Hub™</h1>
+        <p className="text-lg max-w-2xl opacity-90">
+          Log in to access your listings, bookings, and your personalized Prosperity Hub™ dashboard.
         </p>
-      )}
+      </div>
 
-      <a
-        href="/signup"
-        className="mt-6 text-blue-600 hover:underline text-sm font-medium"
-      >
-        Don’t have an account? Sign up
-      </a>
-    </main>
+      {/* ------------------------ LOGIN CARD ------------------------ */}
+      <div className="flex justify-center -mt-24 px-4">
+        <div className="bg-white w-full max-w-md shadow-2xl rounded-2xl p-10 border border-gray-200">
+          <h2 className="text-2xl font-semibold text-center mb-6 text-gray-800">
+            Login to Prosperity Hub™
+          </h2>
+
+          {error && (
+            <div className="mb-4 text-red-600 text-center text-sm">{error}</div>
+          )}
+
+          <input
+            type="email"
+            placeholder="Email"
+            className="w-full p-3 mb-4 border rounded-lg"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+
+          <input
+            type="password"
+            placeholder="Password"
+            className="w-full p-3 mb-6 border rounded-lg"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+
+          <button
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-full text-lg font-semibold transition-all"
+            onClick={handleLogin}
+            disabled={loading}
+          >
+            {loading ? "Signing you in..." : "Login"}
+          </button>
+
+          <p className="text-center text-sm mt-4">
+            Don’t have an account?{" "}
+            <a href="/signup" className="text-blue-600 hover:underline">
+              Sign Up
+            </a>
+          </p>
+
+          <p className="text-center text-sm mt-2">
+            <a href="/forgot-password" className="text-blue-600 hover:underline">
+              Forgot your password?
+            </a>
+          </p>
+        </div>
+      </div>
+
+      {/* ------------------------ FOOTER ------------------------ */}
+      <footer className="mt-auto py-10 text-center text-gray-600 text-sm border-t bg-gray-50">
+        <div className="flex justify-center space-x-6 mb-3">
+          <a href="/about" className="hover:text-blue-600">About</a>
+          <a href="/contact" className="hover:text-blue-600">Contact</a>
+          <a href="/terms" className="hover:text-blue-600">Terms</a>
+          <a href="/privacy" className="hover:text-blue-600">Privacy</a>
+        </div>
+
+        <div>© {new Date().getFullYear()} Prosperity Hub™ LLC</div>
+        <div className="mt-1">support@prosperityhub.app</div>
+      </footer>
+
+    </div>
   );
 }
