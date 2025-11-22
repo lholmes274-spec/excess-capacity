@@ -6,7 +6,6 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 
 export default function HomePage() {
-  const [demoListings, setDemoListings] = useState([]);
   const [realListings, setRealListings] = useState([]);
 
   useEffect(() => {
@@ -14,21 +13,12 @@ export default function HomePage() {
   }, []);
 
   const loadListings = async () => {
-    // Load demo listings
-    const { data: demoData } = await supabase
-      .from("listings")
-      .select("*")
-      .eq("demo_mode", true)
-      .limit(3);
-
-    // Load real listings
     const { data: realData } = await supabase
       .from("listings")
       .select("*")
       .eq("demo_mode", false)
       .limit(6);
 
-    setDemoListings(demoData || []);
     setRealListings(realData || []);
   };
 
@@ -52,32 +42,19 @@ export default function HomePage() {
           within your local community.
         </p>
 
-        <Link href="/signup">
-          <button className="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full text-lg font-semibold transition">
-            Get Started
-          </button>
-        </Link>
-      </div>
+        {/* BUTTONS */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
+          <Link href="/signup">
+            <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full text-lg font-semibold transition">
+              Get Started
+            </button>
+          </Link>
 
-      {/* DEMO LISTINGS */}
-      <div className="mt-12 px-4 max-w-5xl mx-auto">
-        <h2 className="text-2xl font-semibold mb-4">Demo Listings</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {demoListings.map((listing: any) => (
-            <Link
-              key={listing.id}
-              href={`/listing/${listing.id}`}
-              className="bg-white rounded-xl shadow p-4 border border-gray-200 hover:shadow-lg transition"
-            >
-              <img
-                src={listing.image_url}
-                className="w-full h-40 object-cover rounded-lg"
-              />
-
-              <h3 className="text-lg font-semibold mt-3">{listing.title}</h3>
-              <p className="text-gray-600 text-sm">{listing.city}, {listing.state}</p>
-            </Link>
-          ))}
+          <Link href="/demo">
+            <button className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-full text-lg font-semibold transition">
+              View Demo Listings
+            </button>
+          </Link>
         </div>
       </div>
 
@@ -88,7 +65,7 @@ export default function HomePage() {
           {realListings.map((listing: any) => (
             <Link
               key={listing.id}
-              href={`/listing/${listing.id}`}
+              href={`/listings/${listing.id}`}
               className="bg-white rounded-xl shadow p-4 border border-gray-200 hover:shadow-lg transition"
             >
               <img
@@ -97,7 +74,9 @@ export default function HomePage() {
               />
 
               <h3 className="text-lg font-semibold mt-3">{listing.title}</h3>
-              <p className="text-gray-600 text-sm">{listing.city}, {listing.state}</p>
+              <p className="text-gray-600 text-sm">
+                {listing.city}, {listing.state}
+              </p>
             </Link>
           ))}
         </div>
