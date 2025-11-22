@@ -59,7 +59,7 @@ export default function HomePage() {
       </div>
 
       {/* REAL LISTINGS */}
-      <div className="mt-14 px-4 max-w-5xl mx-auto">
+      <div className="mt-14 px-4 max-w-5xl mx-auto mb-20">
         <h2 className="text-2xl font-semibold mb-4">Available Listings</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {realListings.map((listing: any) => (
@@ -82,18 +82,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* FOOTER */}
-      <footer className="mt-20 py-10 text-center text-gray-600 text-sm border-t bg-white">
-        <div className="flex justify-center space-x-6 mb-3">
-          <Link href="/about" className="hover:text-black">About</Link>
-          <Link href="/services" className="hover:text-black">Services</Link>
-          <Link href="/contact" className="hover:text-black">Contact</Link>
-          <Link href="/terms" className="hover:text-black">Terms</Link>
-          <Link href="/privacy" className="hover:text-black">Privacy</Link>
-        </div>
-
-        <div>© {new Date().getFullYear()} Prosperity Voyage LLC</div>
-      </footer>
     </div>
   );
 }

@@ -24,25 +24,23 @@ export default function DemoListingsPage() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
 
-      {/* TOP BANNER */}
+      {/* TOP BRAND BANNER */}
       <img
         src="/prosperity-banner.png"
         alt="Prosperity Hub Banner"
         className="w-full h-[85px] object-cover"
       />
 
-      {/* PAGE HEADER */}
+      {/* HEADER */}
       <div className="text-center mt-10 px-4">
-        <h1 className="text-3xl font-bold text-gray-900">
-          Demo Listings
-        </h1>
+        <h1 className="text-3xl font-bold text-gray-900">Demo Listings</h1>
         <p className="text-gray-600 mt-3 max-w-xl mx-auto">
           Explore example listings to see how Prosperity Hub™ works.
         </p>
       </div>
 
-      {/* DEMO LISTINGS GRID */}
-      <div className="mt-12 px-4 max-w-5xl mx-auto">
+      {/* LISTINGS */}
+      <div className="mt-12 px-4 max-w-5xl mx-auto mb-20">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {demoListings.map((listing: any) => (
             <Link
@@ -54,7 +52,6 @@ export default function DemoListingsPage() {
                 src={listing.image_url}
                 className="w-full h-40 object-cover rounded-lg"
               />
-
               <h3 className="text-lg font-semibold mt-3">{listing.title}</h3>
               <p className="text-gray-600 text-sm">
                 {listing.city}, {listing.state}
@@ -69,19 +66,6 @@ export default function DemoListingsPage() {
           </p>
         )}
       </div>
-
-      {/* FOOTER */}
-      <footer className="mt-20 py-10 text-center text-gray-600 text-sm border-t bg-white">
-        <div className="flex justify-center space-x-6 mb-3">
-          <Link href="/about" className="hover:text-black">About</Link>
-          <Link href="/services" className="hover:text-black">Services</Link>
-          <Link href="/contact" className="hover:text-black">Contact</Link>
-          <Link href="/terms" className="hover:text-black">Terms</Link>
-          <Link href="/privacy" className="hover:text-black">Privacy</Link>
-        </div>
-
-        <div>© {new Date().getFullYear()} Prosperity Voyage LLC</div>
-      </footer>
     </div>
   );
 }
