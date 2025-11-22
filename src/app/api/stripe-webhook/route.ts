@@ -7,12 +7,12 @@ import { createClient } from "@supabase/supabase-js";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-// Stripe
+// Stripe Client
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-04-10",
 });
 
-// Supabase (requires SERVICE ROLE KEY)
+// Supabase (SERVICE ROLE KEY required)
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -30,6 +30,7 @@ export async function POST(req: Request) {
   }
 
   let event: Stripe.Event;
+
   try {
     event = stripe.webhooks.constructEvent(
       body,
@@ -37,6 +38,7 @@ export async function POST(req: Request) {
       process.env.STRIPE_WEBHOOK_SECRET!
     );
   } catch (err: any) {
+    console.error("❌ Invalid signature:", err.message);
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
@@ -48,18 +50,17 @@ export async function POST(req: Request) {
       const session = event.data.object;
 
       const listing_id = session.metadata?.listing_id || null;
-      const user_id = session.metadata?.user_id || null; // logged-in users
-      const user_email = session.metadata?.user_email || null;
+      const user_id = session.metadata?.user_id || null;
+      const metadata_user_email = session.metadata?.user_email || null;
       const guest_email = session.customer_email || null;
 
-      const amount = session.amount_total
-        ? session.amount_total / 100
-        : null;
+      const final_email = metadata_user_email || guest_email;
+      const amount =
+        session.amount_total !== null
+          ? session.amount_total / 100
+          : null;
 
-      // ⭐ Determine booker email (guest OR logged in)
-      const booker_email = user_email || guest_email;
-
-      // ⭐ Get owner_id of listing
+      // ⭐ Get owner_id from listings table
       const { data: listingData } = await supabase
         .from("listings")
         .select("owner_id")
@@ -68,13 +69,14 @@ export async function POST(req: Request) {
 
       const owner_id = listingData?.owner_id || null;
 
-      // ⭐ Insert booking
+      // ⭐ Insert booking into Supabase (FIXED user_email field)
       const { error: bookingError } = await supabase
         .from("bookings")
         .insert([
           {
             listing_id,
-            booker_email,
+            user_id: user_id || null,
+            user_email: final_email,   // ⭐ FIX: matches MyBookings page
             amount_paid: amount,
             stripe_session_id: session.id,
             status: "paid",
@@ -91,12 +93,12 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ received: true }, { status: 200 });
   } catch (err) {
-    console.error("Webhook handler failed:", err);
+    console.error("❌ Webhook handler failed:", err);
     return NextResponse.json({ error: "Webhook failed" }, { status: 500 });
   }
 }
 
-// Block accidental GET request
+// Prevent accidental GET calls to webhook
 export async function GET() {
   return NextResponse.json(
     { error: "Method Not Allowed" },
