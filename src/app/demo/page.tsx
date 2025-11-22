@@ -47,7 +47,7 @@ export default function DemoListingsPage() {
           {demoListings.map((listing: any) => (
             <Link
               key={listing.id}
-              href={`/listing/${listing.id}`}
+              href={`/listings/${listing.id}`}
               className="bg-white rounded-xl shadow p-4 border border-gray-200 hover:shadow-lg transition"
             >
               <img
