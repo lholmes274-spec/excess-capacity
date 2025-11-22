@@ -22,6 +22,7 @@ type Listing = {
   state?: string | null;
   image_url?: string | null;
   image_urls?: string[] | null;
+  demo_mode?: boolean;
 };
 
 function ListingsContent() {
@@ -33,13 +34,14 @@ function ListingsContent() {
   const searchParams = useSearchParams();
   const selectedType = searchParams.get("type");
 
-  // Fetch listings
+  // Fetch listings (REAL LISTINGS ONLY)
   useEffect(() => {
     async function fetchListings() {
       try {
         const { data, error } = await supabase
           .from("listings")
           .select("*")
+          .eq("demo_mode", false)   // ⭐ HIDE DEMO LISTINGS
           .order("id", { ascending: false });
 
         if (error) throw error;
@@ -113,7 +115,6 @@ function ListingsContent() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredListings.map((listing) => {
-            
             const thumbnail =
               listing.image_urls?.[0] ||
               listing.image_url ||
@@ -122,7 +123,7 @@ function ListingsContent() {
             return (
               <Link
                 key={listing.id}
-                href={`/listings/${listing.id}`}   // ⭐ FIXED ROUTE HERE
+                href={`/listings/${listing.id}`}  // ⭐ CORRECT ROUTE
                 className="block bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition p-4"
               >
                 {thumbnail ? (
