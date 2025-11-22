@@ -5,63 +5,44 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 
-export default function HomePage() {
+export default function DemoListingsPage() {
   const [demoListings, setDemoListings] = useState([]);
-  const [realListings, setRealListings] = useState([]);
 
   useEffect(() => {
-    loadListings();
+    loadDemoListings();
   }, []);
 
-  const loadListings = async () => {
-    // Load demo listings
-    const { data: demoData } = await supabase
+  const loadDemoListings = async () => {
+    const { data } = await supabase
       .from("listings")
       .select("*")
-      .eq("demo_mode", true)
-      .limit(3);
+      .eq("demo_mode", true);
 
-    // Load real listings
-    const { data: realData } = await supabase
-      .from("listings")
-      .select("*")
-      .eq("demo_mode", false)
-      .limit(6);
-
-    setDemoListings(demoData || []);
-    setRealListings(realData || []);
+    setDemoListings(data || []);
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
 
-      {/* TOP BRAND BANNER */}
+      {/* TOP BANNER */}
       <img
         src="/prosperity-banner.png"
         alt="Prosperity Hub Banner"
         className="w-full h-[85px] object-cover"
       />
 
-      {/* HERO SECTION */}
+      {/* PAGE HEADER */}
       <div className="text-center mt-10 px-4">
         <h1 className="text-3xl font-bold text-gray-900">
-          Unlock Your Local Prosperity
+          Demo Listings
         </h1>
         <p className="text-gray-600 mt-3 max-w-xl mx-auto">
-          List unused items, rent from neighbors, and discover opportunities
-          within your local community.
+          Explore example listings to see how Prosperity Hub™ works.
         </p>
-
-        <Link href="/signup">
-          <button className="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full text-lg font-semibold transition">
-            Get Started
-          </button>
-        </Link>
       </div>
 
-      {/* DEMO LISTINGS */}
+      {/* DEMO LISTINGS GRID */}
       <div className="mt-12 px-4 max-w-5xl mx-auto">
-        <h2 className="text-2xl font-semibold mb-4">Demo Listings</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {demoListings.map((listing: any) => (
             <Link
@@ -75,32 +56,18 @@ export default function HomePage() {
               />
 
               <h3 className="text-lg font-semibold mt-3">{listing.title}</h3>
-              <p className="text-gray-600 text-sm">{listing.city}, {listing.state}</p>
+              <p className="text-gray-600 text-sm">
+                {listing.city}, {listing.state}
+              </p>
             </Link>
           ))}
         </div>
-      </div>
 
-      {/* REAL LISTINGS */}
-      <div className="mt-14 px-4 max-w-5xl mx-auto">
-        <h2 className="text-2xl font-semibold mb-4">Available Listings</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {realListings.map((listing: any) => (
-            <Link
-              key={listing.id}
-              href={`/listing/${listing.id}`}
-              className="bg-white rounded-xl shadow p-4 border border-gray-200 hover:shadow-lg transition"
-            >
-              <img
-                src={listing.image_url}
-                className="w-full h-40 object-cover rounded-lg"
-              />
-
-              <h3 className="text-lg font-semibold mt-3">{listing.title}</h3>
-              <p className="text-gray-600 text-sm">{listing.city}, {listing.state}</p>
-            </Link>
-          ))}
-        </div>
+        {demoListings.length === 0 && (
+          <p className="text-center text-gray-500 mt-10">
+            No demo listings yet. Add some from your dashboard.
+          </p>
+        )}
       </div>
 
       {/* FOOTER */}

@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -13,7 +14,6 @@ export default function SignupPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Handle signup
   const handleSignup = async () => {
     setError("");
 
@@ -39,21 +39,30 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gray-50">
 
-      {/* ------------------------ BANNER SECTION ------------------------ */}
-      <div className="w-full h-[360px] bg-gradient-to-br from-blue-900 to-blue-700 flex flex-col items-center justify-center text-white text-center px-4">
-        <h1 className="text-4xl font-bold mb-3">Unlock Your Prosperity Journey</h1>
-        <p className="text-lg max-w-2xl opacity-90">
-          Join Prosperity Hub and start discovering, sharing, and unlocking hidden opportunities within your community.
-        </p>
-      </div>
+      {/* TOP BRAND BANNER */}
+      <img
+        src="/prosperity-banner.png"
+        alt="Prosperity Hub Banner"
+        className="w-full h-[85px] object-cover"
+      />
 
-      {/* ------------------------ SIGNUP CARD ------------------------ */}
-      <div className="flex justify-center -mt-24 px-4">
-        <div className="bg-white w-full max-w-md shadow-2xl rounded-2xl p-10 border border-gray-200">
-          <h2 className="text-2xl font-semibold text-center mb-6 text-gray-800">
-            Join Prosperity Hub
+      {/* SIGNUP CARD */}
+      <div className="flex justify-center px-4 mt-10">
+        <div className="bg-white w-full max-w-md shadow-xl rounded-2xl p-8 border border-gray-200">
+
+          {/* Small icon */}
+          <div className="flex justify-center mb-4">
+            <img
+              src="/prosperity-icon.png"
+              alt="Prosperity Hub Icon"
+              className="w-14 h-14 object-contain"
+            />
+          </div>
+
+          <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6">
+            Join Prosperity Hub™
           </h2>
 
           {error && (
@@ -63,7 +72,7 @@ export default function SignupPage() {
           <input
             type="email"
             placeholder="Email"
-            className="w-full p-3 mb-4 border rounded-lg"
+            className="w-full p-3 mb-4 border rounded-lg bg-white"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -71,7 +80,7 @@ export default function SignupPage() {
           <input
             type="password"
             placeholder="Password"
-            className="w-full p-3 mb-4 border rounded-lg"
+            className="w-full p-3 mb-4 border rounded-lg bg-white"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
@@ -79,7 +88,7 @@ export default function SignupPage() {
           <input
             type="password"
             placeholder="Confirm Password"
-            className="w-full p-3 mb-6 border rounded-lg"
+            className="w-full p-3 mb-6 border rounded-lg bg-white"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
           />
@@ -94,26 +103,25 @@ export default function SignupPage() {
 
           <p className="text-center text-sm mt-4">
             Already have an account?{" "}
-            <a href="/login" className="text-blue-600 hover:underline">
+            <Link href="/login" className="text-blue-600 hover:underline">
               Login
-            </a>
+            </Link>
           </p>
         </div>
       </div>
 
-      {/* ------------------------ FOOTER ------------------------ */}
-      <footer className="mt-auto py-10 text-center text-gray-600 text-sm border-t bg-gray-50">
+      {/* FOOTER */}
+      <footer className="mt-auto py-10 text-center text-gray-600 text-sm border-t bg-white">
         <div className="flex justify-center space-x-6 mb-3">
-          <a href="/about" className="hover:text-blue-600">About</a>
-          <a href="/contact" className="hover:text-blue-600">Contact</a>
-          <a href="/terms" className="hover:text-blue-600">Terms</a>
-          <a href="/privacy" className="hover:text-blue-600">Privacy</a>
+          <Link href="/about" className="hover:text-black">About</Link>
+          <Link href="/services" className="hover:text-black">Services</Link>
+          <Link href="/contact" className="hover:text-black">Contact</Link>
+          <Link href="/terms" className="hover:text-black">Terms</Link>
+          <Link href="/privacy" className="hover:text-black">Privacy</Link>
         </div>
 
-        <div>© {new Date().getFullYear()} Prosperity Hub LLC</div>
-        <div className="mt-1">support@prosperityhub.app</div>
+        <div>© {new Date().getFullYear()} Prosperity Voyage LLC</div>
       </footer>
-
     </div>
   );
 }

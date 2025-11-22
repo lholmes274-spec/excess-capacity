@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,7 +13,6 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Handle login
   const handleLogin = async () => {
     setError("");
     setLoading(true);
@@ -25,28 +25,37 @@ export default function LoginPage() {
     setLoading(false);
 
     if (error) {
-      setError("Invalid login. Please check your email or password.");
+      setError("Invalid email or password.");
     } else {
-      router.push("/");
+      router.push("/dashboard");
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gray-50">
 
-      {/* ------------------------ BANNER SECTION ------------------------ */}
-      <div className="w-full h-[360px] bg-gradient-to-br from-blue-900 to-blue-700 flex flex-col items-center justify-center text-white text-center px-4">
-        <h1 className="text-4xl font-bold mb-3">Welcome Back to Prosperity Hub™</h1>
-        <p className="text-lg max-w-2xl opacity-90">
-          Log in to access your listings, bookings, and your personalized Prosperity Hub™ dashboard.
-        </p>
-      </div>
+      {/* TOP BANNER */}
+      <img
+        src="/prosperity-banner.png"
+        alt="Prosperity Hub Banner"
+        className="w-full h-[85px] object-cover"
+      />
 
-      {/* ------------------------ LOGIN CARD ------------------------ */}
-      <div className="flex justify-center -mt-24 px-4">
-        <div className="bg-white w-full max-w-md shadow-2xl rounded-2xl p-10 border border-gray-200">
-          <h2 className="text-2xl font-semibold text-center mb-6 text-gray-800">
-            Login to Prosperity Hub™
+      {/* LOGIN CARD */}
+      <div className="flex justify-center px-4 mt-10">
+        <div className="bg-white w-full max-w-md shadow-xl rounded-2xl p-8 border border-gray-200">
+
+          {/* Small icon */}
+          <div className="flex justify-center mb-4">
+            <img
+              src="/prosperity-icon.png"
+              alt="Prosperity Hub Icon"
+              className="w-14 h-14 object-contain"
+            />
+          </div>
+
+          <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6">
+            Log in to Prosperity Hub™
           </h2>
 
           {error && (
@@ -56,55 +65,54 @@ export default function LoginPage() {
           <input
             type="email"
             placeholder="Email"
-            className="w-full p-3 mb-4 border rounded-lg"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            className="w-full p-3 mb-4 border rounded-lg bg-white"
           />
 
           <input
             type="password"
             placeholder="Password"
-            className="w-full p-3 mb-6 border rounded-lg"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            className="w-full p-3 mb-6 border rounded-lg bg-white"
           />
 
           <button
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-full text-lg font-semibold transition-all"
             onClick={handleLogin}
             disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-full transition-all"
           >
-            {loading ? "Signing you in..." : "Login"}
+            {loading ? "Logging in..." : "Login"}
           </button>
 
           <p className="text-center text-sm mt-4">
             Don’t have an account?{" "}
-            <a href="/signup" className="text-blue-600 hover:underline">
+            <Link href="/signup" className="text-blue-600 hover:underline">
               Sign Up
-            </a>
+            </Link>
           </p>
 
           <p className="text-center text-sm mt-2">
-            <a href="/forgot-password" className="text-blue-600 hover:underline">
+            <Link href="/forgot-password" className="text-blue-600 hover:underline">
               Forgot your password?
-            </a>
+            </Link>
           </p>
         </div>
       </div>
 
-      {/* ------------------------ FOOTER ------------------------ */}
-      <footer className="mt-auto py-10 text-center text-gray-600 text-sm border-t bg-gray-50">
+      {/* FOOTER */}
+      <footer className="mt-auto py-10 text-center text-gray-600 text-sm border-t bg-white">
         <div className="flex justify-center space-x-6 mb-3">
-          <a href="/about" className="hover:text-blue-600">About</a>
-          <a href="/contact" className="hover:text-blue-600">Contact</a>
-          <a href="/terms" className="hover:text-blue-600">Terms</a>
-          <a href="/privacy" className="hover:text-blue-600">Privacy</a>
+          <Link href="/about" className="hover:text-black">About</Link>
+          <Link href="/services" className="hover:text-black">Services</Link>
+          <Link href="/contact" className="hover:text-black">Contact</Link>
+          <Link href="/terms" className="hover:text-black">Terms</Link>
+          <Link href="/privacy" className="hover:text-black">Privacy</Link>
         </div>
 
-        <div>© {new Date().getFullYear()} Prosperity Hub™ LLC</div>
-        <div className="mt-1">support@prosperityhub.app</div>
+        <div>© {new Date().getFullYear()} Prosperity Voyage LLC</div>
       </footer>
-
     </div>
   );
 }
