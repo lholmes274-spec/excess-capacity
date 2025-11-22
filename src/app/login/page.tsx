@@ -32,10 +32,10 @@ export default function LoginPage() {
     }
   };
 
+  // ⭐ CLEAN Google OAuth login (no custom redirect needed)
   const handleGoogleLogin = async () => {
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/dashboard` },
     });
   };
 
@@ -80,25 +80,14 @@ export default function LoginPage() {
           <div className="flex-grow border-t"></div>
         </div>
 
-        {/* Google Login */}
+        {/* ⭐ Google Login */}
         <button
           onClick={handleGoogleLogin}
-          className="w-full border border-gray-300 py-3 rounded-lg flex items-center justify-center gap-3 text-gray-700 hover:bg-gray-100"
+          className="w-full border border-gray-300 py-3 rounded-lg flex items-center justify-center gap-3 text-gray-700 hover:bg-gray-100 transition"
         >
-          <img src="/google-icon.png" className="w-5 h-5" />
+          <img src="/google-icon.png" alt="Google" className="w-5 h-5" />
           Sign in with Google
         </button>
-
-        {/* Apple Login (Optional) */}
-        {/* 
-        <button
-          onClick={() => supabase.auth.signInWithOAuth({ provider: "apple" })}
-          className="mt-3 w-full border border-gray-300 py-3 rounded-lg flex items-center justify-center gap-3 text-gray-700 hover:bg-gray-100"
-        >
-          <img src="/apple-icon.png" className="w-5 h-5" />
-          Sign in with Apple
-        </button>
-        */}
 
         {/* Signup Redirect */}
         <p className="text-center text-gray-600 mt-6">
