@@ -7,9 +7,11 @@ import { supabase } from "@/lib/supabaseClient";
 
 export default function HomePage() {
   const [realListings, setRealListings] = useState([]);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     loadListings();
+    checkUser();
   }, []);
 
   const loadListings = async () => {
@@ -21,6 +23,15 @@ export default function HomePage() {
 
     setRealListings(realData || []);
   };
+
+  // 🔥 Detect logged-in user to route "Get Started" correctly
+  const checkUser = async () => {
+    const { data } = await supabase.auth.getUser();
+    setUser(data?.user || null);
+  };
+
+  // 🔥 Decide where Get Started should go
+  const getStartedLink = user ? "/dashboard" : "/signup";
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -44,7 +55,9 @@ export default function HomePage() {
 
         {/* BUTTONS */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
-          <Link href="/signup">
+
+          {/* 🔥 FIXED GET STARTED BUTTON */}
+          <Link href={getStartedLink}>
             <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full text-lg font-semibold transition">
               Get Started
             </button>
