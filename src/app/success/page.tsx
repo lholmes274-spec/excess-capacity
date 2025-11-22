@@ -19,7 +19,7 @@ function Loading({ message }) {
 }
 
 /* -----------------------------
-   Main Success Page Content
+   Success Page Content
 ------------------------------*/
 function SuccessContent() {
   const searchParams = useSearchParams();
@@ -27,9 +27,9 @@ function SuccessContent() {
 
   const [loading, setLoading] = useState(true);
   const [secureError, setSecureError] = useState<string | null>(null);
+  const [booking, setBooking] = useState<any>(null);
   const [listing, setListing] = useState<any>(null);
   const [loggedInEmail, setLoggedInEmail] = useState<string | null>(null);
-  const [sessionMetadata, setSessionMetadata] = useState<any>(null);
 
   useEffect(() => {
     async function load() {
@@ -40,45 +40,42 @@ function SuccessContent() {
       }
 
       try {
-        // Check login status (optional)
+        // -------------------------------
+        // 1) Get logged-in user (may be null)
+        // -------------------------------
         const { data: userData } = await supabase.auth.getUser();
         const email = userData?.user?.email || null;
         setLoggedInEmail(email);
 
-        // 1. Verify Stripe session
-        const stripeRes = await fetch("/api/verify-stripe-session", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ session_id }),
-        });
-
-        if (!stripeRes.ok) {
-          setSecureError("Unable to verify payment information.");
-          setLoading(false);
-          return;
-        }
-
-        const stripeData = await stripeRes.json();
-        const metadata = stripeData?.metadata;
-
-        if (!metadata) {
-          setSecureError("Payment metadata missing.");
-          setLoading(false);
-          return;
-        }
-
-        setSessionMetadata(metadata);
-
-        // 2. Fetch listing
-        const { listing_id } = metadata;
-
-        const { data: listingData, error: listingError } = await supabase
-          .from("listings")
+        // -------------------------------
+        // 2) Fetch booking created by webhook
+        // -------------------------------
+        const { data: bookingData } = await supabase
+          .from("bookings")
           .select("*")
-          .eq("id", listing_id)
+          .eq("stripe_session_id", session_id)
           .single();
 
-        if (listingError || !listingData) {
+        if (!bookingData) {
+          setSecureError(
+            "Booking not found yet. Your payment may still be processing. Please refresh in a few seconds."
+          );
+          setLoading(false);
+          return;
+        }
+
+        setBooking(bookingData);
+
+        // -------------------------------
+        // 3) Fetch listing details
+        // -------------------------------
+        const { data: listingData } = await supabase
+          .from("listings")
+          .select("*")
+          .eq("id", bookingData.listing_id)
+          .single();
+
+        if (!listingData) {
           setSecureError("Listing details unavailable.");
           setLoading(false);
           return;
@@ -88,7 +85,7 @@ function SuccessContent() {
         setLoading(false);
       } catch (err) {
         console.error("Success page error:", err);
-        setSecureError("Unexpected error loading payment details.");
+        setSecureError("Unexpected error loading booking details.");
         setLoading(false);
       }
     }
@@ -102,12 +99,20 @@ function SuccessContent() {
   if (loading) return <Loading message="Loading your booking…" />;
 
   /* -----------------------------
-     Stripe Error
+     Secure Error (payment ok, but booking not found yet)
   ------------------------------*/
   if (secureError) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-red-50 text-center p-6">
-        <p className="text-red-600 text-xl font-semibold mb-3">❌ {secureError}</p>
+        <p className="text-red-600 text-xl font-semibold mb-3">
+          ❌ {secureError}
+        </p>
+        <button
+          onClick={() => window.location.reload()}
+          className="px-6 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition mb-4"
+        >
+          Refresh Page
+        </button>
         <Link
           href="/"
           className="px-6 py-3 bg-gray-700 text-white rounded-lg shadow hover:bg-gray-800 transition"
@@ -121,7 +126,7 @@ function SuccessContent() {
   const isLoggedIn = Boolean(loggedInEmail);
 
   /* -----------------------------
-     SUCCESS PAGE (Guest + Logged-In)
+     SUCCESS PAGE UI
   ------------------------------*/
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-green-50 to-green-100 text-center p-6">
@@ -153,7 +158,7 @@ function SuccessContent() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2, duration: 0.7 }}
       >
-        Payment Successful 🎉
+        Booking Confirmed 🎉
       </motion.h1>
 
       <motion.p
@@ -162,10 +167,12 @@ function SuccessContent() {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4, duration: 0.8 }}
       >
-        Thank you for your purchase. A confirmation email has been sent.
+        Thank you! Your booking is complete. Your instructions are below.
       </motion.p>
 
-      {/* GUEST VIEW (NO PRIVATE DETAILS) */}
+      {/* ---------------------------
+         Guest View — No Private Data
+      ---------------------------- */}
       {!isLoggedIn && (
         <div className="max-w-xl w-full bg-white shadow-lg border border-gray-200 rounded-2xl p-6 text-left">
           <h2 className="text-xl font-semibold text-green-700 mb-2">
@@ -181,12 +188,14 @@ function SuccessContent() {
           )}
 
           <p className="mt-4 text-sm text-gray-500">
-            Login to view private address & full booking details.
+            Login to view the private address & secure instructions.
           </p>
         </div>
       )}
 
-      {/* LOGGED-IN VIEW (FULL PRIVATE DETAILS) */}
+      {/* ---------------------------
+         Logged-In View — FULL Info
+      ---------------------------- */}
       {isLoggedIn && (
         <div className="max-w-xl w-full bg-white shadow-lg border border-gray-200 rounded-2xl p-6 text-left">
           <h2 className="text-xl font-semibold text-green-700 mb-4">
@@ -230,10 +239,6 @@ function SuccessContent() {
       >
         Back to Marketplace
       </Link>
-
-      <footer className="mt-10 text-sm text-gray-500">
-        © {new Date().getFullYear()} ProsperityHub. All rights reserved.
-      </footer>
     </div>
   );
 }
