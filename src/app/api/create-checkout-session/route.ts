@@ -24,12 +24,31 @@ export async function POST(req: Request) {
 
     const supabase = createRouteHandlerClient({ cookies });
 
-    const { data: listing } = await supabase
+    // 1️⃣ Get the listing
+    const { data: listing, error: listingError } = await supabase
       .from("listings")
       .select("*")
       .eq("id", listing_id)
       .single();
 
+    if (listingError || !listing) {
+      return NextResponse.json(
+        { error: "Listing not found" },
+        { status: 404 }
+      );
+    }
+
+    // 2️⃣ Validate price (numeric)
+    if (listing.baseprice === null || isNaN(Number(listing.baseprice))) {
+      return NextResponse.json(
+        { error: "Invalid base price for listing" },
+        { status: 400 }
+      );
+    }
+
+    const priceInCents = Math.round(Number(listing.baseprice) * 100);
+
+    // 3️⃣ Get logged-in user info
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -37,6 +56,7 @@ export async function POST(req: Request) {
     const userId = user?.id ?? "";
     const userEmail = user?.email ?? "";
 
+    // 4️⃣ Create Checkout Session
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
@@ -46,20 +66,20 @@ export async function POST(req: Request) {
           price_data: {
             currency: "usd",
             product_data: { name: listing.title },
-            unit_amount: Math.round(Number(listing.baseprice) * 100),
+            unit_amount: priceInCents, // FIXED PRICE
           },
           quantity: 1,
         },
       ],
 
-      // 🔥 THIS IS WHAT YOUR WEBHOOK DEPENDS ON
+      // 🔥 REQUIRED for webhook
       metadata: {
         listing_id,
         user_id: userId,
         user_email: userEmail,
       },
 
-      customer_email: userEmail || undefined,
+      customer_email: userEmail || null, // FIXED undefined issue
 
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/canceled`,
