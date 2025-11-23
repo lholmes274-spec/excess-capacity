@@ -25,7 +25,6 @@ function SuccessContent() {
   const [listing, setListing] = useState<any>(null);
   const [loggedInEmail, setLoggedInEmail] = useState<string | null>(null);
 
-  // 🔥 wait helper
   const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
   useEffect(() => {
@@ -37,16 +36,16 @@ function SuccessContent() {
       }
 
       try {
-        // Logged in?
+        // Check login
         const { data: userData } = await supabase.auth.getUser();
         const email = userData?.user?.email || null;
         setLoggedInEmail(email);
 
-        // 🔥 AUTO-RETRY BOOKING LOOKUP
+        // Auto-retry booking lookup (webhook delay protection)
         let bookingData = null;
 
         for (let attempt = 1; attempt <= 10; attempt++) {
-          const { data, error } = await supabase
+          const { data } = await supabase
             .from("bookings")
             .select("*")
             .eq("stripe_session_id", session_id)
@@ -56,14 +55,12 @@ function SuccessContent() {
             bookingData = data;
             break;
           }
-
-          // wait 500ms before next retry
           await wait(500);
         }
 
         if (!bookingData) {
           setErrorMsg(
-            "Your payment is complete, but booking is still processing. Please refresh in a moment."
+            "Your payment is complete, but your booking is still processing. Please refresh in a moment."
           );
           setLoading(false);
           return;
@@ -71,7 +68,6 @@ function SuccessContent() {
 
         setBooking(bookingData);
 
-        // Load listing details
         const { data: listingData, error: listingError } = await supabase
           .from("listings")
           .select("*")
@@ -87,7 +83,7 @@ function SuccessContent() {
         setListing(listingData);
         setLoading(false);
       } catch (err) {
-        console.error("Success page error:", err);
+        console.error("Success error:", err);
         setErrorMsg("Unexpected error loading booking details.");
         setLoading(false);
       }
@@ -101,9 +97,7 @@ function SuccessContent() {
   if (errorMsg) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-red-50 text-center p-6">
-        <p className="text-red-600 text-xl font-semibold mb-3">
-          ❌ {errorMsg}
-        </p>
+        <p className="text-red-600 text-xl font-semibold mb-3">❌ {errorMsg}</p>
         <button
           onClick={() => window.location.reload()}
           className="px-6 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition mb-4"
@@ -124,6 +118,7 @@ function SuccessContent() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-green-50 to-green-100 text-center p-6">
+      {/* Animated checkmark */}
       <motion.div
         initial={{ scale: 0, rotate: -45 }}
         animate={{ scale: 1, rotate: 0 }}
@@ -162,11 +157,13 @@ function SuccessContent() {
         Thank you! Your booking is complete. Your instructions are below.
       </motion.p>
 
+      {/* EXPRESS CHECKOUT — GUEST */}
       {!isLoggedIn && (
         <div className="max-w-xl w-full bg-white shadow-lg border border-gray-200 rounded-2xl p-6 text-left">
           <h2 className="text-xl font-semibold text-green-700 mb-2">
             Public Pickup Instructions
           </h2>
+
           {listing.pickup_instructions ? (
             <p className="text-gray-700 whitespace-pre-line">
               {listing.pickup_instructions}
@@ -175,12 +172,20 @@ function SuccessContent() {
             <p className="text-gray-500">No pickup instructions provided.</p>
           )}
 
+          {/* Show email used in Express Checkout */}
+          <p className="mt-4 text-sm text-gray-600">
+            This booking is linked to:{" "}
+            <span className="font-semibold underline">{booking.user_email}</span>
+          </p>
+
           <p className="mt-4 text-sm text-gray-500">
-            Login to view the private address & secure instructions.
+            Create an account or log in to view the private address & secure
+            access details.
           </p>
         </div>
       )}
 
+      {/* LOGGED-IN USER VIEW */}
       {isLoggedIn && (
         <div className="max-w-xl w-full bg-white shadow-lg border border-gray-200 rounded-2xl p-6 text-left">
           <h2 className="text-xl font-semibold text-green-700 mb-4">
@@ -188,8 +193,10 @@ function SuccessContent() {
           </h2>
 
           <p className="mb-3">
-            <strong>Address:</strong><br />
-            {listing.address_line1}<br />
+            <strong>Address:</strong>
+            <br />
+            {listing.address_line1}
+            <br />
             {listing.address_line2 && <>{listing.address_line2}<br /></>}
             {listing.city}, {listing.state} {listing.zip}
           </p>

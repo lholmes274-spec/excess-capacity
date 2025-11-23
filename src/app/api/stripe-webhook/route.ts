@@ -7,12 +7,12 @@ import { createClient } from "@supabase/supabase-js";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-// Stripe client
+// Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-04-10",
 });
 
-// Supabase service client
+// Supabase service client (bypasses RLS)
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -23,8 +23,7 @@ export async function POST(req: Request) {
   const body = await req.text();
 
   if (!sig) {
-    console.error("❌ Missing Stripe signature");
-    return NextResponse.json({ error: "Missing signature" }, { status: 400 });
+    return NextResponse.json({ error: "Missing Stripe signature" }, { status: 400 });
   }
 
   let event;
@@ -42,33 +41,32 @@ export async function POST(req: Request) {
 
   console.log("🔔 Webhook received:", event.type);
 
-  // Handle checkout completion
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
 
-    console.log("🧾 Full session object:", session);
+    console.log("🧾 Session:", session);
 
     const listing_id = session.metadata?.listing_id || null;
 
-    const customerEmail = session.customer_details?.email;
+    const checkoutEmail = session.customer_details?.email;
     const metadataEmail = session.metadata?.user_email;
 
-    // fallback logic for email
+    // Final email (logged-in OR express checkout)
     const finalEmail =
-      metadataEmail && metadataEmail !== "" ? metadataEmail : customerEmail;
+      metadataEmail && metadataEmail !== "" ? metadataEmail : checkoutEmail;
 
     const amount = session.amount_total
       ? session.amount_total / 100
       : null;
 
-    console.log("📌 Insert Booking With:", {
+    console.log("📌 Booking Data:", {
       listing_id,
       finalEmail,
       amount,
       stripe_session_id: session.id,
     });
 
-    // 1️⃣ Fetch owner_id
+    // Fetch owner_id
     const { data: listingData, error: listingErr } = await supabase
       .from("listings")
       .select("owner_id")
@@ -76,12 +74,12 @@ export async function POST(req: Request) {
       .single();
 
     if (listingErr) {
-      console.error("❌ Failed to fetch listing owner:", listingErr);
+      console.error("❌ Could not find listing owner:", listingErr);
     }
 
     const owner_id = listingData?.owner_id || null;
 
-    // 2️⃣ INSERT BOOKING + FULL ERROR LOGGING
+    // Insert booking
     const { data: insertData, error: insertErr } = await supabase
       .from("bookings")
       .insert([
@@ -104,7 +102,7 @@ export async function POST(req: Request) {
       );
     }
 
-    console.log("✅ Booking inserted successfully:", insertData);
+    console.log("✅ Booking inserted:", insertData);
   }
 
   return NextResponse.json({ received: true }, { status: 200 });
