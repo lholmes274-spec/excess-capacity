@@ -24,14 +24,14 @@ export default function HomePage() {
     setRealListings(realData || []);
   };
 
-  // 🔥 Detect logged-in user to route "Get Started" correctly
+  // Detect logged-in user (still useful for other UI parts)
   const checkUser = async () => {
     const { data } = await supabase.auth.getUser();
     setUser(data?.user || null);
   };
 
-  // 🔥 Decide where Get Started should go
-  const getStartedLink = user ? "/dashboard" : "/signup";
+  // 🔥 UPDATED: Get Started ALWAYS goes to account creation
+  const getStartedLink = "/signup";
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
