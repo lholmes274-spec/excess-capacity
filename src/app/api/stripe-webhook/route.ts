@@ -7,11 +7,12 @@ import { createClient } from "@supabase/supabase-js";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+// Stripe client
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-04-10",
 });
 
-// Supabase service role client
+// Supabase service client
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -22,7 +23,8 @@ export async function POST(req: Request) {
   const body = await req.text();
 
   if (!sig) {
-    return NextResponse.json({ error: "Missing Stripe signature" }, { status: 400 });
+    console.error("❌ Missing Stripe signature");
+    return NextResponse.json({ error: "Missing signature" }, { status: 400 });
   }
 
   let event;
@@ -34,54 +36,66 @@ export async function POST(req: Request) {
       process.env.STRIPE_WEBHOOK_SECRET!
     );
   } catch (err) {
+    console.error("❌ Invalid signature:", err);
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
-  try {
-    if (event.type === "checkout.session.completed") {
-      const session = event.data.object;
+  console.log("🔔 Webhook received:", event.type);
 
-      const listing_id = session.metadata?.listing_id || null;
+  // Handle completed checkout
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object;
 
-      // Determine email
-      const metadata_email = session.metadata?.user_email;
-      const checkout_email = session.customer_details?.email;
+    const listing_id = session.metadata?.listing_id || null;
 
-      const final_email =
-        metadata_email && metadata_email !== "" ? metadata_email : checkout_email;
+    // Handle user email: metadata OR Stripe email fallback
+    const customerEmail = session.customer_details?.email;
+    const metadataEmail = session.metadata?.user_email;
 
-      const amount = session.amount_total ? session.amount_total / 100 : null;
+    const finalEmail =
+      metadataEmail && metadataEmail !== "" ? metadataEmail : customerEmail;
 
-      // Get owner_id from listing
-      const { data: listingData } = await supabase
-        .from("listings")
-        .select("owner_id")
-        .eq("id", listing_id)
-        .single();
+    const amount = session.amount_total
+      ? session.amount_total / 100
+      : null;
 
-      const owner_id = listingData?.owner_id ?? null;
+    // 1️⃣ Fetch owner_id
+    const { data: listingData, error: listingErr } = await supabase
+      .from("listings")
+      .select("owner_id")
+      .eq("id", listing_id)
+      .single();
 
-      // 🔥 Correct insert matching ALL your DB columns
-      await supabase.from("bookings").insert([
-        {
-          listing_id,
-          owner_id,
-          user_email: final_email,    // logged-in or guest email
-          guest_email: final_email,   // duplicate for your schema
-          user_id: session.metadata?.user_id || null,
-          booking_date: new Date().toISOString(),
-          amount_paid: amount,
-          stripe_session_id: session.id,
-          status: "paid",
-        },
-      ]);
+    if (listingErr) {
+      console.error("❌ Failed to fetch listing owner:", listingErr);
     }
 
-    return NextResponse.json({ received: true }, { status: 200 });
-  } catch (err) {
-    console.error("Webhook failed:", err);
-    return NextResponse.json({ error: "Webhook failed" }, { status: 500 });
+    const owner_id = listingData?.owner_id || null;
+
+    // 2️⃣ INSERT BOOKING (with full error logging)
+    const { error: insertErr } = await supabase.from("bookings").insert([
+      {
+        listing_id,
+        owner_id,
+        user_email: finalEmail,
+        amount_paid: amount,
+        stripe_session_id: session.id,
+        status: "paid",
+      },
+    ]);
+
+    if (insertErr) {
+      console.error("❌ SUPABASE INSERT FAILED:", insertErr);
+      return NextResponse.json(
+        { error: "Insert failed", details: insertErr },
+        { status: 500 }
+      );
+    }
+
+    console.log("✅ Booking inserted successfully!");
   }
+
+  return NextResponse.json({ received: true }, { status: 200 });
 }
 
 export async function GET() {
