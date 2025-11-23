@@ -1,4 +1,3 @@
-// FORCE DEPLOY — fixing metadata issue
 // @ts-nocheck
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
@@ -23,10 +22,18 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ Correct Supabase server client (reads cookies)
+    // ⭐ Correct Supabase server client with cookies
     const supabase = createRouteHandlerClient({ cookies });
 
-    // ✅ Fetch listing
+    // ⭐ Get logged-in user securely
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    const userId = user?.id || "";
+    const userEmail = user?.email || "";
+
+    // ⭐ Fetch listing
     const { data: listing, error: listingError } = await supabase
       .from("listings")
       .select("*")
@@ -34,23 +41,10 @@ export async function POST(req: Request) {
       .single();
 
     if (listingError || !listing) {
-      return NextResponse.json(
-        { error: "Listing not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Listing not found" }, { status: 404 });
     }
 
-    // ✅ Correct way to get the logged-in user in Route Handlers
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    const userId = user?.id || null;
-    const userEmail = user?.email || null;
-
-    // ------------------------------
-    // Create Stripe Checkout Session
-    // ------------------------------
+    // ⭐ Create Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
@@ -66,14 +60,14 @@ export async function POST(req: Request) {
         },
       ],
 
-      // ⭐ FIX: send correct metadata to webhook
+      // ⭐ FIXED — always correct metadata
       metadata: {
         listing_id: listing.id,
-        user_id: userId ?? "",
-        user_email: userEmail ?? "",
+        user_id: userId,
+        user_email: userEmail,
       },
 
-      // Logged in → prefill
+      // Prefill only if logged in
       customer_email: userEmail || undefined,
 
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
