@@ -22,29 +22,25 @@ export async function POST(req: Request) {
       );
     }
 
-    // ⭐ Correct Supabase server client with cookies
+    // Create server supabase client
     const supabase = createRouteHandlerClient({ cookies });
 
-    // ⭐ Get logged-in user securely
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    const userId = user?.id || "";
-    const userEmail = user?.email || "";
-
-    // ⭐ Fetch listing
-    const { data: listing, error: listingError } = await supabase
+    // Fetch listing
+    const { data: listing } = await supabase
       .from("listings")
       .select("*")
       .eq("id", listing_id)
       .single();
 
-    if (listingError || !listing) {
-      return NextResponse.json({ error: "Listing not found" }, { status: 404 });
-    }
+    // Get user
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    // ⭐ Create Stripe Checkout Session
+    const userId = user?.id ?? null;
+    const userEmail = user?.email ?? null;
+
+    // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
@@ -60,14 +56,13 @@ export async function POST(req: Request) {
         },
       ],
 
-      // ⭐ FIXED — always correct metadata
+      // ⭐ FIXED: correct metadata ALWAYS sent
       metadata: {
-        listing_id: listing.id,
-        user_id: userId,
-        user_email: userEmail,
+        listing_id,
+        user_id: userId ?? "",
+        user_email: userEmail ?? "",
       },
 
-      // Prefill only if logged in
       customer_email: userEmail || undefined,
 
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
@@ -76,9 +71,8 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ url: session.url });
   } catch (err: any) {
-    console.error("❌ Checkout creation error:", err);
     return NextResponse.json(
-      { error: err.message || "Internal Server Error" },
+      { error: err.message },
       { status: 500 }
     );
   }
