@@ -9,9 +9,15 @@ export default function HomePage() {
   const [realListings, setRealListings] = useState([]);
   const [user, setUser] = useState(null);
 
+  // ⭐ NEW: prevents flicker until Supabase finishes checking user
+  const [checkingUser, setCheckingUser] = useState(true);
+
   useEffect(() => {
-    checkUser();
-    loadListings();
+    async function load() {
+      await checkUser();
+      await loadListings();
+    }
+    load();
   }, []);
 
   const loadListings = async () => {
@@ -27,6 +33,9 @@ export default function HomePage() {
   const checkUser = async () => {
     const { data } = await supabase.auth.getUser();
     setUser(data?.user || null);
+
+    // ⭐ AUTH CHECK COMPLETE — NOW UI CAN RENDER
+    setCheckingUser(false);
   };
 
   return (
@@ -39,7 +48,7 @@ export default function HomePage() {
         className="w-full h-[85px] object-cover"
       />
 
-      {/* HERO SECTION */}
+      {/* HERO */}
       <div className="text-center mt-10 px-4">
         <h1 className="text-3xl font-bold text-gray-900">
           Unlock Your Local Prosperity
@@ -49,27 +58,37 @@ export default function HomePage() {
           within your local community.
         </p>
 
-        {/* CTA BUTTONS */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
+        {/* CTA BUTTONS — FIXED TO PREVENT FLICKER */}
+        {!checkingUser && (
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
 
-          {/* GET STARTED — ONLY FOR LOGGED-OUT USERS */}
-          {!user && (
-            <Link href="/signup">
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full text-lg font-semibold transition">
-                Get Started
-              </button>
-            </Link>
-          )}
+            {/* SHOW ONLY FOR LOGGED-OUT USERS */}
+            {!user && (
+              <>
+                <Link href="/signup">
+                  <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full text-lg font-semibold transition">
+                    Get Started
+                  </button>
+                </Link>
 
-          {/* VIEW DEMO — ONLY FOR LOGGED-OUT USERS */}
-          {!user && (
-            <Link href="/demo">
-              <button className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-full text-lg font-semibold transition">
-                View Demo Listings
-              </button>
-            </Link>
-          )}
-        </div>
+                <Link href="/demo">
+                  <button className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-full text-lg font-semibold transition">
+                    View Demo Listings
+                  </button>
+                </Link>
+              </>
+            )}
+
+            {/* SHOW ONLY FOR LOGGED-IN USERS */}
+            {user && (
+              <Link href="/dashboard">
+                <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full text-lg font-semibold transition">
+                  Go to Dashboard
+                </button>
+              </Link>
+            )}
+          </div>
+        )}
       </div>
 
       {/* AVAILABLE LISTINGS */}
@@ -95,7 +114,6 @@ export default function HomePage() {
           ))}
         </div>
       </div>
-
     </div>
   );
 }
