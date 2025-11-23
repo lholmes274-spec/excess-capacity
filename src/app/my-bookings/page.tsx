@@ -10,6 +10,7 @@ export default function MyBookingsPage() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userEmail, setUserEmail] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     async function load() {
@@ -44,6 +45,29 @@ export default function MyBookingsPage() {
     load();
   }, []);
 
+  // ⭐ Delete Booking
+  async function deleteBooking(bookingId: string) {
+    const confirmed = confirm("Are you sure you want to delete this booking?");
+    if (!confirmed) return;
+
+    setDeletingId(bookingId);
+
+    const res = await fetch("/api/delete-booking", {
+      method: "POST",
+      body: JSON.stringify({ booking_id: bookingId }),
+    });
+
+    if (!res.ok) {
+      alert("Failed to delete booking.");
+      setDeletingId(null);
+      return;
+    }
+
+    // Remove booking from UI
+    setBookings((prev) => prev.filter((b) => b.id !== bookingId));
+    setDeletingId(null);
+  }
+
   if (loading)
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -76,23 +100,24 @@ export default function MyBookingsPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {bookings.map((b) => {
             const listing = b.listings;
-
             const thumbnail =
               listing?.image_urls?.[0] ||
               listing?.image_url ||
               "/no-image.png";
 
             return (
-              <Link
+              <div
                 key={b.id}
-                href={`/my-bookings/${b.id}`} // Step 5
-                className="block bg-white border border-gray-200 rounded-xl shadow hover:shadow-lg transition overflow-hidden"
+                className="relative bg-white border border-gray-200 rounded-xl shadow hover:shadow-lg transition overflow-hidden"
               >
-                <img
-                  src={thumbnail}
-                  alt={listing?.title}
-                  className="w-full h-48 object-cover"
-                />
+                {/* Thumbnail */}
+                <Link href={`/my-bookings/${b.id}`}>
+                  <img
+                    src={thumbnail}
+                    alt={listing?.title}
+                    className="w-full h-48 object-cover"
+                  />
+                </Link>
 
                 <div className="p-4">
                   <h2 className="font-semibold text-lg mb-1">
@@ -108,7 +133,8 @@ export default function MyBookingsPage() {
                   </p>
 
                   <p className="text-sm text-gray-500 mt-2">
-                    Booked on: {new Date(b.booking_date).toLocaleDateString()}
+                    Booked on:{" "}
+                    {new Date(b.booking_date).toLocaleDateString()}
                   </p>
 
                   <p className="text-sm text-gray-600 mt-1">
@@ -118,7 +144,16 @@ export default function MyBookingsPage() {
                     </span>
                   </p>
                 </div>
-              </Link>
+
+                {/* Delete Button */}
+                <button
+                  onClick={() => deleteBooking(b.id)}
+                  disabled={deletingId === b.id}
+                  className="absolute top-2 right-2 bg-red-600 text-white px-3 py-1 rounded-lg text-sm shadow hover:bg-red-700 transition"
+                >
+                  {deletingId === b.id ? "Deleting..." : "Delete"}
+                </button>
+              </div>
             );
           })}
         </div>
