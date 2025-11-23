@@ -15,23 +15,19 @@ export default function HomePage() {
   }, []);
 
   const loadListings = async () => {
-    const { data: realData } = await supabase
+    const { data } = await supabase
       .from("listings")
       .select("*")
       .eq("demo_mode", false)
       .limit(6);
 
-    setRealListings(realData || []);
+    setRealListings(data || []);
   };
 
-  // Detect logged-in user (still useful for other UI parts)
   const checkUser = async () => {
     const { data } = await supabase.auth.getUser();
     setUser(data?.user || null);
   };
-
-  // 🔥 UPDATED: Get Started ALWAYS goes to account creation
-  const getStartedLink = "/signup";
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -39,7 +35,6 @@ export default function HomePage() {
       {/* TOP BRAND BANNER */}
       <img
         src="/prosperity-banner.png"
-        alt="Prosperity Hub Banner"
         className="w-full h-[85px] object-cover"
       />
 
@@ -49,19 +44,20 @@ export default function HomePage() {
           Unlock Your Local Prosperity
         </h1>
         <p className="text-gray-600 mt-3 max-w-xl mx-auto">
-          List unused items, rent from neighbors, and discover opportunities
-          within your local community.
+          List unused items, rent from neighbors, and discover opportunities within your community.
         </p>
 
         {/* BUTTONS */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
 
-          {/* 🔥 FIXED GET STARTED BUTTON */}
-          <Link href={getStartedLink}>
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full text-lg font-semibold transition">
-              Get Started
-            </button>
-          </Link>
+          {/* ONLY SHOW IF USER IS NOT LOGGED IN */}
+          {!user && (
+            <Link href="/signup">
+              <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full text-lg font-semibold transition">
+                Begin Your Journey
+              </button>
+            </Link>
+          )}
 
           <Link href="/demo">
             <button className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-full text-lg font-semibold transition">
@@ -71,11 +67,11 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* REAL LISTINGS */}
+      {/* LISTINGS */}
       <div className="mt-14 px-4 max-w-5xl mx-auto mb-20">
         <h2 className="text-2xl font-semibold mb-4">Available Listings</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {realListings.map((listing: any) => (
+          {realListings.map((listing) => (
             <Link
               key={listing.id}
               href={`/listings/${listing.id}`}
@@ -85,7 +81,6 @@ export default function HomePage() {
                 src={listing.image_url}
                 className="w-full h-40 object-cover rounded-lg"
               />
-
               <h3 className="text-lg font-semibold mt-3">{listing.title}</h3>
               <p className="text-gray-600 text-sm">
                 {listing.city}, {listing.state}
