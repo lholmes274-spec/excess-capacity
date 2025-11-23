@@ -7,12 +7,11 @@ import { createClient } from "@supabase/supabase-js";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-// Stripe Client
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-04-10",
 });
 
-// Supabase (SERVICE ROLE KEY required)
+// Supabase service role client
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -26,7 +25,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Missing Stripe signature" }, { status: 400 });
   }
 
-  let event: Stripe.Event;
+  let event;
 
   try {
     event = stripe.webhooks.constructEvent(
@@ -34,7 +33,7 @@ export async function POST(req: Request) {
       sig,
       process.env.STRIPE_WEBHOOK_SECRET!
     );
-  } catch (err: any) {
+  } catch (err) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
@@ -42,21 +41,18 @@ export async function POST(req: Request) {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
 
-      // Extract metadata
       const listing_id = session.metadata?.listing_id || null;
 
-      // PRIORITY EMAIL SOURCE (FIXED)
-      const finalEmail =
-        session.metadata?.user_email ||
-        session.customer_details?.email ||
-        session.customer_email ||
-        null;
+      // FIX: detect guest email correctly
+      const metadata_email = session.metadata?.user_email;
+      const checkout_email = session.customer_details?.email;
 
-      // Convert cents → dollars
-      const amount =
-        session.amount_total !== null ? session.amount_total / 100 : null;
+      const final_email =
+        metadata_email && metadata_email !== "" ? metadata_email : checkout_email;
 
-      // Fetch owner_id
+      const amount = session.amount_total ? session.amount_total / 100 : null;
+
+      // Get owner_id from listing
       const { data: listingData } = await supabase
         .from("listings")
         .select("owner_id")
@@ -65,25 +61,16 @@ export async function POST(req: Request) {
 
       const owner_id = listingData?.owner_id || null;
 
-      // ⭐ Insert booking into DB using booker_email ⭐
-      const { error: bookingError } = await supabase
-        .from("bookings")
-        .insert([
-          {
-            listing_id,
-            owner_id,
-            booker_email: finalEmail,  // ⭐ THIS FIXES EVERYTHING
-            amount_paid: amount,
-            stripe_session_id: session.id,
-            status: "paid",
-          },
-        ]);
-
-      if (bookingError) {
-        console.error("❌ Failed to insert booking:", bookingError);
-      } else {
-        console.log("✅ Booking saved:", session.id);
-      }
+      await supabase.from("bookings").insert([
+        {
+          listing_id,
+          owner_id,
+          user_email: final_email,
+          amount_paid: amount,
+          stripe_session_id: session.id,
+          status: "paid",
+        },
+      ]);
     }
 
     return NextResponse.json({ received: true }, { status: 200 });
