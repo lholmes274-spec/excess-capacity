@@ -9,19 +9,9 @@ export default function HomePage() {
   const [realListings, setRealListings] = useState([]);
   const [user, setUser] = useState(null);
 
-  // ⭐ NEW: controls fade-in animation
-  const [ready, setReady] = useState(false);
-
   useEffect(() => {
-    async function load() {
-      await checkUser();
-      await loadListings();
-
-      // ⭐ Delay 120ms → solves flicker without noticeable wait
-      setTimeout(() => setReady(true), 120);
-    }
-
-    load();
+    checkUser();
+    loadListings();
   }, []);
 
   const loadListings = async () => {
@@ -39,15 +29,8 @@ export default function HomePage() {
     setUser(data?.user || null);
   };
 
-  // Determine primary CTA
-  const getStartedLink = user ? "/dashboard" : "/signup";
-
   return (
-    <div
-      className={`min-h-screen flex flex-col bg-gray-50 transition-opacity duration-300 ${
-        ready ? "opacity-100" : "opacity-0"
-      }`}
-    >
+    <div className="min-h-screen flex flex-col bg-gray-50">
 
       {/* TOP BRAND BANNER */}
       <img
@@ -56,7 +39,7 @@ export default function HomePage() {
         className="w-full h-[85px] object-cover"
       />
 
-      {/* HERO */}
+      {/* HERO SECTION */}
       <div className="text-center mt-10 px-4">
         <h1 className="text-3xl font-bold text-gray-900">
           Unlock Your Local Prosperity
@@ -68,8 +51,8 @@ export default function HomePage() {
 
         {/* CTA BUTTONS */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
-          
-          {/* GET STARTED - hidden for logged-in users */}
+
+          {/* GET STARTED — ONLY FOR LOGGED-OUT USERS */}
           {!user && (
             <Link href="/signup">
               <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full text-lg font-semibold transition">
@@ -78,7 +61,7 @@ export default function HomePage() {
             </Link>
           )}
 
-          {/* VIEW DEMO - hidden for logged-in users */}
+          {/* VIEW DEMO — ONLY FOR LOGGED-OUT USERS */}
           {!user && (
             <Link href="/demo">
               <button className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-full text-lg font-semibold transition">
@@ -87,17 +70,6 @@ export default function HomePage() {
             </Link>
           )}
         </div>
-
-        {/* LOGGED-IN CTA */}
-        {user && (
-          <div className="mt-6">
-            <Link href="/dashboard">
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full text-lg font-semibold transition">
-                Go to Dashboard
-              </button>
-            </Link>
-          </div>
-        )}
       </div>
 
       {/* AVAILABLE LISTINGS */}
@@ -123,6 +95,7 @@ export default function HomePage() {
           ))}
         </div>
       </div>
+
     </div>
   );
 }
