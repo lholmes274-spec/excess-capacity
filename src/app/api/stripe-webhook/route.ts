@@ -43,27 +43,23 @@ export async function POST(req: Request) {
   }
 
   try {
-    // ============================================================
-    // EVENT: checkout.session.completed
-    // ============================================================
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
 
       const listing_id = session.metadata?.listing_id || null;
       const user_id = session.metadata?.user_id || null;
-      const metadata_user_email = session.metadata?.user_email || null;
+
+      // Logged in → metadata.user_email
+      const logged_in_email = session.metadata?.user_email || null;
+
+      // Guest → Stripe customer email
       const guest_email = session.customer_email || null;
 
-      // Final email for booking
-      const final_email = metadata_user_email || guest_email;
-
-      // Convert Stripe cents to dollars
+      // Convert cents → dollars
       const amount =
-        session.amount_total !== null
-          ? session.amount_total / 100
-          : null;
+        session.amount_total !== null ? session.amount_total / 100 : null;
 
-      // ⭐ Get owner_id from listings table
+      // Get owner_id from listing
       const { data: listingData } = await supabase
         .from("listings")
         .select("owner_id")
@@ -72,20 +68,19 @@ export async function POST(req: Request) {
 
       const owner_id = listingData?.owner_id || null;
 
-      // ⭐ Insert booking (MATCHES YOUR DATABASE)
-      const { error: bookingError } = await supabase
-        .from("bookings")
-        .insert([
-          {
-            listing_id,
-            owner_id,
-            user_id: user_id || null,
-            booker_email: final_email,   // ⭐ FIXED: correct column
-            amount_paid: amount,
-            stripe_session_id: session.id,
-            status: "paid",
-          },
-        ]);
+      // Insert booking — MATCHES YOUR DATABASE COLUMNS EXACTLY
+      const { error: bookingError } = await supabase.from("bookings").insert([
+        {
+          listing_id,
+          owner_id,
+          user_id: user_id || null,
+          user_email: logged_in_email || null,
+          guest_email: logged_in_email ? null : guest_email, // guest only
+          amount_paid: amount,
+          stripe_session_id: session.id,
+          status: "paid",
+        },
+      ]);
 
       if (bookingError) {
         console.error("❌ Failed to insert booking:", bookingError);
@@ -101,7 +96,7 @@ export async function POST(req: Request) {
   }
 }
 
-// Block accidental GET
+// Prevent accidental GET calls
 export async function GET() {
   return NextResponse.json(
     { error: "Method Not Allowed" },
