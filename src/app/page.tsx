@@ -9,17 +9,18 @@ export default function HomePage() {
   const [realListings, setRealListings] = useState([]);
   const [user, setUser] = useState(null);
 
-  // ⭐ NEW: prevents flicker until Supabase finishes checking user
+  // ⭐ Prevents any rendering mistake
   const [checkingUser, setCheckingUser] = useState(true);
 
   useEffect(() => {
-    async function load() {
+    async function init() {
       await checkUser();
       await loadListings();
     }
-    load();
+    init();
   }, []);
 
+  // Load listings (same as before)
   const loadListings = async () => {
     const { data: realData } = await supabase
       .from("listings")
@@ -30,11 +31,17 @@ export default function HomePage() {
     setRealListings(realData || []);
   };
 
+  // Check user without flicker
   const checkUser = async () => {
-    const { data } = await supabase.auth.getUser();
-    setUser(data?.user || null);
+    try {
+      const { data } = await supabase.auth.getUser();
+      setUser(data?.user || null);
+    } catch (err) {
+      console.error("Auth check failed:", err);
+      setUser(null);
+    }
 
-    // ⭐ AUTH CHECK COMPLETE — NOW UI CAN RENDER
+    // ⭐ ONLY NOW we show UI
     setCheckingUser(false);
   };
 
@@ -58,11 +65,11 @@ export default function HomePage() {
           within your local community.
         </p>
 
-        {/* CTA BUTTONS — FIXED TO PREVENT FLICKER */}
+        {/* ⭐ DO NOT SHOW ANY BUTTONS UNTIL USER CHECK IS DONE */}
         {!checkingUser && (
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
 
-            {/* SHOW ONLY FOR LOGGED-OUT USERS */}
+            {/* SHOW WHEN LOGGED OUT ONLY */}
             {!user && (
               <>
                 <Link href="/signup">
@@ -79,7 +86,7 @@ export default function HomePage() {
               </>
             )}
 
-            {/* SHOW ONLY FOR LOGGED-IN USERS */}
+            {/* SHOW WHEN LOGGED IN ONLY */}
             {user && (
               <Link href="/dashboard">
                 <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full text-lg font-semibold transition">
