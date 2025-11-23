@@ -24,7 +24,7 @@ export async function POST(req: Request) {
 
     const supabase = createRouteHandlerClient({ cookies });
 
-    // 1️⃣ Get the listing
+    // 1️⃣ Retrieve listing
     const { data: listing, error: listingError } = await supabase
       .from("listings")
       .select("*")
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 2️⃣ Validate price (numeric)
+    // 2️⃣ Validate price
     if (listing.baseprice === null || isNaN(Number(listing.baseprice))) {
       return NextResponse.json(
         { error: "Invalid base price for listing" },
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
 
     const priceInCents = Math.round(Number(listing.baseprice) * 100);
 
-    // 3️⃣ Get logged-in user info
+    // 3️⃣ Logged-in user info
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
     const userId = user?.id ?? "";
     const userEmail = user?.email ?? "";
 
-    // 4️⃣ Create Checkout Session
+    // 4️⃣ Create checkout session
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
@@ -66,30 +66,36 @@ export async function POST(req: Request) {
           price_data: {
             currency: "usd",
             product_data: { name: listing.title },
-            unit_amount: priceInCents, // FIXED PRICE
+            unit_amount: priceInCents,
           },
           quantity: 1,
         },
       ],
 
-      // 🔥 REQUIRED for webhook
       metadata: {
         listing_id,
         user_id: userId,
         user_email: userEmail,
       },
 
-      customer_email: userEmail || null, // FIXED undefined issue
+      customer_email: userEmail || null,
 
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/canceled`,
     });
 
     return NextResponse.json({ url: session.url });
+
   } catch (err: any) {
+    // 🔥 TEMPORARY DEBUG BLOCK — SHOW THE REAL ERROR IN BROWSER
     console.error("Checkout session error:", err);
+
     return NextResponse.json(
-      { error: err.message || "Internal Server Error" },
+      {
+        error: err?.message || "Unknown error",
+        stack: err?.stack || null,
+        raw: JSON.stringify(err, null, 2) || null,
+      },
       { status: 500 }
     );
   }
