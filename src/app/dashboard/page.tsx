@@ -65,9 +65,19 @@ export default function Dashboard() {
               </div>
             </Link>
 
-          </div>
+            {/* ✅ PRO MEMBERSHIP BUTTON ADDED BACK */}
+            <Link href="/subscribe">
+              <div className="p-6 bg-white border-2 border-yellow-500 rounded-xl shadow hover:shadow-lg transition cursor-pointer text-center">
+                <h3 className="text-lg font-semibold text-yellow-700">
+                  ⭐ Pro Membership
+                </h3>
+                <p className="text-sm mt-1 text-gray-600">
+                  Unlock premium features
+                </p>
+              </div>
+            </Link>
 
-          {/* ❌ Removed Demo Listings link */}
+          </div>
 
         </div>
       </div>
