@@ -24,14 +24,10 @@ export default function HomePage() {
     setRealListings(realData || []);
   };
 
-  // Detect logged-in user to hide demo mode & Get Started
   const checkUser = async () => {
     const { data } = await supabase.auth.getUser();
     setUser(data?.user || null);
   };
-
-  // If logged out → Get Started goes to signup
-  const getStartedLink = user ? "/dashboard" : "/signup";
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -48,50 +44,40 @@ export default function HomePage() {
         <h1 className="text-3xl font-bold text-gray-900">
           Unlock Your Local Prosperity
         </h1>
-
         <p className="text-gray-600 mt-3 max-w-xl mx-auto">
           List unused items, rent from neighbors, and discover opportunities
           within your local community.
         </p>
 
-        {/* BUTTON ROW */}
+        {/* BUTTONS */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
 
-          {/* SHOW ONLY IF LOGGED OUT */}
+          {/* ⭐ SHOW ONLY IF LOGGED OUT */}
           {!user && (
-            <Link href={getStartedLink}>
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full text-lg font-semibold transition">
-                Get Started
-              </button>
-            </Link>
+            <>
+              <Link href="/signup">
+                <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full text-lg font-semibold transition">
+                  Get Started
+                </button>
+              </Link>
+
+              <Link href="/demo">
+                <button className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-full text-lg font-semibold transition">
+                  View Demo Listings
+                </button>
+              </Link>
+            </>
           )}
 
-          {/* SHOW ONLY IF LOGGED OUT */}
-          {!user && (
-            <Link href="/demo">
-              <button className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-full text-lg font-semibold transition">
-                View Demo Listings
-              </button>
-            </Link>
-          )}
-
-          {/* SHOW ONLY IF LOGGED IN */}
-          {user && (
-            <Link href="/dashboard">
-              <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-full text-lg font-semibold transition">
-                Go to Dashboard
-              </button>
-            </Link>
-          )}
+          {/* ⭐ NO BUTTONS SHOWN WHEN LOGGED IN */}
         </div>
       </div>
 
       {/* REAL LISTINGS */}
       <div className="mt-14 px-4 max-w-5xl mx-auto mb-20">
         <h2 className="text-2xl font-semibold mb-4">Available Listings</h2>
-
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {realListings.map((listing) => (
+          {realListings.map((listing: any) => (
             <Link
               key={listing.id}
               href={`/listings/${listing.id}`}
