@@ -4,24 +4,52 @@ import { createClient } from "@supabase/supabase-js";
 
 export const dynamic = "force-dynamic";
 
-// ❗ Use SERVICE ROLE CLIENT for deletes
+// ⭐ Service role client (full access)
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+// ⭐ Public client for reading auth session
+const supabasePublic = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
 export async function POST(req: Request) {
   try {
-    const { listing_id } = await req.json();
+    const { listing_id, user_id } = await req.json();
 
-    if (!listing_id) {
+    if (!listing_id || !user_id) {
       return NextResponse.json(
-        { error: "Missing listing_id" },
+        { error: "Missing listing_id or user_id" },
         { status: 400 }
       );
     }
 
-    // Delete the listing (service role bypasses RLS)
+    // 1️⃣ Verify listing exists & get owner
+    const { data: listing, error: listingError } = await supabase
+      .from("listings")
+      .select("owner_id")
+      .eq("id", listing_id)
+      .single();
+
+    if (listingError || !listing) {
+      return NextResponse.json(
+        { error: "Listing not found" },
+        { status: 404 }
+      );
+    }
+
+    // 2️⃣ SECURITY CHECK — OWNER MATCH
+    if (listing.owner_id !== user_id) {
+      return NextResponse.json(
+        { error: "Unauthorized — cannot delete another user's listing" },
+        { status: 403 }
+      );
+    }
+
+    // 3️⃣ Delete the listing
     const { error } = await supabase
       .from("listings")
       .delete()

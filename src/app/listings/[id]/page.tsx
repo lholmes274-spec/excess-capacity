@@ -11,18 +11,30 @@ export default function ListingDetailPage() {
 
   const [listing, setListing] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [userId, setUserId] = useState(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  // Modal states
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
-  // Build final images
+  // -------------------------------
+  // LOAD LOGGED-IN USER (CLIENT SIDE)
+  // -------------------------------
+  useEffect(() => {
+    async function loadUser() {
+      const { data } = await supabase.auth.getSession();
+      const sessionUser = data?.session?.user || null;
+      setUserId(sessionUser?.id || null);
+    }
+    loadUser();
+  }, []);
+
+  // -------------------------------
+  // Load Listing
+  // -------------------------------
   const buildImageList = (listing) => {
     let images = [];
 
     if (listing.image_url) images.push(listing.image_url);
+
     if (Array.isArray(listing.image_urls)) {
       images = [...images, ...listing.image_urls];
     }
@@ -37,15 +49,9 @@ export default function ListingDetailPage() {
   };
 
   useEffect(() => {
-    async function load() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+    if (!id) return;
 
-      if (user) setUserId(user.id);
-
-      if (!id) return;
-
+    const fetchListing = async () => {
       const { data, error } = await supabase
         .from("listings")
         .select("*")
@@ -60,18 +66,42 @@ export default function ListingDetailPage() {
       }
 
       setLoading(false);
-    }
+    };
 
-    load();
+    fetchListing();
   }, [id]);
 
   if (loading) return <div className="p-8 text-gray-500">Loading...</div>;
-  if (!listing) return <div className="p-8 text-red-500">Listing not found.</div>;
+  if (!listing)
+    return <div className="p-8 text-red-500">Listing not found.</div>;
+
+  // -------------------------------
+  // OWNERSHIP CHECK
+  // -------------------------------
+  const isOwner = userId && userId === listing.owner_id;
+
+  // -------------------------------
+  // OPTION B: BLOCK OWNER FROM SEEING THEIR OWN CHECKOUT PAGE
+  // -------------------------------
+  if (isOwner) {
+    return (
+      <div className="p-8 text-center">
+        <h2 className="text-2xl font-semibold text-red-600 mb-4">
+          You cannot book your own listing.
+        </h2>
+
+        <button
+          onClick={() => router.push("/my-listings")}
+          className="px-6 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
+        >
+          Go to My Listings
+        </button>
+      </div>
+    );
+  }
 
   const finalImages = buildImageList(listing);
-  const isOwner = userId === listing.owner_id;
 
-  // Checkout handler
   const handleCheckout = () => {
     if (listing.demo_mode) {
       alert("Demo Only – Checkout disabled");
@@ -80,28 +110,9 @@ export default function ListingDetailPage() {
     }
   };
 
-  // Delete handler
-  const confirmDelete = async () => {
-    setDeleteLoading(true);
-
-    const res = await fetch("/api/delete-listing", {
-      method: "POST",
-      body: JSON.stringify({ listing_id: listing.id }),
-    });
-
-    setDeleteLoading(false);
-
-    if (!res.ok) {
-      alert("Failed to delete listing.");
-      return;
-    }
-
-    alert("Listing deleted successfully.");
-    router.push("/my-listings");
-  };
-
   return (
     <div className="max-w-3xl mx-auto p-8 bg-white shadow-md rounded-2xl mt-6 border border-gray-100">
+
       {/* MAIN IMAGE */}
       <div className="mb-6">
         {selectedImage ? (
@@ -116,7 +127,7 @@ export default function ListingDetailPage() {
           </div>
         )}
 
-        {/* GALLERY */}
+        {/* GALLERY Thumbnails */}
         {finalImages.length > 1 && (
           <div className="flex gap-3 mt-3 overflow-x-auto">
             {finalImages.map((img, idx) => (
@@ -161,16 +172,16 @@ export default function ListingDetailPage() {
           ${listing.baseprice}
           <span className="text-base font-normal text-gray-600">
             {" "}
-            per day
+            per unit
           </span>
         </p>
       )}
 
-      {/* PUBLIC INSTRUCTIONS */}
+      {/* PUBLIC PICKUP INSTRUCTIONS */}
       {listing.pickup_instructions && (
         <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <h3 className="font-semibold text-orange-800 mb-2">
-            Pickup Instructions
+            Pickup & Instructions
           </h3>
           <p className="text-gray-700 text-sm whitespace-pre-line">
             {listing.pickup_instructions}
@@ -183,80 +194,30 @@ export default function ListingDetailPage() {
         <h3 className="font-semibold text-gray-800 mb-2">
           Contact Information
         </h3>
-        <p><strong>Contact:</strong> {listing.contact_name || "—"}</p>
-        <p><strong>Phone:</strong> {listing.contact_phone || "—"}</p>
-        <p><strong>Email:</strong> {listing.contact_email || "—"}</p>
+        <p>
+          <strong>Contact:</strong> {listing.contact_name || "—"}
+        </p>
+        <p>
+          <strong>Phone:</strong> {listing.contact_phone || "—"}
+        </p>
+        <p>
+          <strong>Email:</strong> {listing.contact_email || "—"}
+        </p>
       </div>
 
-      {/* OWNER ACTION BUTTONS */}
-      {isOwner && (
-        <div className="mt-8 flex gap-4">
-          <button
-            onClick={() => router.push(`/edit-listing/${listing.id}`)}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold"
-          >
-            Edit Listing
-          </button>
-
-          <button
-            onClick={() => setShowDeleteModal(true)}
-            className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 rounded-lg font-semibold"
-          >
-            Delete Listing
-          </button>
-        </div>
-      )}
-
       {/* CHECKOUT BUTTON — ONLY FOR NON-OWNERS */}
-      {!isOwner && (
-        <button
-          className={`mt-6 w-full text-white py-3 rounded-lg font-semibold transition ${
-            listing.demo_mode
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-green-600 hover:bg-green-700"
-          }`}
-          onClick={handleCheckout}
-        >
-          {listing.demo_mode
-            ? "Demo Listing – Checkout Disabled"
-            : "Proceed to Checkout"}
-        </button>
-      )}
-
-      {/* DELETE MODAL */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999]">
-          <div className="bg-white rounded-xl p-8 w-full max-w-md shadow-lg border border-orange-200">
-            <h2 className="text-2xl font-bold text-orange-700 mb-4">
-              Delete Listing?
-            </h2>
-
-            <p className="text-gray-700 mb-6">
-              Are you sure you want to delete this listing? <br />
-              <span className="font-semibold text-red-600">
-                This action cannot be undone.
-              </span>
-            </p>
-
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="px-5 py-2 border rounded-lg bg-gray-100 hover:bg-gray-200"
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={confirmDelete}
-                disabled={deleteLoading}
-                className="px-5 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700"
-              >
-                {deleteLoading ? "Deleting..." : "Delete"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <button
+        className={`mt-6 w-full text-white py-3 rounded-lg font-semibold transition ${
+          listing.demo_mode
+            ? "bg-gray-400 cursor-not-allowed"
+            : "bg-green-600 hover:bg-green-700"
+        }`}
+        onClick={handleCheckout}
+      >
+        {listing.demo_mode
+          ? "Demo Listing – Checkout Disabled"
+          : "Proceed to Checkout"}
+      </button>
     </div>
   );
 }
