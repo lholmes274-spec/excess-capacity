@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabaseClient";
 export default function HomePage() {
   const [realListings, setRealListings] = useState([]);
   const [user, setUser] = useState(null);
+  const [checkingUser, setCheckingUser] = useState(true); // ⭐ NEW
 
   useEffect(() => {
     loadListings();
@@ -24,10 +25,15 @@ export default function HomePage() {
     setRealListings(realData || []);
   };
 
+  // ⭐ FIX: No UI flash while checking auth
   const checkUser = async () => {
     const { data } = await supabase.auth.getUser();
     setUser(data?.user || null);
+    setCheckingUser(false); // ⭐ NOW COMPLETE
   };
+
+  // ⭐ Route Get Started based on login
+  const getStartedLink = user ? "/dashboard" : "/signup";
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -46,31 +52,32 @@ export default function HomePage() {
         </h1>
         <p className="text-gray-600 mt-3 max-w-xl mx-auto">
           List unused items, rent from neighbors, and discover opportunities
-          within your local community.
+          within your community.
         </p>
 
-        {/* BUTTONS */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
+        {/* BUTTONS — FIXED TO PREVENT FLASH */}
+        {!checkingUser && (
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
 
-          {/* ⭐ SHOW ONLY IF LOGGED OUT */}
-          {!user && (
-            <>
-              <Link href="/signup">
+            {/* Get Started */}
+            {!user && (
+              <Link href={getStartedLink}>
                 <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full text-lg font-semibold transition">
                   Get Started
                 </button>
               </Link>
+            )}
 
+            {/* View Demo - Hidden for logged-in users */}
+            {!user && (
               <Link href="/demo">
                 <button className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-full text-lg font-semibold transition">
                   View Demo Listings
                 </button>
               </Link>
-            </>
-          )}
-
-          {/* ⭐ NO BUTTONS SHOWN WHEN LOGGED IN */}
-        </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* REAL LISTINGS */}
