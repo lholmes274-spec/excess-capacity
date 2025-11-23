@@ -41,7 +41,6 @@ export default function Dashboard() {
           {/* Dashboard Options */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-            {/* FIXED: Correct Add Listing Link */}
             <Link href="/add-listing">
               <div className="p-6 bg-white rounded-xl shadow hover:shadow-lg transition cursor-pointer text-center">
                 <h3 className="text-lg font-semibold">Add Listing</h3>
@@ -60,7 +59,6 @@ export default function Dashboard() {
               </div>
             </Link>
 
-            {/* FIXED: Browse Listings → /listings */}
             <Link href="/listings">
               <div className="p-6 bg-white rounded-xl shadow hover:shadow-lg transition cursor-pointer text-center">
                 <h3 className="text-lg font-semibold">Browse Listings</h3>
@@ -69,14 +67,8 @@ export default function Dashboard() {
 
           </div>
 
-          <div className="mt-10 text-center">
-            <Link
-              href="/demo"
-              className="text-blue-600 font-medium hover:underline"
-            >
-              View Demo Listings
-            </Link>
-          </div>
+          {/* ❌ Removed Demo Listings link */}
+
         </div>
       </div>
 
