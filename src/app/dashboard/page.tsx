@@ -39,43 +39,45 @@ export default function Dashboard() {
           </h1>
 
           {/* Dashboard Options */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 place-items-center">
 
-            <Link href="/add-listing">
+            <Link href="/add-listing" className="w-full">
               <div className="p-6 bg-white rounded-xl shadow hover:shadow-lg transition cursor-pointer text-center">
                 <h3 className="text-lg font-semibold">Add Listing</h3>
               </div>
             </Link>
 
-            <Link href="/my-listings">
+            <Link href="/my-listings" className="w-full">
               <div className="p-6 bg-white rounded-xl shadow hover:shadow-lg transition cursor-pointer text-center">
                 <h3 className="text-lg font-semibold">My Listings</h3>
               </div>
             </Link>
 
-            <Link href="/my-bookings">
+            <Link href="/my-bookings" className="w-full">
               <div className="p-6 bg-white rounded-xl shadow hover:shadow-lg transition cursor-pointer text-center">
                 <h3 className="text-lg font-semibold">My Bookings</h3>
               </div>
             </Link>
 
-            <Link href="/listings">
+            <Link href="/listings" className="w-full">
               <div className="p-6 bg-white rounded-xl shadow hover:shadow-lg transition cursor-pointer text-center">
                 <h3 className="text-lg font-semibold">Browse Listings</h3>
               </div>
             </Link>
 
-            {/* ✅ PRO MEMBERSHIP BUTTON ADDED BACK */}
-            <Link href="/subscribe">
-              <div className="p-6 bg-white border-2 border-yellow-500 rounded-xl shadow hover:shadow-lg transition cursor-pointer text-center">
-                <h3 className="text-lg font-semibold text-yellow-700">
-                  ⭐ Pro Membership
-                </h3>
-                <p className="text-sm mt-1 text-gray-600">
-                  Unlock premium features
-                </p>
-              </div>
-            </Link>
+            {/* ⭐ PRO MEMBERSHIP — Centered */}
+            <div className="col-span-1 sm:col-span-2 w-full max-w-md">
+              <Link href="/subscribe">
+                <div className="p-6 bg-white border-2 border-yellow-500 rounded-xl shadow hover:shadow-lg transition cursor-pointer text-center">
+                  <h3 className="text-lg font-semibold text-yellow-700">
+                    ⭐ Pro Membership
+                  </h3>
+                  <p className="text-sm mt-1 text-gray-600">
+                    Unlock premium features
+                  </p>
+                </div>
+              </Link>
+            </div>
 
           </div>
 
