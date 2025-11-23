@@ -42,22 +42,31 @@ export async function POST(req: Request) {
 
   console.log("🔔 Webhook received:", event.type);
 
-  // Handle completed checkout
+  // Handle checkout completion
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
 
+    console.log("🧾 Full session object:", session);
+
     const listing_id = session.metadata?.listing_id || null;
 
-    // Handle user email: metadata OR Stripe email fallback
     const customerEmail = session.customer_details?.email;
     const metadataEmail = session.metadata?.user_email;
 
+    // fallback logic for email
     const finalEmail =
       metadataEmail && metadataEmail !== "" ? metadataEmail : customerEmail;
 
     const amount = session.amount_total
       ? session.amount_total / 100
       : null;
+
+    console.log("📌 Insert Booking With:", {
+      listing_id,
+      finalEmail,
+      amount,
+      stripe_session_id: session.id,
+    });
 
     // 1️⃣ Fetch owner_id
     const { data: listingData, error: listingErr } = await supabase
@@ -72,17 +81,20 @@ export async function POST(req: Request) {
 
     const owner_id = listingData?.owner_id || null;
 
-    // 2️⃣ INSERT BOOKING (with full error logging)
-    const { error: insertErr } = await supabase.from("bookings").insert([
-      {
-        listing_id,
-        owner_id,
-        user_email: finalEmail,
-        amount_paid: amount,
-        stripe_session_id: session.id,
-        status: "paid",
-      },
-    ]);
+    // 2️⃣ INSERT BOOKING + FULL ERROR LOGGING
+    const { data: insertData, error: insertErr } = await supabase
+      .from("bookings")
+      .insert([
+        {
+          listing_id,
+          owner_id,
+          user_email: finalEmail,
+          amount_paid: amount,
+          stripe_session_id: session.id,
+          status: "paid",
+        },
+      ])
+      .select();
 
     if (insertErr) {
       console.error("❌ SUPABASE INSERT FAILED:", insertErr);
@@ -92,12 +104,15 @@ export async function POST(req: Request) {
       );
     }
 
-    console.log("✅ Booking inserted successfully!");
+    console.log("✅ Booking inserted successfully:", insertData);
   }
 
   return NextResponse.json({ received: true }, { status: 200 });
 }
 
 export async function GET() {
-  return NextResponse.json({ error: "Method Not Allowed" }, { status: 405 });
+  return NextResponse.json(
+    { error: "Method Not Allowed" },
+    { status: 405 }
+  );
 }
