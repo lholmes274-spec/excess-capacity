@@ -40,23 +40,19 @@ function SuccessContent() {
       }
 
       try {
-        // -------------------------------
-        // 1) Get logged-in user (may be null)
-        // -------------------------------
+        // 1) Check logged-in status
         const { data: userData } = await supabase.auth.getUser();
         const email = userData?.user?.email || null;
         setLoggedInEmail(email);
 
-        // -------------------------------
-        // 2) Fetch booking created by webhook
-        // -------------------------------
-        const { data: bookingData } = await supabase
+        // 2) Always fetch booking by stripe_session_id
+        const { data: bookingData, error: bookingError } = await supabase
           .from("bookings")
           .select("*")
           .eq("stripe_session_id", session_id)
-          .single();
+          .maybeSingle();
 
-        if (!bookingData) {
+        if (bookingError || !bookingData) {
           setSecureError(
             "Booking not found yet. Your payment may still be processing. Please refresh in a few seconds."
           );
@@ -66,16 +62,14 @@ function SuccessContent() {
 
         setBooking(bookingData);
 
-        // -------------------------------
-        // 3) Fetch listing details
-        // -------------------------------
-        const { data: listingData } = await supabase
+        // 3) Load listing details
+        const { data: listingData, error: listingError } = await supabase
           .from("listings")
           .select("*")
           .eq("id", bookingData.listing_id)
           .single();
 
-        if (!listingData) {
+        if (listingError || !listingData) {
           setSecureError("Listing details unavailable.");
           setLoading(false);
           return;
@@ -99,7 +93,7 @@ function SuccessContent() {
   if (loading) return <Loading message="Loading your booking…" />;
 
   /* -----------------------------
-     Secure Error (payment ok, but booking not found yet)
+     Secure Error (payment ok, booking delayed)
   ------------------------------*/
   if (secureError) {
     return (
@@ -170,9 +164,7 @@ function SuccessContent() {
         Thank you! Your booking is complete. Your instructions are below.
       </motion.p>
 
-      {/* ---------------------------
-         Guest View — No Private Data
-      ---------------------------- */}
+      {/* Guest View */}
       {!isLoggedIn && (
         <div className="max-w-xl w-full bg-white shadow-lg border border-gray-200 rounded-2xl p-6 text-left">
           <h2 className="text-xl font-semibold text-green-700 mb-2">
@@ -193,9 +185,7 @@ function SuccessContent() {
         </div>
       )}
 
-      {/* ---------------------------
-         Logged-In View — FULL Info
-      ---------------------------- */}
+      {/* Logged-In View */}
       {isLoggedIn && (
         <div className="max-w-xl w-full bg-white shadow-lg border border-gray-200 rounded-2xl p-6 text-left">
           <h2 className="text-xl font-semibold text-green-700 mb-4">
