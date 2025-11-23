@@ -7,55 +7,37 @@ import { supabase } from "@/lib/supabaseClient";
 
 export default function HomePage() {
   const [realListings, setRealListings] = useState([]);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(undefined); // undefined = loading, null = no user
 
-  // ⭐ Prevents any rendering mistake
-  const [checkingUser, setCheckingUser] = useState(true);
-
+  // Load listings and check auth
   useEffect(() => {
-    async function init() {
-      await checkUser();
-      await loadListings();
-    }
-    init();
-  }, []);
-
-  // Load listings (same as before)
-  const loadListings = async () => {
-    const { data: realData } = await supabase
-      .from("listings")
-      .select("*")
-      .eq("demo_mode", false)
-      .limit(6);
-
-    setRealListings(realData || []);
-  };
-
-  // Check user without flicker
-  const checkUser = async () => {
-    try {
+    async function load() {
       const { data } = await supabase.auth.getUser();
       setUser(data?.user || null);
-    } catch (err) {
-      console.error("Auth check failed:", err);
-      setUser(null);
+
+      const { data: realData } = await supabase
+        .from("listings")
+        .select("*")
+        .eq("demo_mode", false)
+        .limit(6);
+
+      setRealListings(realData || []);
     }
 
-    // ⭐ ONLY NOW we show UI
-    setCheckingUser(false);
-  };
+    load();
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
 
-      {/* TOP BRAND BANNER */}
+      {/* Top Banner */}
       <img
         src="/prosperity-banner.png"
         alt="Prosperity Hub Banner"
         className="w-full h-[85px] object-cover"
       />
 
-      {/* HERO */}
+      {/* HERO SECTION */}
       <div className="text-center mt-10 px-4">
         <h1 className="text-3xl font-bold text-gray-900">
           Unlock Your Local Prosperity
@@ -65,42 +47,30 @@ export default function HomePage() {
           within your local community.
         </p>
 
-        {/* ⭐ DO NOT SHOW ANY BUTTONS UNTIL USER CHECK IS DONE */}
-        {!checkingUser && (
+        {/* CTA BUTTONS (ONLY WHEN LOGGED OUT) */}
+        {user === null && (
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
+            <Link href="/signup">
+              <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full text-lg font-semibold transition">
+                Get Started
+              </button>
+            </Link>
 
-            {/* SHOW WHEN LOGGED OUT ONLY */}
-            {!user && (
-              <>
-                <Link href="/signup">
-                  <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full text-lg font-semibold transition">
-                    Get Started
-                  </button>
-                </Link>
-
-                <Link href="/demo">
-                  <button className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-full text-lg font-semibold transition">
-                    View Demo Listings
-                  </button>
-                </Link>
-              </>
-            )}
-
-            {/* SHOW WHEN LOGGED IN ONLY */}
-            {user && (
-              <Link href="/dashboard">
-                <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full text-lg font-semibold transition">
-                  Go to Dashboard
-                </button>
-              </Link>
-            )}
+            <Link href="/demo">
+              <button className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-full text-lg font-semibold transition">
+                View Demo Listings
+              </button>
+            </Link>
           </div>
         )}
+
+        {/* When user is logged in → NO CTA buttons */}
       </div>
 
       {/* AVAILABLE LISTINGS */}
       <div className="mt-14 px-4 max-w-5xl mx-auto mb-20">
         <h2 className="text-2xl font-semibold mb-4">Available Listings</h2>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {realListings.map((listing) => (
             <Link
