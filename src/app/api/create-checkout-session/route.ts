@@ -24,7 +24,7 @@ export async function POST(req: Request) {
 
     const supabase = createRouteHandlerClient({ cookies });
 
-    // 1️⃣ Retrieve listing
+    // 1️⃣ Get listing
     const { data: listing, error: listingError } = await supabase
       .from("listings")
       .select("*")
@@ -48,13 +48,17 @@ export async function POST(req: Request) {
 
     const priceInCents = Math.round(Number(listing.baseprice) * 100);
 
-    // 3️⃣ Logged-in user info
+    // 3️⃣ User info
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
-    const userId = user?.id ?? "";
-    const userEmail = user?.email ?? "";
+    const userEmail = user?.email || null;
+
+    // ❗ Critical fix for Stripe email issue:
+    // If userEmail is empty string "", set to undefined so Stripe doesn't fail.
+    const finalCustomerEmail =
+      userEmail && userEmail.trim() !== "" ? userEmail : undefined;
 
     // 4️⃣ Create checkout session
     const session = await stripe.checkout.sessions.create({
@@ -74,11 +78,12 @@ export async function POST(req: Request) {
 
       metadata: {
         listing_id,
-        user_id: userId,
-        user_email: userEmail,
+        user_id: user?.id ?? "",
+        user_email: userEmail ?? "",
       },
 
-      customer_email: userEmail || null,
+      // ✅ Fixed
+      customer_email: finalCustomerEmail,
 
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/canceled`,
@@ -87,7 +92,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ url: session.url });
 
   } catch (err: any) {
-    // 🔥 TEMPORARY DEBUG BLOCK — SHOW THE REAL ERROR IN BROWSER
     console.error("Checkout session error:", err);
 
     return NextResponse.json(
