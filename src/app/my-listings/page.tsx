@@ -10,10 +10,11 @@ export default function MyListingsPage() {
   const [listings, setListings] = useState([]);
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     async function load() {
-      // Get logged-in user
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -27,7 +28,6 @@ export default function MyListingsPage() {
 
       setUserId(user.id);
 
-      // Fetch all listings that belong to this user
       const { data, error } = await supabase
         .from("listings")
         .select("*")
@@ -45,6 +45,38 @@ export default function MyListingsPage() {
 
     load();
   }, []);
+
+  // ⭐ OPEN Delete Modal
+  function openDeleteModal(listing) {
+    setDeleteTarget(listing);
+  }
+
+  // ❌ CLOSE Delete Modal
+  function closeDeleteModal() {
+    setDeleteTarget(null);
+  }
+
+  // ⭐ DELETE LISTING
+  async function deleteListing(listingId) {
+    setDeleting(true);
+
+    const res = await fetch("/api/delete-listing", {
+      method: "POST",
+      body: JSON.stringify({ listing_id: listingId }),
+    });
+
+    setDeleting(false);
+
+    if (!res.ok) {
+      alert("Failed to delete listing.");
+      return;
+    }
+
+    // Remove instantly from UI
+    setListings((prev) => prev.filter((l) => l.id !== listingId));
+
+    closeDeleteModal();
+  }
 
   if (loading)
     return (
@@ -100,16 +132,19 @@ export default function MyListingsPage() {
                 )}
 
                 <h2 className="text-lg font-semibold mb-1">{listing.title}</h2>
+
                 <p className="text-gray-600 text-sm mb-1">
-                  ${listing.baseprice} / day
+                  ${listing.baseprice}
                 </p>
+
                 {listing.city && listing.state && (
                   <p className="text-sm text-gray-500 mb-3">
                     {listing.city}, {listing.state}
                   </p>
                 )}
 
-                <div className="flex justify-between">
+                {/* Button Row */}
+                <div className="flex justify-between mt-2">
                   <Link
                     href={`/listings/${listing.id}`}
                     className="text-blue-600 hover:underline text-sm"
@@ -119,14 +154,53 @@ export default function MyListingsPage() {
 
                   <Link
                     href={`/edit-listing/${listing.id}`}
-                    className="text-orange-600 hover:underline text-sm"
+                    className="text-green-600 hover:underline text-sm"
                   >
                     Edit
                   </Link>
+
+                  <button
+                    onClick={() => openDeleteModal(listing)}
+                    className="text-red-600 hover:underline text-sm"
+                  >
+                    Delete
+                  </button>
                 </div>
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Delete Modal */}
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-40">
+          <div className="bg-white p-6 rounded-xl shadow-xl w-80 text-center">
+            <h2 className="font-semibold text-lg mb-4 text-red-700">
+              Delete Listing?
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete:
+              <br />
+              <span className="font-semibold">{deleteTarget.title}</span>?
+            </p>
+
+            <div className="flex justify-between">
+              <button
+                onClick={closeDeleteModal}
+                className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={() => deleteListing(deleteTarget.id)}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              >
+                {deleting ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
