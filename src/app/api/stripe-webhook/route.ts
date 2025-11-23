@@ -23,10 +23,7 @@ export async function POST(req: Request) {
   const body = await req.text();
 
   if (!sig) {
-    return NextResponse.json(
-      { error: "Missing Stripe signature" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Missing Stripe signature" }, { status: 400 });
   }
 
   let event: Stripe.Event;
@@ -38,7 +35,6 @@ export async function POST(req: Request) {
       process.env.STRIPE_WEBHOOK_SECRET!
     );
   } catch (err: any) {
-    console.error("❌ Invalid signature:", err.message);
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
@@ -48,18 +44,15 @@ export async function POST(req: Request) {
 
       const listing_id = session.metadata?.listing_id || null;
       const user_id = session.metadata?.user_id || null;
+      const metadata_user_email = session.metadata?.user_email || null;
 
-      // Logged in → metadata.user_email
-      const logged_in_email = session.metadata?.user_email || null;
+      const guest_email = metadata_user_email ? null : session.customer_email;
+      const user_email = metadata_user_email || null;
 
-      // Guest → Stripe customer email
-      const guest_email = session.customer_email || null;
-
-      // Convert cents → dollars
       const amount =
         session.amount_total !== null ? session.amount_total / 100 : null;
 
-      // Get owner_id from listing
+      // Get owner_id
       const { data: listingData } = await supabase
         .from("listings")
         .select("owner_id")
@@ -68,38 +61,30 @@ export async function POST(req: Request) {
 
       const owner_id = listingData?.owner_id || null;
 
-      // Insert booking — MATCHES YOUR DATABASE COLUMNS EXACTLY
+      // ⭐ MATCHES EXACTLY YOUR DB COLUMNS ⭐
       const { error: bookingError } = await supabase.from("bookings").insert([
         {
           listing_id,
           owner_id,
-          user_id: user_id || null,
-          user_email: logged_in_email || null,
-          guest_email: logged_in_email ? null : guest_email, // guest only
+          user_id,
+          user_email,
+          guest_email,
           amount_paid: amount,
           stripe_session_id: session.id,
           status: "paid",
         },
       ]);
 
-      if (bookingError) {
-        console.error("❌ Failed to insert booking:", bookingError);
-      } else {
-        console.log("✅ Booking saved:", session.id);
-      }
+      if (bookingError) console.error("❌ Failed:", bookingError);
+      else console.log("✅ Booking saved:", session.id);
     }
 
     return NextResponse.json({ received: true }, { status: 200 });
   } catch (err) {
-    console.error("❌ Webhook handler failed:", err);
     return NextResponse.json({ error: "Webhook failed" }, { status: 500 });
   }
 }
 
-// Prevent accidental GET calls
 export async function GET() {
-  return NextResponse.json(
-    { error: "Method Not Allowed" },
-    { status: 405 }
-  );
+  return NextResponse.json({ error: "Method Not Allowed" }, { status: 405 });
 }
