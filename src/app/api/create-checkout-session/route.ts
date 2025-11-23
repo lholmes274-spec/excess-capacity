@@ -22,25 +22,21 @@ export async function POST(req: Request) {
       );
     }
 
-    // Correct Supabase client
     const supabase = createRouteHandlerClient({ cookies });
 
-    // Fetch listing
     const { data: listing } = await supabase
       .from("listings")
       .select("*")
       .eq("id", listing_id)
       .single();
 
-    // Get user
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
-    const userId = user?.id ?? null;
-    const userEmail = user?.email ?? null;
+    const userId = user?.id ?? "";
+    const userEmail = user?.email ?? "";
 
-    // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
@@ -56,10 +52,11 @@ export async function POST(req: Request) {
         },
       ],
 
+      // 🔥 THIS IS WHAT YOUR WEBHOOK DEPENDS ON
       metadata: {
         listing_id,
-        user_id: userId ?? "",
-        user_email: userEmail ?? "",
+        user_id: userId,
+        user_email: userEmail,
       },
 
       customer_email: userEmail || undefined,
