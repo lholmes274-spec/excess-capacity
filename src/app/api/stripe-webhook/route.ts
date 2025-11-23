@@ -42,17 +42,21 @@ export async function POST(req: Request) {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
 
+      // Extract metadata
       const listing_id = session.metadata?.listing_id || null;
-      const user_id = session.metadata?.user_id || null;
-      const metadata_user_email = session.metadata?.user_email || null;
 
-      const guest_email = metadata_user_email ? null : session.customer_email;
-      const user_email = metadata_user_email || null;
+      // PRIORITY EMAIL SOURCE (FIXED)
+      const finalEmail =
+        session.metadata?.user_email ||
+        session.customer_details?.email ||
+        session.customer_email ||
+        null;
 
+      // Convert cents → dollars
       const amount =
         session.amount_total !== null ? session.amount_total / 100 : null;
 
-      // Get owner_id
+      // Fetch owner_id
       const { data: listingData } = await supabase
         .from("listings")
         .select("owner_id")
@@ -61,22 +65,25 @@ export async function POST(req: Request) {
 
       const owner_id = listingData?.owner_id || null;
 
-      // ⭐ MATCHES EXACTLY YOUR DB COLUMNS ⭐
-      const { error: bookingError } = await supabase.from("bookings").insert([
-        {
-          listing_id,
-          owner_id,
-          user_id,
-          user_email,
-          guest_email,
-          amount_paid: amount,
-          stripe_session_id: session.id,
-          status: "paid",
-        },
-      ]);
+      // ⭐ Insert booking into DB using booker_email ⭐
+      const { error: bookingError } = await supabase
+        .from("bookings")
+        .insert([
+          {
+            listing_id,
+            owner_id,
+            booker_email: finalEmail,  // ⭐ THIS FIXES EVERYTHING
+            amount_paid: amount,
+            stripe_session_id: session.id,
+            status: "paid",
+          },
+        ]);
 
-      if (bookingError) console.error("❌ Failed:", bookingError);
-      else console.log("✅ Booking saved:", session.id);
+      if (bookingError) {
+        console.error("❌ Failed to insert booking:", bookingError);
+      } else {
+        console.log("✅ Booking saved:", session.id);
+      }
     }
 
     return NextResponse.json({ received: true }, { status: 200 });
