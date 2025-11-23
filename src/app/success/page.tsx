@@ -7,9 +7,6 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { motion } from "framer-motion";
 
-/* -----------------------------
-   Loading Component
-------------------------------*/
 function Loading({ message }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 text-gray-600">
@@ -18,43 +15,55 @@ function Loading({ message }) {
   );
 }
 
-/* -----------------------------
-   Success Page Content
-------------------------------*/
 function SuccessContent() {
   const searchParams = useSearchParams();
   const session_id = searchParams.get("session_id");
 
   const [loading, setLoading] = useState(true);
-  const [secureError, setSecureError] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [booking, setBooking] = useState<any>(null);
   const [listing, setListing] = useState<any>(null);
   const [loggedInEmail, setLoggedInEmail] = useState<string | null>(null);
 
+  // 🔥 wait helper
+  const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
   useEffect(() => {
     async function load() {
       if (!session_id) {
-        setSecureError("Missing session ID.");
+        setErrorMsg("Missing session ID.");
         setLoading(false);
         return;
       }
 
       try {
-        // 1) Check logged-in status
+        // Logged in?
         const { data: userData } = await supabase.auth.getUser();
         const email = userData?.user?.email || null;
         setLoggedInEmail(email);
 
-        // 2) Always fetch booking by stripe_session_id
-        const { data: bookingData, error: bookingError } = await supabase
-          .from("bookings")
-          .select("*")
-          .eq("stripe_session_id", session_id)
-          .maybeSingle();
+        // 🔥 AUTO-RETRY BOOKING LOOKUP
+        let bookingData = null;
 
-        if (bookingError || !bookingData) {
-          setSecureError(
-            "Booking not found yet. Your payment may still be processing. Please refresh in a few seconds."
+        for (let attempt = 1; attempt <= 10; attempt++) {
+          const { data, error } = await supabase
+            .from("bookings")
+            .select("*")
+            .eq("stripe_session_id", session_id)
+            .maybeSingle();
+
+          if (data) {
+            bookingData = data;
+            break;
+          }
+
+          // wait 500ms before next retry
+          await wait(500);
+        }
+
+        if (!bookingData) {
+          setErrorMsg(
+            "Your payment is complete, but booking is still processing. Please refresh in a moment."
           );
           setLoading(false);
           return;
@@ -62,7 +71,7 @@ function SuccessContent() {
 
         setBooking(bookingData);
 
-        // 3) Load listing details
+        // Load listing details
         const { data: listingData, error: listingError } = await supabase
           .from("listings")
           .select("*")
@@ -70,7 +79,7 @@ function SuccessContent() {
           .single();
 
         if (listingError || !listingData) {
-          setSecureError("Listing details unavailable.");
+          setErrorMsg("Listing details unavailable.");
           setLoading(false);
           return;
         }
@@ -79,7 +88,7 @@ function SuccessContent() {
         setLoading(false);
       } catch (err) {
         console.error("Success page error:", err);
-        setSecureError("Unexpected error loading booking details.");
+        setErrorMsg("Unexpected error loading booking details.");
         setLoading(false);
       }
     }
@@ -87,19 +96,13 @@ function SuccessContent() {
     load();
   }, [session_id]);
 
-  /* -----------------------------
-     Loading State
-  ------------------------------*/
   if (loading) return <Loading message="Loading your booking…" />;
 
-  /* -----------------------------
-     Secure Error (payment ok, booking delayed)
-  ------------------------------*/
-  if (secureError) {
+  if (errorMsg) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-red-50 text-center p-6">
         <p className="text-red-600 text-xl font-semibold mb-3">
-          ❌ {secureError}
+          ❌ {errorMsg}
         </p>
         <button
           onClick={() => window.location.reload()}
@@ -119,13 +122,8 @@ function SuccessContent() {
 
   const isLoggedIn = Boolean(loggedInEmail);
 
-  /* -----------------------------
-     SUCCESS PAGE UI
-  ------------------------------*/
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-green-50 to-green-100 text-center p-6">
-
-      {/* Animated Checkmark */}
       <motion.div
         initial={{ scale: 0, rotate: -45 }}
         animate={{ scale: 1, rotate: 0 }}
@@ -164,13 +162,11 @@ function SuccessContent() {
         Thank you! Your booking is complete. Your instructions are below.
       </motion.p>
 
-      {/* Guest View */}
       {!isLoggedIn && (
         <div className="max-w-xl w-full bg-white shadow-lg border border-gray-200 rounded-2xl p-6 text-left">
           <h2 className="text-xl font-semibold text-green-700 mb-2">
             Public Pickup Instructions
           </h2>
-
           {listing.pickup_instructions ? (
             <p className="text-gray-700 whitespace-pre-line">
               {listing.pickup_instructions}
@@ -185,7 +181,6 @@ function SuccessContent() {
         </div>
       )}
 
-      {/* Logged-In View */}
       {isLoggedIn && (
         <div className="max-w-xl w-full bg-white shadow-lg border border-gray-200 rounded-2xl p-6 text-left">
           <h2 className="text-xl font-semibold text-green-700 mb-4">
@@ -233,9 +228,6 @@ function SuccessContent() {
   );
 }
 
-/* -----------------------------
-   Wrapper
-------------------------------*/
 export default function SuccessPageWrapper() {
   return (
     <Suspense fallback={<Loading message="Loading success page…" />}>
