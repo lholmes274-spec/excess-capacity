@@ -42,17 +42,20 @@ export async function POST(req: Request) {
       const session = event.data.object;
 
       const listing_id = session.metadata?.listing_id || null;
+      const user_id = session.metadata?.user_id || null;
 
-      // FIX: detect guest email correctly
-      const metadata_email = session.metadata?.user_email;
-      const checkout_email = session.customer_details?.email;
+      // Detect guest vs logged-in email
+      const metadata_email = session.metadata?.user_email || null;
+      const checkout_email = session.customer_details?.email || null;
 
+      // If logged in → metadata email  
+      // If guest → Stripe checkout email  
       const final_email =
         metadata_email && metadata_email !== "" ? metadata_email : checkout_email;
 
       const amount = session.amount_total ? session.amount_total / 100 : null;
 
-      // Get owner_id from listing
+      // Fetch listing owner
       const { data: listingData } = await supabase
         .from("listings")
         .select("owner_id")
@@ -61,11 +64,14 @@ export async function POST(req: Request) {
 
       const owner_id = listingData?.owner_id || null;
 
+      // INSERT booking
       await supabase.from("bookings").insert([
         {
           listing_id,
           owner_id,
+          user_id,               // logged-in user (null if guest)
           user_email: final_email,
+          guest_email: user_id ? null : final_email, // if guest, fill guest_email
           amount_paid: amount,
           stripe_session_id: session.id,
           status: "paid",
@@ -75,6 +81,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ received: true }, { status: 200 });
   } catch (err) {
+    console.error("Webhook insert failed:", err);
     return NextResponse.json({ error: "Webhook failed" }, { status: 500 });
   }
 }
