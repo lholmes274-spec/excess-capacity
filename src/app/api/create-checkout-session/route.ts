@@ -22,7 +22,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Create server supabase client
+    // Correct Supabase client
     const supabase = createRouteHandlerClient({ cookies });
 
     // Fetch listing
@@ -56,7 +56,6 @@ export async function POST(req: Request) {
         },
       ],
 
-      // ⭐ FIXED: correct metadata ALWAYS sent
       metadata: {
         listing_id,
         user_id: userId ?? "",
@@ -71,8 +70,9 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ url: session.url });
   } catch (err: any) {
+    console.error("Checkout session error:", err);
     return NextResponse.json(
-      { error: err.message },
+      { error: err.message || "Internal Server Error" },
       { status: 500 }
     );
   }
