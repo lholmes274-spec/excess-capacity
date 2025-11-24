@@ -48,10 +48,14 @@ export default function ClientLayout({
       <header className="bg-[#0f172a] text-white shadow-sm">
         <nav className="container mx-auto flex justify-between items-center px-6 py-4">
 
-          {/* BRAND */}
-          <h1 className="text-lg font-semibold">
-            <Link href="/">Prosperity Hub</Link>
-          </h1>
+          {/* BRAND LOGO */}
+          <Link href="/" className="flex items-center">
+            <img
+              src="/prosperity-logo.png"
+              alt="Prosperity Hub Logo"
+              className="w-10 h-10 rounded-lg object-cover"
+            />
+          </Link>
 
           {/* DESKTOP NAV */}
           <ul className="hidden md:flex space-x-6 text-sm font-medium items-center">
