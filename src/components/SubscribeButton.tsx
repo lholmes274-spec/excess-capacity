@@ -4,9 +4,8 @@
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 
-// ✅ Add props type declaration for session
 interface SubscribeButtonProps {
-  session: any; // You can replace 'any' with Supabase types later if desired
+  session: any;
 }
 
 export default function SubscribeButton({ session }: SubscribeButtonProps) {
@@ -19,6 +18,20 @@ export default function SubscribeButton({ session }: SubscribeButtonProps) {
       return;
     }
 
+    // 🔥 STEP 1 — Check profile subscription status
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .select("is_subscribed")
+      .eq("id", session.user.id)
+      .single();
+
+    if (profile?.is_subscribed === true) {
+      alert("You are already a Pro Member.");
+      router.push("/dashboard");
+      return;
+    }
+
+    // 🔥 STEP 2 — Start Stripe checkout
     try {
       const response = await fetch("/api/stripe/create-subscription", {
         method: "POST",

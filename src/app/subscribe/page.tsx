@@ -1,31 +1,43 @@
 // @ts-nocheck
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import SubscribeButton from "@/components/SubscribeButton";
 
 export default function SubscribePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [session, setSession] = useState<any>(null); // 🆕 added
+  const [session, setSession] = useState<any>(null);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+    const load = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
 
       if (!session) {
-        router.push("/login"); // 🆕 changed from /signup → /login
-      } else {
-        setSession(session); // 🆕 store session
-        setLoading(false);
+        router.push("/login");
+        return;
       }
+
+      setSession(session);
+
+      // 🔥 Check subscription
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("is_subscribed")
+        .eq("id", session.user.id)
+        .single();
+
+      if (profile?.is_subscribed === true) {
+        router.push("/you-are-pro");
+        return;
+      }
+
+      setLoading(false);
     };
 
-    checkAuth();
+    load();
   }, [router]);
 
   if (loading) {
@@ -45,7 +57,7 @@ export default function SubscribePage() {
         Subscribe for <strong>$9.99/month</strong> to unlock full seller access
         and premium features.
       </p>
-      <SubscribeButton session={session} /> {/* 🆕 pass session */}
+      <SubscribeButton session={session} />
     </div>
   );
 }
