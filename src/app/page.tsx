@@ -30,12 +30,12 @@ export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
 
-      {/* PROFESSIONAL FULL-WIDTH BANNER */}
+      {/* 🔥 FULL-WIDTH STRETCHED LOGO BANNER */}
       <div className="w-full overflow-hidden">
         <img
-          src="/prosperity-banner.png"
-          alt="Prosperity Hub Banner"
-          className="w-full h-[260px] object-cover object-center"
+          src="/prosperity-logo.png"
+          alt="Prosperity Hub Logo"
+          className="w-full h-[280px] object-cover object-center"
         />
       </div>
 
