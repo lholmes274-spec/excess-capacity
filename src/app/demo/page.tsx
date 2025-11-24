@@ -24,13 +24,6 @@ export default function DemoListingsPage() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
 
-      {/* TOP BRAND BANNER */}
-      <img
-        src="/prosperity-banner.png"
-        alt="Prosperity Hub Banner"
-        className="w-full h-[85px] object-cover"
-      />
-
       {/* HEADER */}
       <div className="text-center mt-10 px-4">
         <h1 className="text-3xl font-bold text-gray-900">Demo Listings</h1>
