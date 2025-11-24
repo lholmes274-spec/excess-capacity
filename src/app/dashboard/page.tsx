@@ -9,36 +9,50 @@ import Link from "next/link";
 export default function Dashboard() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
     const loadUser = async () => {
       const { data } = await supabase.auth.getUser();
       if (!data?.user) {
         router.push("/login");
-      } else {
-        setUser(data.user);
+        return;
       }
+
+      setUser(data.user);
+
+      // Load subscription status
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("is_subscribed, membership_tier")
+        .eq("id", data.user.id)
+        .single();
+
+      setProfile(profileData);
     };
+
     loadUser();
   }, [router]);
+
+  const isSubscribed = profile?.is_subscribed === true;
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
 
-      {/* Top Banner */}
+      {/* Banner */}
       <div className="w-full bg-gradient-to-r from-yellow-300 to-yellow-500 text-black py-3 text-center font-semibold">
         Prosperity Hub™ — Dynamic Excess Capacity Sharing Platform
       </div>
 
-      {/* Dashboard Container */}
+      {/* Dashboard */}
       <div className="flex justify-center px-4 mt-10">
         <div className="w-full max-w-2xl">
 
+          {/* Welcome text with Pro badge */}
           <h1 className="text-2xl font-bold mb-6">
-            Welcome{user ? `, ${user.email}` : ""} 👋
+            Welcome, {user?.email} {isSubscribed && "💎"}
           </h1>
 
-          {/* Dashboard Options */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 place-items-center">
 
             <Link href="/add-listing" className="w-full">
@@ -65,22 +79,37 @@ export default function Dashboard() {
               </div>
             </Link>
 
-            {/* ⭐ PRO MEMBERSHIP — Centered */}
-            <div className="col-span-1 sm:col-span-2 w-full max-w-md">
-              <Link href="/subscribe">
-                <div className="p-6 bg-white border-2 border-yellow-500 rounded-xl shadow hover:shadow-lg transition cursor-pointer text-center">
-                  <h3 className="text-lg font-semibold text-yellow-700">
-                    ⭐ Pro Membership
+            {/* ⭐ IF USER IS PRO — Show non-clickable “Active” box */}
+            {isSubscribed && (
+              <div className="col-span-1 sm:col-span-2 w-full max-w-md">
+                <div className="p-6 bg-white border-2 border-green-500 rounded-xl shadow text-center">
+                  <h3 className="text-lg font-semibold text-green-700">
+                    💎 Pro Membership — Active
                   </h3>
                   <p className="text-sm mt-1 text-gray-600">
-                    Unlock premium features
+                    You have unlimited access.
                   </p>
                 </div>
-              </Link>
-            </div>
+              </div>
+            )}
+
+            {/* ⭐ IF NOT PRO — Show clickable upgrade button */}
+            {!isSubscribed && (
+              <div className="col-span-1 sm:col-span-2 w-full max-w-md">
+                <Link href="/subscribe">
+                  <div className="p-6 bg-white border-2 border-yellow-500 rounded-xl shadow hover:shadow-lg transition cursor-pointer text-center">
+                    <h3 className="text-lg font-semibold text-yellow-700">
+                      ⭐ Pro Membership
+                    </h3>
+                    <p className="text-sm mt-1 text-gray-600">
+                      Unlock premium features
+                    </p>
+                  </div>
+                </Link>
+              </div>
+            )}
 
           </div>
-
         </div>
       </div>
 
@@ -93,9 +122,9 @@ export default function Dashboard() {
           <Link href="/terms" className="hover:text-black">Terms</Link>
           <Link href="/privacy" className="hover:text-black">Privacy</Link>
         </div>
-
         <div>© {new Date().getFullYear()} Prosperity Voyage LLC</div>
       </footer>
+
     </div>
   );
 }
