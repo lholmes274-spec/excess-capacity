@@ -30,13 +30,24 @@ export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
 
-      {/* 🔥 FULL-WIDTH STRETCHED LOGO BANNER */}
-      <div className="w-full overflow-hidden">
-        <img
-          src="/prosperity-logo.png"
-          alt="Prosperity Hub Logo"
-          className="w-full h-[280px] object-cover object-center"
-        />
+      {/* PREMIUM FULL-WIDTH BANNER – ROUNDED + SHADOW + GLOW */}
+      <div className="w-full flex justify-center px-4 mt-3">
+        <div
+          className="w-full max-w-[2000px] rounded-2xl shadow-xl"
+          style={{
+            boxShadow: "0 8px 30px rgba(0,0,0,0.15)",
+            borderRadius: "18px",
+          }}
+        >
+          <img
+            src="/mnt/data/prosperity-hub-banner.png"
+            alt="Prosperity Hub Banner"
+            className="w-full h-auto object-contain rounded-2xl"
+            style={{
+              filter: "drop-shadow(0 4px 10px rgba(0,0,0,0.25))",
+            }}
+          />
+        </div>
       </div>
 
       {/* HERO SECTION */}
