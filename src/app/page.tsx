@@ -30,15 +30,17 @@ export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
 
-      {/* Top Banner */}
-      <img
-        src="/prosperity-banner.png"
-        alt="Prosperity Hub Banner"
-        className="w-full h-[85px] object-cover"
-      />
+      {/* ✨ NEW LOGO BANNER (Replaces old icon banner) */}
+      <div className="w-full flex justify-center mt-4 mb-6">
+        <img
+          src="/prosperityhub-logo.png"
+          alt="Prosperity Hub Logo"
+          className="w-full max-w-[600px] h-auto"
+        />
+      </div>
 
       {/* HERO SECTION */}
-      <div className="text-center mt-10 px-4">
+      <div className="text-center mt-4 px-4">
         <h1 className="text-3xl font-bold text-gray-900">
           Unlock Your Local Prosperity
         </h1>
@@ -63,8 +65,6 @@ export default function HomePage() {
             </Link>
           </div>
         )}
-
-        {/* When user is logged in → NO CTA buttons */}
       </div>
 
       {/* AVAILABLE LISTINGS */}
