@@ -30,23 +30,35 @@ export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
 
-      {/* PREMIUM FULL-WIDTH BANNER – ROUNDED + SHADOW + GLOW */}
-      <div className="w-full flex justify-center px-4 mt-3">
+      {/* ⭐ PREMIUM TEXT-ONLY GRADIENT BANNER */}
+      <div className="w-full flex justify-center px-4 mt-6">
         <div
-          className="w-full max-w-[1300px] rounded-2xl shadow-xl"
+          className="
+            w-full 
+            max-w-[1300px]
+            rounded-2xl 
+            shadow-xl 
+            py-10 
+            px-6 
+            text-center 
+            text-white
+            bg-gradient-to-r 
+            from-[#0f172a] 
+            via-[#142c45] 
+            to-[#d4a934]
+          "
           style={{
-            boxShadow: "0 8px 30px rgba(0,0,0,0.15)",
             borderRadius: "18px",
+            boxShadow: "0 8px 30px rgba(0,0,0,0.10)",
           }}
         >
-          <img
-            src="/prosperity-hub-banner.png"
-            alt="Prosperity Hub Banner"
-            className="w-full h-auto object-contain rounded-2xl"
-            style={{
-              filter: "drop-shadow(0 4px 10px rgba(0,0,0,0.25))",
-            }}
-          />
+          <h1 className="text-4xl font-extrabold tracking-tight">
+            Prosperity Hub™
+          </h1>
+
+          <p className="text-xl mt-3 font-semibold opacity-95">
+            Dynamic Excess Capacity Sharing Platform
+          </p>
         </div>
       </div>
 
