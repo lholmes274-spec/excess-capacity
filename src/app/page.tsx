@@ -40,7 +40,7 @@ export default function HomePage() {
           }}
         >
           <img
-            src="/mnt/data/prosperity-hub-banner.png"
+            src="/prosperity-hub-banner.png"
             alt="Prosperity Hub Banner"
             className="w-full h-auto object-contain rounded-2xl"
             style={{
