@@ -33,7 +33,7 @@ export default function HomePage() {
       {/* PREMIUM FULL-WIDTH BANNER – ROUNDED + SHADOW + GLOW */}
       <div className="w-full flex justify-center px-4 mt-3">
         <div
-          className="w-full max-w-[2000px] rounded-2xl shadow-xl"
+          className="w-full max-w-[1300px] rounded-2xl shadow-xl"
           style={{
             boxShadow: "0 8px 30px rgba(0,0,0,0.15)",
             borderRadius: "18px",
