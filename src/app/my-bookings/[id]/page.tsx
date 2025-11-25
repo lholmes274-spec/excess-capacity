@@ -5,29 +5,27 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 
 export default function BookingDetailsPage() {
-  const router = useRouter();
   const { id } = useParams();
 
   const [booking, setBooking] = useState(null);
   const [listing, setListing] = useState(null);
-  const [userEmail, setUserEmail] = useState(null);
+
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       if (!id) return;
 
-      // Logged in user
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      // Load logged-in user
+      const auth = await supabase.auth.getUser();
+      const loggedInUser = auth.data.user;
+      setUser(loggedInUser);
 
-      setUserEmail(user?.email || null);
-
-      // Fetch booking with listing relation
+      // Fetch booking with relation
       const { data, error } = await supabase
         .from("bookings")
         .select("*, listings(*)")
@@ -40,8 +38,17 @@ export default function BookingDetailsPage() {
         return;
       }
 
-      // Security check — user must own this booking
-      if (data.user_email !== user?.email && data.guest_email !== user?.email) {
+      // ⭐ FIXED SECURITY CHECK:
+      // Allow if:
+      // 1. Logged in + user_id matches
+      // 2. Logged in + email matches (Express Checkout fallback)
+      const isOwner =
+        (loggedInUser?.id && data.user_id === loggedInUser.id) ||
+        (loggedInUser?.email &&
+          data.user_email === loggedInUser.email);
+
+      if (!isOwner) {
+        console.warn("Unauthorized access to booking");
         setBooking(null);
         setLoading(false);
         return;
@@ -84,20 +91,18 @@ export default function BookingDetailsPage() {
     <div className="container mx-auto px-6 py-10 max-w-3xl">
       <h1 className="text-3xl font-bold mb-6 text-center">Booking Details</h1>
 
-      {/* Listing Image */}
+      {/* Image */}
       <img
         src={thumbnail}
         className="w-full h-64 object-cover rounded-lg shadow mb-6"
       />
 
-      {/* Listing Title */}
       <h2 className="text-2xl font-semibold mb-2 text-orange-700">
         {listing?.title}
       </h2>
 
       <p className="text-gray-600 mb-4">{listing?.description}</p>
 
-      {/* Booking Information */}
       <div className="bg-white border border-gray-200 rounded-xl shadow p-6 space-y-4">
         <p>
           <strong>Status:</strong>{" "}
@@ -131,8 +136,8 @@ export default function BookingDetailsPage() {
           </div>
         )}
 
-        {/* Private Instructions (only if logged in) */}
-        {userEmail && listing?.private_instructions && (
+        {/* Private instructions only for logged-in user */}
+        {user && listing?.private_instructions && (
           <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
             <h3 className="font-semibold text-green-700 mb-2">
               Private Instructions
@@ -154,7 +159,7 @@ export default function BookingDetailsPage() {
           </p>
         </div>
 
-        {/* Contact Info */}
+        {/* Contact info */}
         <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
           <h3 className="font-semibold text-blue-700 mb-2">Contact</h3>
           <p className="text-gray-700">

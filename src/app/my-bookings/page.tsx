@@ -9,6 +9,7 @@ import Link from "next/link";
 export default function MyBookingsPage() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState(null);
   const [userEmail, setUserEmail] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
 
@@ -19,18 +20,23 @@ export default function MyBookingsPage() {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        setUserEmail(null);
         setLoading(false);
         return;
       }
 
+      setUserId(user.id);
       setUserEmail(user.email);
 
-      // Fetch bookings joined with listings
+      // ⭐ NEW FIX:
+      // Logged-in users → filter by user_id
+      // Guest (Express Checkout) → filter by user_email
+
       const { data, error } = await supabase
         .from("bookings")
         .select("*, listings(*)")
-        .eq("user_email", user.email)
+        .or(
+          `user_id.eq.${user.id},user_email.eq.${user.email}`
+        ) // <-- FIXED
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -63,7 +69,6 @@ export default function MyBookingsPage() {
       return;
     }
 
-    // Remove visually
     setBookings((prev) => prev.filter((b) => b.id !== bookingId));
     setDeletingId(null);
   }
@@ -75,7 +80,7 @@ export default function MyBookingsPage() {
       </div>
     );
 
-  if (!userEmail)
+  if (!userId && !userEmail)
     return (
       <div className="min-h-screen flex flex-col items-center justify-center text-center p-6">
         <p className="text-xl font-semibold text-red-600 mb-4">
@@ -105,18 +110,15 @@ export default function MyBookingsPage() {
               listing?.image_url ||
               "/no-image.png";
 
-            // ⭐ Format listing pricing type
-            const priceTypeDisplay =
-              listing?.pricing_type
-                ? listing.pricing_type.replace("_", " ")
-                : "";
+            const priceTypeDisplay = listing?.pricing_type
+              ? listing.pricing_type.replace("_", " ")
+              : "";
 
             return (
               <div
                 key={b.id}
                 className="relative bg-white border border-gray-200 rounded-xl shadow hover:shadow-lg transition overflow-hidden"
               >
-                {/* Thumbnail */}
                 <Link href={`/my-bookings/${b.id}`}>
                   <img
                     src={thumbnail}
@@ -134,7 +136,7 @@ export default function MyBookingsPage() {
                     {listing?.city}, {listing?.state}
                   </p>
 
-                  {/* ⭐ UPDATED PRICING DISPLAY */}
+                  {/* Price display */}
                   <p className="text-green-700 font-medium text-sm">
                     ${listing?.baseprice}{" "}
                     {priceTypeDisplay ? `/ ${priceTypeDisplay}` : ""}
@@ -158,7 +160,6 @@ export default function MyBookingsPage() {
                   </p>
                 </div>
 
-                {/* Delete Button */}
                 <button
                   onClick={() => deleteBooking(b.id)}
                   disabled={deletingId === b.id}
