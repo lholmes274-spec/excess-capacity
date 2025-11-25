@@ -13,13 +13,14 @@ export default function ClientLayout({
   const router = useRouter();
 
   const [user, setUser] = useState<any>(null);
-
+  const [authLoading, setAuthLoading] = useState(true); // ✅ Prevent flicker on navigation
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const fetchSession = async () => {
       const { data } = await supabase.auth.getSession();
       setUser(data?.session?.user ?? null);
+      setAuthLoading(false); // ⭐ Only render layout AFTER auth loads
     };
 
     fetchSession();
@@ -39,6 +40,9 @@ export default function ClientLayout({
     router.push("/login");
     setMenuOpen(false);
   }
+
+  // 🚫 Prevent layout from flashing on page transitions
+  if (authLoading) return null;
 
   return (
     <>
@@ -69,8 +73,6 @@ export default function ClientLayout({
                 </Link>
               </li>
             )}
-
-            {/* ❌ REMOVED ADMIN BUTTON */}
 
             <li><Link href="/terms" className="hover:text-blue-300">Terms</Link></li>
             <li><Link href="/privacy" className="hover:text-blue-300">Privacy</Link></li>
@@ -135,8 +137,6 @@ export default function ClientLayout({
                 Dashboard
               </Link>
             )}
-
-            {/* ❌ REMOVED ADMIN BUTTON */}
 
             <Link href="/terms" onClick={() => setMenuOpen(false)}>Terms</Link>
             <Link href="/privacy" onClick={() => setMenuOpen(false)}>Privacy</Link>
