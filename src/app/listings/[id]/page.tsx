@@ -12,7 +12,6 @@ export default function ListingDetailPage() {
   const [listing, setListing] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-
   const [userId, setUserId] = useState<string | null>(null);
 
   // Load logged-in user
@@ -68,8 +67,23 @@ export default function ListingDetailPage() {
     fetchListing();
   }, [id]);
 
-  if (loading) return <div className="p-8 text-gray-500">Loading...</div>;
-  if (!listing) return <div className="p-8 text-red-500">Listing not found.</div>;
+  // ❌ REMOVE THE LOADING SCREEN — prevents flicker
+  // if (loading) return <div className="p-8 text-gray-500">Loading...</div>;
+
+  // Only show "not found" if done loading AND nothing exists
+  if (!loading && !listing)
+    return <div className="p-8 text-red-500">Listing not found.</div>;
+
+  // While loading, *render page shell without data* to prevent flashing
+  if (loading && !listing) {
+    return (
+      <div className="max-w-3xl mx-auto p-8 bg-white rounded-2xl mt-6 border border-gray-100">
+        <div className="w-full h-80 bg-gray-200 rounded-lg animate-pulse" />
+        <div className="h-6 bg-gray-200 rounded mt-6 w-1/2 animate-pulse" />
+        <div className="h-4 bg-gray-200 rounded mt-4 animate-pulse" />
+      </div>
+    );
+  }
 
   // Ownership check
   const isOwner = userId && userId === listing.owner_id;
@@ -93,11 +107,9 @@ export default function ListingDetailPage() {
 
   const finalImages = buildImageList(listing);
 
-  // Format pricing type
+  // Format pricing
   const formattedPricing =
-    listing.pricing_type
-      ? listing.pricing_type.replace("_", " ")
-      : "per unit";
+    listing.pricing_type ? listing.pricing_type.replace("_", " ") : "per unit";
 
   const handleCheckout = () => {
     if (listing.demo_mode) {
@@ -124,7 +136,7 @@ export default function ListingDetailPage() {
           </div>
         )}
 
-        {/* GALLERY Thumbnails */}
+        {/* GALLERY */}
         {finalImages.length > 1 && (
           <div className="flex gap-3 mt-3 overflow-x-auto">
             {finalImages.map((img, idx) => (
@@ -163,7 +175,7 @@ export default function ListingDetailPage() {
         </p>
       )}
 
-      {/* PRICE — ⭐ UPDATED WITH NEW PRICING TYPE */}
+      {/* PRICE */}
       {listing.baseprice !== null && (
         <p className="text-2xl font-semibold text-green-700 mt-2">
           ${listing.baseprice}
@@ -174,7 +186,7 @@ export default function ListingDetailPage() {
         </p>
       )}
 
-      {/* PUBLIC PICKUP INSTRUCTIONS */}
+      {/* PUBLIC INSTRUCTIONS */}
       {listing.pickup_instructions && (
         <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <h3 className="font-semibold text-orange-800 mb-2">
@@ -191,15 +203,9 @@ export default function ListingDetailPage() {
         <h3 className="font-semibold text-gray-800 mb-2">
           Contact Information
         </h3>
-        <p>
-          <strong>Contact:</strong> {listing.contact_name || "—"}
-        </p>
-        <p>
-          <strong>Phone:</strong> {listing.contact_phone || "—"}
-        </p>
-        <p>
-          <strong>Email:</strong> {listing.contact_email || "—"}
-        </p>
+        <p><strong>Contact:</strong> {listing.contact_name || "—"}</p>
+        <p><strong>Phone:</strong> {listing.contact_phone || "—"}</p>
+        <p><strong>Email:</strong> {listing.contact_email || "—"}</p>
       </div>
 
       {/* CHECKOUT BUTTON */}
