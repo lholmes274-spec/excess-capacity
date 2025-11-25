@@ -46,17 +46,17 @@ export default function MyListingsPage() {
     load();
   }, []);
 
-  // ⭐ OPEN Delete Modal
+  // Open delete modal
   function openDeleteModal(listing) {
     setDeleteTarget(listing);
   }
 
-  // ❌ CLOSE Delete Modal
+  // Close modal
   function closeDeleteModal() {
     setDeleteTarget(null);
   }
 
-  // ⭐ DELETE LISTING
+  // Delete listing
   async function deleteListing(listingId) {
     setDeleting(true);
 
@@ -114,6 +114,11 @@ export default function MyListingsPage() {
             const thumbnail =
               listing.image_urls?.[0] || listing.image_url || null;
 
+            // ⭐ FORMAT PRICING DISPLAY
+            const priceDisplay = listing.pricing_type
+              ? `/ ${listing.pricing_type.replace("_", " ")}`
+              : "";
+
             return (
               <div
                 key={listing.id}
@@ -133,8 +138,9 @@ export default function MyListingsPage() {
 
                 <h2 className="text-lg font-semibold mb-1">{listing.title}</h2>
 
+                {/* ⭐ UPDATED PRICE WITH PRICING TYPE */}
                 <p className="text-gray-600 text-sm mb-1">
-                  ${listing.baseprice}
+                  ${listing.baseprice} {priceDisplay}
                 </p>
 
                 {listing.city && listing.state && (

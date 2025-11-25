@@ -41,9 +41,8 @@ function SuccessContent() {
         const email = userData?.user?.email || null;
         setLoggedInEmail(email);
 
-        // Auto-retry booking lookup (webhook delay protection)
+        // Auto-retry booking lookup
         let bookingData = null;
-
         for (let attempt = 1; attempt <= 10; attempt++) {
           const { data } = await supabase
             .from("bookings")
@@ -116,9 +115,16 @@ function SuccessContent() {
 
   const isLoggedIn = Boolean(loggedInEmail);
 
+  // ⭐ FORMAT PRICING TYPE
+  const formattedPricing =
+    listing?.pricing_type
+      ? listing.pricing_type.replace("_", " ")
+      : "per unit";
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-green-50 to-green-100 text-center p-6">
-      {/* Animated checkmark */}
+
+      {/* CHECKMARK ANIMATION */}
       <motion.div
         initial={{ scale: 0, rotate: -45 }}
         animate={{ scale: 1, rotate: 0 }}
@@ -139,6 +145,7 @@ function SuccessContent() {
         </div>
       </motion.div>
 
+      {/* TITLE */}
       <motion.h1
         className="text-3xl sm:text-4xl font-extrabold text-green-700 mb-2"
         initial={{ opacity: 0, y: -30 }}
@@ -149,13 +156,18 @@ function SuccessContent() {
       </motion.h1>
 
       <motion.p
-        className="text-gray-700 mb-8 max-w-md"
+        className="text-gray-700 mb-6 max-w-md"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4, duration: 0.8 }}
       >
-        Thank you! Your booking is complete. Your instructions are below.
+        Thank you! Your booking is complete. Details are below.
       </motion.p>
+
+      {/* ⭐ NEW: Display Price + Pricing Type */}
+      <p className="text-xl font-semibold text-green-700 mb-6">
+        ${listing?.baseprice} / {formattedPricing}
+      </p>
 
       {/* EXPRESS CHECKOUT — GUEST */}
       {!isLoggedIn && (
@@ -172,15 +184,14 @@ function SuccessContent() {
             <p className="text-gray-500">No pickup instructions provided.</p>
           )}
 
-          {/* Show email used in Express Checkout */}
           <p className="mt-4 text-sm text-gray-600">
-            This booking is linked to:{" "}
+            Booking is linked to:{" "}
             <span className="font-semibold underline">{booking.user_email}</span>
           </p>
 
           <p className="mt-4 text-sm text-gray-500">
-            Create an account or log in to view the private address & secure
-            access details.
+            Create an account or log in to view private address and secure access
+            details.
           </p>
         </div>
       )}

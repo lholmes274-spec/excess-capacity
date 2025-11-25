@@ -10,16 +10,47 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-04-10",
 });
 
+// Convert pricing type into readable text for Stripe Checkout
+function formatPricingUnit(type: string) {
+  switch (type) {
+    case "per_hour":
+      return "per hour";
+    case "per_day":
+      return "per day";
+    case "per_week":
+      return "per week";
+    case "per_month":
+      return "per month";
+    case "per_use":
+      return "per use";
+    case "per_item":
+      return "per item";
+    case "per_service":
+      return "per service";
+    case "per_trip":
+      return "per trip";
+    case "for_sale":
+      return "for sale";
+    case "flat_rate":
+      return "flat rate";
+    default:
+      return "per unit";
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { listing_id } = body;
 
     if (!listing_id) {
-      return NextResponse.json({ error: "Missing listing_id" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing listing_id" },
+        { status: 400 }
+      );
     }
 
-    // Supabase client with auth cookies
+    // Supabase client with cookie auth
     const supabase = createRouteHandlerClient({ cookies });
 
     // Fetch listing
@@ -30,7 +61,10 @@ export async function POST(req: Request) {
       .single();
 
     if (listingError || !listing) {
-      return NextResponse.json({ error: "Listing not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Listing not found" },
+        { status: 404 }
+      );
     }
 
     // Logged-in user?
@@ -41,20 +75,22 @@ export async function POST(req: Request) {
     const userId = user?.id || "";
     const userEmail = user?.email || "";
 
-    // Stripe Checkout session
+    // Build label for Stripe
+    const pricingLabel = formatPricingUnit(listing.pricing_type);
+
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
-
       billing_address_collection: "required",
 
-      // If logged-in, preload email — if not, Stripe will ask at checkout
+      // Preload email if logged in
       customer_email: userEmail || undefined,
 
       metadata: {
         listing_id,
         user_id: userId,
         user_email: userEmail,
+        pricing_type: listing.pricing_type,
       },
 
       line_items: [
@@ -63,9 +99,7 @@ export async function POST(req: Request) {
             currency: "usd",
             product_data: {
               name: listing.title,
-              description: userEmail
-                ? "Standard Checkout"
-                : "Express Checkout — no account required",
+              description: `${pricingLabel}`,
             },
             unit_amount: Math.round(Number(listing.baseprice) * 100),
           },

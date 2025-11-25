@@ -13,6 +13,7 @@ export default function AddListingPage() {
     title: "",
     description: "",
     baseprice: "",
+    pricing_type: "",   // ⭐ NEW FIELD
     type: "",
     location: "",
     state: "",
@@ -118,6 +119,7 @@ export default function AddListingPage() {
         title: form.title,
         description: form.description,
         baseprice: Number(form.baseprice),
+        pricing_type: form.pricing_type,  // ⭐ SAVE NEW FIELD
         type: form.type.toLowerCase(),
         location: form.location,
         state: form.state,
@@ -219,6 +221,43 @@ export default function AddListingPage() {
           className="w-full p-3 border rounded-lg"
           required
         />
+
+        {/* ⭐ NEW PRICING TYPE DROPDOWN */}
+        <div>
+          <label className="block font-semibold mb-1">Pricing Type</label>
+          <select
+            name="pricing_type"
+            required
+            value={form.pricing_type}
+            onChange={handleChange}
+            className="w-full p-3 border rounded-lg bg-white"
+          >
+            <option value="">Select Pricing Type</option>
+
+            <optgroup label="Time Based">
+              <option value="per_hour">Per Hour</option>
+              <option value="per_day">Per Day</option>
+              <option value="per_night">Per Night</option>
+              <option value="per_week">Per Week</option>
+              <option value="per_month">Per Month</option>
+            </optgroup>
+
+            <optgroup label="Usage Based">
+              <option value="per_use">Per Use</option>
+              <option value="per_item">Per Item</option>
+              <option value="per_service">Per Service</option>
+              <option value="per_trip">Per Trip</option>
+            </optgroup>
+
+            <optgroup label="Sales">
+              <option value="for_sale">For Sale</option>
+            </optgroup>
+
+            <optgroup label="Flat Fee">
+              <option value="flat_rate">Flat Rate</option>
+            </optgroup>
+          </select>
+        </div>
 
         {/* Location */}
         <input

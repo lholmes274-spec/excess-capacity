@@ -26,7 +26,7 @@ export default function MyBookingsPage() {
 
       setUserEmail(user.email);
 
-      // Fetch bookings for this user
+      // Fetch bookings joined with listings
       const { data, error } = await supabase
         .from("bookings")
         .select("*, listings(*)")
@@ -45,8 +45,8 @@ export default function MyBookingsPage() {
     load();
   }, []);
 
-  // ⭐ Delete Booking
-  async function deleteBooking(bookingId: string) {
+  // Delete booking
+  async function deleteBooking(bookingId) {
     const confirmed = confirm("Are you sure you want to delete this booking?");
     if (!confirmed) return;
 
@@ -63,7 +63,7 @@ export default function MyBookingsPage() {
       return;
     }
 
-    // Remove booking from UI
+    // Remove visually
     setBookings((prev) => prev.filter((b) => b.id !== bookingId));
     setDeletingId(null);
   }
@@ -105,6 +105,12 @@ export default function MyBookingsPage() {
               listing?.image_url ||
               "/no-image.png";
 
+            // ⭐ Format listing pricing type
+            const priceTypeDisplay =
+              listing?.pricing_type
+                ? listing.pricing_type.replace("_", " ")
+                : "";
+
             return (
               <div
                 key={b.id}
@@ -128,8 +134,15 @@ export default function MyBookingsPage() {
                     {listing?.city}, {listing?.state}
                   </p>
 
-                  <p className="font-medium text-green-700">
-                    ${b.amount_paid} paid
+                  {/* ⭐ UPDATED PRICING DISPLAY */}
+                  <p className="text-green-700 font-medium text-sm">
+                    ${listing?.baseprice}{" "}
+                    {priceTypeDisplay ? `/ ${priceTypeDisplay}` : ""}
+                  </p>
+
+                  {/* Amount paid */}
+                  <p className="text-gray-700 font-semibold mt-1">
+                    You paid: ${b.amount_paid}
                   </p>
 
                   <p className="text-sm text-gray-500 mt-2">

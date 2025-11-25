@@ -22,6 +22,7 @@ type Listing = {
   state?: string | null;
   image_url?: string | null;
   image_urls?: string[] | null;
+  pricing_type?: string | null;   // ⭐ NEW FIELD
   demo_mode?: boolean;
 };
 
@@ -120,6 +121,12 @@ function ListingsContent() {
               listing.image_url ||
               null;
 
+            // ⭐ FORMAT PRICING TYPE
+            const displayPricing =
+              listing.pricing_type
+                ? listing.pricing_type.replace("_", " ")
+                : "";
+
             return (
               <Link
                 key={listing.id}
@@ -142,9 +149,13 @@ function ListingsContent() {
                 <p className="text-sm text-gray-600 mb-2 line-clamp-2">
                   {listing.description}
                 </p>
+
+                {/* ⭐ UPDATED PRICE LINE */}
                 <p className="text-blue-700 font-medium mb-2">
-                  ${listing.basePrice} / day
+                  ${listing.basePrice}{" "}
+                  {displayPricing ? `/ ${displayPricing}` : ""}
                 </p>
+
                 {listing.city && listing.state && (
                   <p className="text-sm text-gray-500">
                     {listing.city}, {listing.state}

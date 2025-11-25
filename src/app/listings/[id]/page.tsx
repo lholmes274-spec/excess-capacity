@@ -15,9 +15,7 @@ export default function ListingDetailPage() {
 
   const [userId, setUserId] = useState<string | null>(null);
 
-  // -------------------------------
-  // LOAD LOGGED-IN USER (CLIENT SIDE)
-  // -------------------------------
+  // Load logged-in user
   useEffect(() => {
     async function loadUser() {
       const { data } = await supabase.auth.getSession();
@@ -27,9 +25,7 @@ export default function ListingDetailPage() {
     loadUser();
   }, []);
 
-  // -------------------------------
-  // Load Listing
-  // -------------------------------
+  // Build final image list
   const buildImageList = (listing) => {
     let images = [];
 
@@ -48,6 +44,7 @@ export default function ListingDetailPage() {
     );
   };
 
+  // Load listing
   useEffect(() => {
     if (!id) return;
 
@@ -72,17 +69,11 @@ export default function ListingDetailPage() {
   }, [id]);
 
   if (loading) return <div className="p-8 text-gray-500">Loading...</div>;
-  if (!listing)
-    return <div className="p-8 text-red-500">Listing not found.</div>;
+  if (!listing) return <div className="p-8 text-red-500">Listing not found.</div>;
 
-  // -------------------------------
-  // OWNERSHIP CHECK
-  // -------------------------------
+  // Ownership check
   const isOwner = userId && userId === listing.owner_id;
 
-  // -------------------------------
-  // OPTION B: BLOCK OWNER FROM SEEING THEIR OWN CHECKOUT PAGE
-  // -------------------------------
   if (isOwner) {
     return (
       <div className="p-8 text-center">
@@ -101,6 +92,12 @@ export default function ListingDetailPage() {
   }
 
   const finalImages = buildImageList(listing);
+
+  // Format pricing type
+  const formattedPricing =
+    listing.pricing_type
+      ? listing.pricing_type.replace("_", " ")
+      : "per unit";
 
   const handleCheckout = () => {
     if (listing.demo_mode) {
@@ -166,13 +163,13 @@ export default function ListingDetailPage() {
         </p>
       )}
 
-      {/* PRICE */}
+      {/* PRICE — ⭐ UPDATED WITH NEW PRICING TYPE */}
       {listing.baseprice !== null && (
         <p className="text-2xl font-semibold text-green-700 mt-2">
           ${listing.baseprice}
           <span className="text-base font-normal text-gray-600">
             {" "}
-            per unit
+            / {formattedPricing}
           </span>
         </p>
       )}
@@ -205,7 +202,7 @@ export default function ListingDetailPage() {
         </p>
       </div>
 
-      {/* CHECKOUT BUTTON — ONLY FOR NON-OWNERS */}
+      {/* CHECKOUT BUTTON */}
       <button
         className={`mt-6 w-full text-white py-3 rounded-lg font-semibold transition ${
           listing.demo_mode
