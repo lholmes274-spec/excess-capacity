@@ -1,3 +1,4 @@
+// src/app/canceled/page.tsx
 // @ts-nocheck
 "use client";
 
@@ -63,11 +64,6 @@ export default function CancelPage() {
           Back to Marketplace
         </Link>
       </motion.div>
-
-      {/* Footer */}
-      <footer className="mt-10 text-sm text-gray-500">
-        © {new Date().getFullYear()} ProsperityHub. All rights reserved.
-      </footer>
     </div>
   );
 }
