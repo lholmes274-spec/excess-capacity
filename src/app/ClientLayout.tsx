@@ -12,10 +12,8 @@ export default function ClientLayout({
 }) {
   const router = useRouter();
 
-  // 👇 FIXED — typed state to avoid TS errors
   const [user, setUser] = useState<any>(null);
 
-  // Mobile menu state
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -29,7 +27,7 @@ export default function ClientLayout({
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null); // 👈 fully allowed now
+      setUser(session?.user ?? null);
     });
 
     return () => subscription.unsubscribe();
@@ -72,7 +70,8 @@ export default function ClientLayout({
               </li>
             )}
 
-            <li><Link href="/admin" className="hover:text-blue-300">Admin</Link></li>
+            {/* ❌ REMOVED ADMIN BUTTON */}
+
             <li><Link href="/terms" className="hover:text-blue-300">Terms</Link></li>
             <li><Link href="/privacy" className="hover:text-blue-300">Privacy</Link></li>
 
@@ -137,7 +136,8 @@ export default function ClientLayout({
               </Link>
             )}
 
-            <Link href="/admin" onClick={() => setMenuOpen(false)}>Admin</Link>
+            {/* ❌ REMOVED ADMIN BUTTON */}
+
             <Link href="/terms" onClick={() => setMenuOpen(false)}>Terms</Link>
             <Link href="/privacy" onClick={() => setMenuOpen(false)}>Privacy</Link>
 
