@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabaseClient";
 
 export default function DemoListingsPage() {
   const [demoListings, setDemoListings] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadDemoListings();
@@ -19,6 +20,7 @@ export default function DemoListingsPage() {
       .eq("demo_mode", true);
 
     setDemoListings(data || []);
+    setLoading(false);
   };
 
   return (
@@ -53,7 +55,8 @@ export default function DemoListingsPage() {
           ))}
         </div>
 
-        {demoListings.length === 0 && (
+        {/* 🟠 Only show empty state when NOT loading */}
+        {!loading && demoListings.length === 0 && (
           <p className="text-center text-gray-500 mt-10">
             No demo listings yet. Add some from your dashboard.
           </p>
