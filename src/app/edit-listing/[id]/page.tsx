@@ -83,7 +83,7 @@ export default function EditListingPage() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // Handle new image upload selection
+  // Handle image selection
   const handleImageSelect = (e) => {
     if (!e.target.files) return;
 
@@ -92,19 +92,19 @@ export default function EditListingPage() {
     setPreviewUrls(files.map((file) => URL.createObjectURL(file)));
   };
 
-  // Delete existing image visually (we remove it in database later)
+  // Remove existing image
   const handleRemoveImage = (url) => {
     setExistingImages(existingImages.filter((img) => img !== url));
   };
 
-  // Save listing
+  // Save
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
 
     let newUploadedUrls = [];
 
-    // Upload NEW images
+    // Upload new images
     for (const image of newImages) {
       const ext = image.name.split(".").pop();
       const fileName = `${crypto.randomUUID()}.${ext}`;
@@ -128,13 +128,9 @@ export default function EditListingPage() {
       if (data?.publicUrl) newUploadedUrls.push(data.publicUrl);
     }
 
-    // FINAL image array (existing - deleted + new)
     const finalImages = [...existingImages, ...newUploadedUrls];
-
-    // Primary image = first image
     const primaryImage = finalImages[0] || null;
 
-    // Update listing
     const { error } = await supabase
       .from("listings")
       .update({
@@ -261,6 +257,7 @@ export default function EditListingPage() {
           </div>
         )}
 
+        {/* SAVE BUTTON */}
         <button
           type="submit"
           disabled={saving}
@@ -268,6 +265,16 @@ export default function EditListingPage() {
         >
           {saving ? "Saving…" : "Save Changes"}
         </button>
+
+        {/* CANCEL BUTTON (NEW) */}
+        <button
+          type="button"
+          onClick={() => router.push("/my-listings")}
+          className="w-full mt-2 bg-gray-300 text-gray-800 p-3 rounded-lg font-semibold hover:bg-gray-400 transition"
+        >
+          Cancel
+        </button>
+
       </form>
     </div>
   );
