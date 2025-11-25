@@ -8,12 +8,16 @@ import Link from "next/link";
 
 export default function Dashboard() {
   const router = useRouter();
+
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);  // ⭐ NEW — prevents flash
 
   useEffect(() => {
     const loadUser = async () => {
       const { data } = await supabase.auth.getUser();
+
+      // If no user → redirect
       if (!data?.user) {
         router.push("/login");
         return;
@@ -29,10 +33,20 @@ export default function Dashboard() {
         .single();
 
       setProfile(profileData);
+      setLoading(false); // ⭐ Only show UI after everything is loaded
     };
 
     loadUser();
   }, [router]);
+
+  // ⭐ PREVENT FLASH — Don't render anything until loading is done
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-gray-600">
+        Loading dashboard...
+      </div>
+    );
+  }
 
   const isSubscribed = profile?.is_subscribed === true;
 
@@ -79,7 +93,7 @@ export default function Dashboard() {
               </div>
             </Link>
 
-            {/* ⭐ IF USER IS PRO — Show non-clickable “Active” box */}
+            {/* ⭐ PRO MEMBERSHIP ACTIVE */}
             {isSubscribed && (
               <div className="col-span-1 sm:col-span-2 w-full max-w-md">
                 <div className="p-6 bg-white border-2 border-green-500 rounded-xl shadow text-center">
@@ -93,7 +107,7 @@ export default function Dashboard() {
               </div>
             )}
 
-            {/* ⭐ IF NOT PRO — Show clickable upgrade button */}
+            {/* ⭐ UPGRADE TO PRO */}
             {!isSubscribed && (
               <div className="col-span-1 sm:col-span-2 w-full max-w-md">
                 <Link href="/subscribe">
