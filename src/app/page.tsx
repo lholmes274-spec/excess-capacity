@@ -30,7 +30,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
 
-      {/* ⭐ PREMIUM TEXT-ONLY GRADIENT BANNER */}
+      {/* ⭐ PREMIUM GRADIENT BANNER WITH BLUE TITLE BOX */}
       <div className="w-full flex justify-center px-4 mt-6">
         <div
           className="
@@ -52,11 +52,15 @@ export default function HomePage() {
             boxShadow: "0 8px 30px rgba(0,0,0,0.10)",
           }}
         >
-          <h1 className="text-4xl font-extrabold tracking-tight">
-            Prosperity Hub™
-          </h1>
 
-          <p className="text-xl mt-3 font-semibold opacity-95">
+          {/* 🔵 Blue rectangle behind the title */}
+          <div className="inline-block bg-[#0057ff] px-6 py-2 rounded-md">
+            <h1 className="text-4xl font-extrabold tracking-tight text-white">
+              Prosperity Hub™
+            </h1>
+          </div>
+
+          <p className="text-xl mt-4 font-semibold opacity-95">
             Dynamic Excess Capacity Sharing Platform
           </p>
         </div>
