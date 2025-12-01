@@ -173,7 +173,10 @@ export default function AddListingPage() {
               <option value="recreation">Recreation</option>
               <option value="home">Home</option>
 
-              {/* ⭐ NEW ELECTRONICS CATEGORY */}
+              {/* ⭐ NEW FURNITURE CATEGORY */}
+              <option value="furniture">Furniture</option>
+
+              {/* Electronics */}
               <option value="electronics">Electronics</option>
             </optgroup>
 
@@ -210,7 +213,7 @@ export default function AddListingPage() {
         {/* Base Price */}
         <input
           name="baseprice"
-          value={form.basebaseprice}
+          value={form.baseprice}   // ⭐ FIXED BUG
           onChange={handleChange}
           placeholder="Base Price"
           className="w-full p-3 border rounded-lg"

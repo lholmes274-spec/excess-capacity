@@ -82,7 +82,7 @@ export default function EditListingPage() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // Handle image selection
+  // Handle new images
   const handleImageSelect = (e) => {
     if (!e.target.files) return;
 
@@ -91,12 +91,12 @@ export default function EditListingPage() {
     setPreviewUrls(files.map((file) => URL.createObjectURL(file)));
   };
 
-  // Remove existing image
+  // Remove an existing image
   const handleRemoveImage = (url) => {
     setExistingImages(existingImages.filter((img) => img !== url));
   };
 
-  // Save submit
+  // Save changes
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -170,17 +170,33 @@ export default function EditListingPage() {
             onChange={handleChange}
             className="w-full p-3 border rounded-lg bg-white"
           >
-            <option value="service">Service</option>
-            <option value="tool">Tool</option>
-            <option value="vehicle">Vehicle</option>
-            <option value="recreation">Recreation</option>
-            <option value="home">Home</option>
+            <option value="">Select Type</option>
 
-            {/* ⭐ NEW ELECTRONICS CATEGORY */}
-            <option value="electronics">Electronics</option>
+            <optgroup label="Services">
+              <option value="service">Service</option>
+              <option value="consultant">Consultant</option>
+            </optgroup>
 
-            <option value="space">Space</option>
-            <option value="other">Other</option>
+            <optgroup label="Rentals & Items">
+              <option value="tool">Tool</option>
+              <option value="vehicle">Vehicle</option>
+              <option value="recreation">Recreation</option>
+              <option value="home">Home</option>
+
+              {/* ⭐ NEW FURNITURE CATEGORY */}
+              <option value="furniture">Furniture</option>
+
+              {/* Electronics */}
+              <option value="electronics">Electronics</option>
+            </optgroup>
+
+            <optgroup label="Spaces">
+              <option value="space">Space</option>
+            </optgroup>
+
+            <optgroup label="Other">
+              <option value="other">Other</option>
+            </optgroup>
           </select>
         </div>
 
@@ -212,15 +228,71 @@ export default function EditListingPage() {
           placeholder="Price"
         />
 
-        {/* CONTACT + ADDRESS */}
-        <input name="contact_name" value={form.contact_name} onChange={handleChange} className="w-full p-3 border rounded-lg" placeholder="Contact Name" />
-        <input name="contact_phone" value={form.contact_phone} onChange={handleChange} className="w-full p-3 border rounded-lg" placeholder="Contact Phone" />
-        <input name="contact_email" value={form.contact_email} onChange={handleChange} className="w-full p-3 border rounded-lg" placeholder="Contact Email" />
-        <input name="address_line1" value={form.address_line1} onChange={handleChange} className="w-full p-3 border rounded-lg" placeholder="Address Line 1" />
-        <input name="address_line2" value={form.address_line2} onChange={handleChange} className="w-full p-3 border rounded-lg" placeholder="Address Line 2" />
-        <input name="city" value={form.city} onChange={handleChange} className="w-full p-3 border rounded-lg" placeholder="City" />
-        <input name="state" value={form.state} onChange={handleChange} className="w-full p-3 border rounded-lg" placeholder="State" />
-        <input name="zip" value={form.zip} onChange={handleChange} className="w-full p-3 border rounded-lg" placeholder="Zip Code" />
+        {/* CONTACT */}
+        <input
+          name="contact_name"
+          value={form.contact_name}
+          onChange={handleChange}
+          className="w-full p-3 border rounded-lg"
+          placeholder="Contact Name"
+        />
+
+        <input
+          name="contact_phone"
+          value={form.contact_phone}
+          onChange={handleChange}
+          className="w-full p-3 border rounded-lg"
+          placeholder="Contact Phone"
+        />
+
+        <input
+          name="contact_email"
+          value={form.contact_email}
+          onChange={handleChange}
+          className="w-full p-3 border rounded-lg"
+          placeholder="Contact Email"
+        />
+
+        {/* ADDRESS */}
+        <input
+          name="address_line1"
+          value={form.address_line1}
+          onChange={handleChange}
+          className="w-full p-3 border rounded-lg"
+          placeholder="Address Line 1"
+        />
+
+        <input
+          name="address_line2"
+          value={form.address_line2}
+          onChange={handleChange}
+          className="w-full p-3 border rounded-lg"
+          placeholder="Address Line 2"
+        />
+
+        <input
+          name="city"
+          value={form.city}
+          onChange={handleChange}
+          className="w-full p-3 border rounded-lg"
+          placeholder="City"
+        />
+
+        <input
+          name="state"
+          value={form.state}
+          onChange={handleChange}
+          className="w-full p-3 border rounded-lg"
+          placeholder="State"
+        />
+
+        <input
+          name="zip"
+          value={form.zip}
+          onChange={handleChange}
+          className="w-full p-3 border rounded-lg"
+          placeholder="Zip Code"
+        />
 
         {/* INSTRUCTIONS */}
         <textarea
@@ -231,6 +303,7 @@ export default function EditListingPage() {
           className="w-full p-3 border rounded-lg"
           placeholder="Pickup Instructions"
         />
+
         <textarea
           name="private_instructions"
           value={form.private_instructions}
@@ -246,7 +319,10 @@ export default function EditListingPage() {
           <div className="grid grid-cols-3 gap-2">
             {existingImages.map((url, i) => (
               <div key={i} className="relative">
-                <img src={url} className="w-full h-24 object-cover rounded border" />
+                <img
+                  src={url}
+                  className="w-full h-24 object-cover rounded border"
+                />
                 <button
                   type="button"
                   onClick={() => handleRemoveImage(url)}
@@ -292,7 +368,7 @@ export default function EditListingPage() {
           {saving ? "Saving…" : "Save Changes"}
         </button>
 
-        {/* CANCEL BUTTON */}
+        {/* CANCEL */}
         <button
           type="button"
           onClick={() => router.push("/my-listings")}
@@ -300,7 +376,6 @@ export default function EditListingPage() {
         >
           Cancel
         </button>
-
       </form>
     </div>
   );
