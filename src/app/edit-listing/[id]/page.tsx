@@ -71,7 +71,6 @@ export default function EditListingPage() {
       });
 
       setExistingImages(data.image_urls || []);
-
       setLoading(false);
     }
 
@@ -97,7 +96,7 @@ export default function EditListingPage() {
     setExistingImages(existingImages.filter((img) => img !== url));
   };
 
-  // Save
+  // Save submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -176,6 +175,10 @@ export default function EditListingPage() {
             <option value="vehicle">Vehicle</option>
             <option value="recreation">Recreation</option>
             <option value="home">Home</option>
+
+            {/* ⭐ NEW ELECTRONICS CATEGORY */}
+            <option value="electronics">Electronics</option>
+
             <option value="space">Space</option>
             <option value="other">Other</option>
           </select>
@@ -220,8 +223,22 @@ export default function EditListingPage() {
         <input name="zip" value={form.zip} onChange={handleChange} className="w-full p-3 border rounded-lg" placeholder="Zip Code" />
 
         {/* INSTRUCTIONS */}
-        <textarea name="pickup_instructions" value={form.pickup_instructions} onChange={handleChange} rows={2} className="w-full p-3 border rounded-lg" placeholder="Pickup Instructions" />
-        <textarea name="private_instructions" value={form.private_instructions} onChange={handleChange} rows={2} className="w-full p-3 border rounded-lg" placeholder="Private Instructions" />
+        <textarea
+          name="pickup_instructions"
+          value={form.pickup_instructions}
+          onChange={handleChange}
+          rows={2}
+          className="w-full p-3 border rounded-lg"
+          placeholder="Pickup Instructions"
+        />
+        <textarea
+          name="private_instructions"
+          value={form.private_instructions}
+          onChange={handleChange}
+          rows={2}
+          className="w-full p-3 border rounded-lg"
+          placeholder="Private Instructions"
+        />
 
         {/* EXISTING IMAGES */}
         <div>
@@ -245,14 +262,23 @@ export default function EditListingPage() {
         {/* UPLOAD NEW IMAGES */}
         <div>
           <label className="font-semibold block mb-1">Upload New Images</label>
-          <input type="file" multiple onChange={handleImageSelect} className="w-full p-2 border rounded-lg bg-white" />
+          <input
+            type="file"
+            multiple
+            onChange={handleImageSelect}
+            className="w-full p-2 border rounded-lg bg-white"
+          />
         </div>
 
         {/* PREVIEW NEW IMAGES */}
         {previewUrls.length > 0 && (
           <div className="grid grid-cols-3 gap-2 mt-2">
             {previewUrls.map((src, i) => (
-              <img key={i} src={src} className="w-full h-24 object-cover rounded border" />
+              <img
+                key={i}
+                src={src}
+                className="w-full h-24 object-cover rounded border"
+              />
             ))}
           </div>
         )}
@@ -266,7 +292,7 @@ export default function EditListingPage() {
           {saving ? "Saving…" : "Save Changes"}
         </button>
 
-        {/* CANCEL BUTTON (NEW) */}
+        {/* CANCEL BUTTON */}
         <button
           type="button"
           onClick={() => router.push("/my-listings")}
