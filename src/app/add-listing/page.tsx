@@ -13,7 +13,7 @@ export default function AddListingPage() {
     title: "",
     description: "",
     baseprice: "",
-    pricing_type: "",   // ⭐ NEW FIELD
+    pricing_type: "",
     type: "",
     location: "",
     state: "",
@@ -29,19 +29,16 @@ export default function AddListingPage() {
     demo_mode: false,
   });
 
-  // ⭐ New state for email validation
   const [isEmailValid, setIsEmailValid] = useState<boolean | null>(null);
 
   const [images, setImages] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Email validator
   const validateEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
-  // Handle input changes
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -51,17 +48,15 @@ export default function AddListingPage() {
 
     setForm({ ...form, [name]: value });
 
-    // ⭐ Live email validation
     if (name === "contact_email") {
       if (value.trim() === "") {
-        setIsEmailValid(null); // no icon when empty
+        setIsEmailValid(null);
       } else {
         setIsEmailValid(validateEmail(value));
       }
     }
   };
 
-  // Handle image selection + preview
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
     const files = Array.from(e.target.files);
@@ -70,7 +65,6 @@ export default function AddListingPage() {
     setPreviewUrls(files.map((file) => URL.createObjectURL(file)));
   };
 
-  // Submit form
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -84,7 +78,6 @@ export default function AddListingPage() {
       return;
     }
 
-    // Upload images
     let uploadedUrls: string[] = [];
 
     for (const image of images) {
@@ -112,14 +105,13 @@ export default function AddListingPage() {
 
     const primaryImage = uploadedUrls[0] || null;
 
-    // Insert into Supabase
     const { error } = await supabase.from("listings").insert([
       {
         owner_id: userId,
         title: form.title,
         description: form.description,
         baseprice: Number(form.baseprice),
-        pricing_type: form.pricing_type,  // ⭐ SAVE NEW FIELD
+        pricing_type: form.pricing_type,
         type: form.type.toLowerCase(),
         location: form.location,
         state: form.state,
@@ -180,6 +172,9 @@ export default function AddListingPage() {
               <option value="vehicle">Vehicle</option>
               <option value="recreation">Recreation</option>
               <option value="home">Home</option>
+
+              {/* ⭐ NEW ELECTRONICS CATEGORY */}
+              <option value="electronics">Electronics</option>
             </optgroup>
 
             <optgroup label="Spaces">
@@ -215,14 +210,14 @@ export default function AddListingPage() {
         {/* Base Price */}
         <input
           name="baseprice"
-          value={form.baseprice}
+          value={form.basebaseprice}
           onChange={handleChange}
           placeholder="Base Price"
           className="w-full p-3 border rounded-lg"
           required
         />
 
-        {/* ⭐ NEW PRICING TYPE DROPDOWN */}
+        {/* Pricing Type */}
         <div>
           <label className="block font-semibold mb-1">Pricing Type</label>
           <select
@@ -268,7 +263,7 @@ export default function AddListingPage() {
           className="w-full p-3 border rounded-lg"
         />
 
-        {/* Address Section */}
+        {/* Address */}
         <div className="space-y-3">
           <input
             name="address_line1"
@@ -311,7 +306,7 @@ export default function AddListingPage() {
           />
         </div>
 
-        {/* Contact Information */}
+        {/* Contact */}
         <div className="space-y-3">
           <input
             name="contact_name"
@@ -329,7 +324,6 @@ export default function AddListingPage() {
             className="w-full p-3 border rounded-lg"
           />
 
-          {/* ⭐ Email with green checkmark */}
           <div className="relative">
             <input
               name="contact_email"
@@ -341,7 +335,6 @@ export default function AddListingPage() {
               }`}
             />
 
-            {/* Green Checkmark */}
             {isEmailValid && (
               <span className="absolute right-3 top-3 text-green-600 text-xl font-bold">
                 ✔
