@@ -77,12 +77,10 @@ export default function EditListingPage() {
     loadListing();
   }, [id]);
 
-  // Handle form input
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // Handle new images
   const handleImageSelect = (e) => {
     if (!e.target.files) return;
 
@@ -91,19 +89,17 @@ export default function EditListingPage() {
     setPreviewUrls(files.map((file) => URL.createObjectURL(file)));
   };
 
-  // Remove an existing image
   const handleRemoveImage = (url) => {
     setExistingImages(existingImages.filter((img) => img !== url));
   };
 
-  // Save changes
+  // Save submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
 
     let newUploadedUrls = [];
 
-    // Upload new images
     for (const image of newImages) {
       const ext = image.name.split(".").pop();
       const fileName = `${crypto.randomUUID()}.${ext}`;
@@ -183,10 +179,13 @@ export default function EditListingPage() {
               <option value="recreation">Recreation</option>
               <option value="home">Home</option>
 
-              {/* ⭐ NEW FURNITURE CATEGORY */}
+              {/* ⭐ FURNITURE */}
               <option value="furniture">Furniture</option>
 
-              {/* Electronics */}
+              {/* ⭐ APPLIANCES */}
+              <option value="appliances">Appliances</option>
+
+              {/* ⭐ ELECTRONICS */}
               <option value="electronics">Electronics</option>
             </optgroup>
 

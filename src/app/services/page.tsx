@@ -12,7 +12,8 @@ import {
   Home,
   Users,
   Monitor,
-  Sofa, // ⭐ NEW ICON
+  Sofa,
+  WashingMachine, // ⭐ NEW ICON FOR APPLIANCES
 } from "lucide-react";
 
 export default function ServicesPage() {
@@ -35,7 +36,8 @@ export default function ServicesPage() {
       name: "Tool",
       slug: "tool",
       icon: <Package className="w-8 h-8 text-blue-600" />,
-      description: "Rent your power washer, ladder, drill, or other handy tools.",
+      description:
+        "Rent your power washer, ladder, drill, or other handy tools.",
     },
     {
       name: "Space",
@@ -75,6 +77,15 @@ export default function ServicesPage() {
         "Sell or rent tables, couches, bedroom sets, shelves, and other furniture items.",
     },
 
+    // ⭐ NEW APPLIANCES CATEGORY
+    {
+      name: "Appliances",
+      slug: "appliances",
+      icon: <WashingMachine className="w-8 h-8 text-blue-600" />,
+      description:
+        "List refrigerators, washers, dryers, microwaves, vacuums, and more.",
+    },
+
     {
       name: "Electronics",
       slug: "electronics",
@@ -96,13 +107,11 @@ export default function ServicesPage() {
     <main className="container mx-auto px-6 py-12">
       {/* Page Header */}
       <section className="text-center mb-12">
-        <h1 className="text-4xl font-bold mb-4 text-gray-900">
-          Explore Our Categories
-        </h1>
+        <h1 className="text-4xl font-bold mb-4 text-gray-900">Explore Our Categories</h1>
         <p className="text-gray-600 max-w-2xl mx-auto">
-          Prosperity Hub is an all-in-one sharing platform where you can rent,
-          list, or book almost anything — from tools and vehicles to consulting
-          services and workspace rentals.
+          Prosperity Hub is an all-in-one sharing platform where you can rent, list, or book
+          almost anything — from tools and vehicles to consulting services and workspace
+          rentals.
         </p>
       </section>
 
@@ -120,9 +129,7 @@ export default function ServicesPage() {
               className="block bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition p-6 text-center hover:-translate-y-1"
             >
               <div className="flex justify-center mb-4">{cat.icon}</div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {cat.name}
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">{cat.name}</h3>
               <p className="text-gray-600 text-sm">{cat.description}</p>
             </Link>
           </motion.div>
@@ -131,12 +138,10 @@ export default function ServicesPage() {
 
       {/* CTA */}
       <section className="text-center">
-        <h2 className="text-2xl font-semibold mb-4">
-          Ready to Explore or Start Earning?
-        </h2>
+        <h2 className="text-2xl font-semibold mb-4">Ready to Explore or Start Earning?</h2>
         <p className="text-gray-600 mb-6">
-          Browse active listings, book what you need, or create your own listing
-          in minutes — all within Prosperity Hub.
+          Browse active listings, book what you need, or create your own listing in minutes —
+          all within Prosperity Hub.
         </p>
 
         <Link
