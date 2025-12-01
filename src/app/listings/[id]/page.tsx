@@ -67,14 +67,11 @@ export default function ListingDetailPage() {
     fetchListing();
   }, [id]);
 
-  // ❌ REMOVE THE LOADING SCREEN — prevents flicker
-  // if (loading) return <div className="p-8 text-gray-500">Loading...</div>;
-
   // Only show "not found" if done loading AND nothing exists
   if (!loading && !listing)
     return <div className="p-8 text-red-500">Listing not found.</div>;
 
-  // While loading, *render page shell without data* to prevent flashing
+  // While loading, show skeleton shell
   if (loading && !listing) {
     return (
       <div className="max-w-3xl mx-auto p-8 bg-white rounded-2xl mt-6 border border-gray-100">
@@ -127,11 +124,11 @@ export default function ListingDetailPage() {
         {selectedImage ? (
           <img
             src={selectedImage}
-            className="w-full h-80 object-cover rounded-lg shadow border"
             alt={listing.title}
+            className="w-full max-h-[650px] object-cover rounded-xl shadow border"
           />
         ) : (
-          <div className="w-full h-80 bg-gray-200 rounded-lg flex items-center justify-center text-gray-500">
+          <div className="w-full max-h-[650px] bg-gray-200 rounded-xl flex items-center justify-center text-gray-500">
             No Image Available
           </div>
         )}
