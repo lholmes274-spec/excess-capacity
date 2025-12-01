@@ -11,7 +11,8 @@ import {
   Camera,
   Home,
   Users,
-  Monitor,   // ⭐ NEW ICON
+  Monitor,
+  Sofa, // ⭐ NEW ICON
 } from "lucide-react";
 
 export default function ServicesPage() {
@@ -65,7 +66,15 @@ export default function ServicesPage() {
         "Offer home and garden resources such as sheds, decor, or lawn equipment.",
     },
 
-    // ⭐ NEW ELECTRONICS CATEGORY
+    // ⭐ NEW FURNITURE CATEGORY
+    {
+      name: "Furniture",
+      slug: "furniture",
+      icon: <Sofa className="w-8 h-8 text-blue-600" />,
+      description:
+        "Sell or rent tables, couches, bedroom sets, shelves, and other furniture items.",
+    },
+
     {
       name: "Electronics",
       slug: "electronics",
