@@ -11,6 +11,7 @@ import {
   Camera,
   Home,
   Users,
+  Monitor,   // ⭐ NEW ICON
 } from "lucide-react";
 
 export default function ServicesPage() {
@@ -19,13 +20,15 @@ export default function ServicesPage() {
       name: "Service",
       slug: "service",
       icon: <Wrench className="w-8 h-8 text-blue-600" />,
-      description: "Hands-on or labor-based tasks such as cleaning, lawn care, or delivery services.",
+      description:
+        "Hands-on or labor-based tasks such as cleaning, lawn care, or delivery services.",
     },
     {
       name: "Consultant",
       slug: "consultant",
       icon: <Briefcase className="w-8 h-8 text-blue-600" />,
-      description: "Offer professional expertise in marketing, business, coaching, or technology.",
+      description:
+        "Offer professional expertise in marketing, business, coaching, or technology.",
     },
     {
       name: "Tool",
@@ -37,31 +40,46 @@ export default function ServicesPage() {
       name: "Space",
       slug: "space",
       icon: <Building2 className="w-8 h-8 text-blue-600" />,
-      description: "List extra storage, office, garage, or creative space for short-term use.",
+      description:
+        "List extra storage, office, garage, or creative space for short-term use.",
     },
     {
       name: "Vehicle",
       slug: "vehicle",
       icon: <Car className="w-8 h-8 text-blue-600" />,
-      description: "Share your car, truck, or trailer with others when not in use.",
+      description:
+        "Share your car, truck, or trailer with others when not in use.",
     },
     {
       name: "Recreation",
       slug: "recreation",
       icon: <Camera className="w-8 h-8 text-blue-600" />,
-      description: "Rent leisure gear like bikes, kayaks, drones, or cameras for fun experiences.",
+      description:
+        "Rent leisure gear like bikes, kayaks, drones, or cameras for fun experiences.",
     },
     {
       name: "Home",
       slug: "home",
       icon: <Home className="w-8 h-8 text-blue-600" />,
-      description: "Offer home and garden resources such as sheds, decor, or lawn equipment.",
+      description:
+        "Offer home and garden resources such as sheds, decor, or lawn equipment.",
     },
+
+    // ⭐ NEW ELECTRONICS CATEGORY
+    {
+      name: "Electronics",
+      slug: "electronics",
+      icon: <Monitor className="w-8 h-8 text-blue-600" />,
+      description:
+        "Sell or rent laptops, TVs, speakers, tablets, monitors, gaming systems, and more.",
+    },
+
     {
       name: "Other",
       slug: "other",
       icon: <Users className="w-8 h-8 text-blue-600" />,
-      description: "List anything unique or valuable that doesn’t fit other categories.",
+      description:
+        "List anything unique or valuable that doesn’t fit other categories.",
     },
   ];
 
@@ -102,7 +120,7 @@ export default function ServicesPage() {
         ))}
       </section>
 
-      {/* Call to Action */}
+      {/* CTA */}
       <section className="text-center">
         <h2 className="text-2xl font-semibold mb-4">
           Ready to Explore or Start Earning?
