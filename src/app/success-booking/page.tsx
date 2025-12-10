@@ -25,6 +25,9 @@ function SuccessBookingContent() {
   const searchParams = useSearchParams();
   const session_id = searchParams.get("session_id");
 
+  // ⭐ NEW: Debug log to confirm if session_id is missing
+  console.log("SESSION ID RECEIVED:", session_id);
+
   const [loading, setLoading] = useState(true);
   const [secureError, setSecureError] = useState<string | null>(null);
   const [listing, setListing] = useState<any>(null);
@@ -56,19 +59,22 @@ function SuccessBookingContent() {
 
   useEffect(() => {
     async function load() {
+      // ⭐ If no session_id, show correct error
       if (!session_id) {
-        setSecureError("Missing session ID.");
+        setSecureError(
+          "Missing session ID. Your booking is complete, but this page did not receive the confirmation code."
+        );
         setLoading(false);
         return;
       }
 
       try {
-        // 1) Load logged-in user (to decide guest vs logged-in view)
+        // 1) Load logged-in user
         const { data: userData } = await supabase.auth.getUser();
         const email = userData?.user?.email || null;
         setLoggedInEmail(email);
 
-        // 2) POLL FOR BOOKING (instead of 1 single check)
+        // 2) POLL FOR BOOKING
         const bookingData = await pollForBooking(session_id);
 
         if (!bookingData) {
@@ -183,7 +189,7 @@ function SuccessBookingContent() {
         Thank you! Your booking is complete. The details are shown below.
       </motion.p>
 
-      {/* GUEST VIEW */}
+      {/* Guest View */}
       {!isLoggedIn && (
         <div className="max-w-xl w-full bg-white shadow-lg border border-gray-200 rounded-2xl p-6 text-left">
           <h2 className="text-xl font-semibold text-green-700 mb-2">
@@ -204,7 +210,7 @@ function SuccessBookingContent() {
         </div>
       )}
 
-      {/* LOGGED-IN VIEW */}
+      {/* Logged-in View */}
       {isLoggedIn && (
         <div className="max-w-xl w-full bg-white shadow-lg border border-gray-200 rounded-2xl p-6 text-left">
           <h2 className="text-xl font-semibold text-green-700 mb-4">
