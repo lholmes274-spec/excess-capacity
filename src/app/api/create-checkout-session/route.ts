@@ -10,7 +10,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-04-10",
 });
 
-// Convert pricing type into readable text for Stripe Checkout
+// Convert pricing type for Stripe display
 function formatPricingUnit(type: string) {
   switch (type) {
     case "per_hour":
@@ -50,10 +50,10 @@ export async function POST(req: Request) {
       );
     }
 
-    // Supabase client with cookie auth (VERY IMPORTANT)
+    // Supabase client using user's cookie auth
     const supabase = createRouteHandlerClient({ cookies });
 
-    // Fetch listing info
+    // Load listing
     const { data: listing, error: listingError } = await supabase
       .from("listings")
       .select("*")
@@ -67,31 +67,30 @@ export async function POST(req: Request) {
       );
     }
 
-    // Logged-in user check
+    // Logged-in user?
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
-    // 🔥 FIX #1 — DO NOT USE EMPTY STRINGS
+    // DO NOT use empty strings — use NULL instead
     const userId = user?.id ?? null;
     const userEmail = user?.email ?? null;
 
-    // Pricing wording for Stripe
     const pricingLabel = formatPricingUnit(listing.pricing_type);
 
-    // Create checkout session
+    // Create Stripe Checkout session
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
       billing_address_collection: "required",
 
-      // Pre-fill Stripe email if logged in
+      // Pre-fill email in Stripe only if logged in
       customer_email: userEmail || undefined,
 
-      // 🔥 FIX #2 — Metadata must NEVER be empty strings
+      // NEVER pass empty strings to metadata
       metadata: {
         listing_id,
-        user_id: userId ?? "guest", // guests labeled safely
+        user_id: userId ?? "guest",
         user_email: userEmail ?? "",
         pricing_type: listing.pricing_type,
       },
@@ -102,7 +101,7 @@ export async function POST(req: Request) {
             currency: "usd",
             product_data: {
               name: listing.title,
-              description: `${pricingLabel}`,
+              description: pricingLabel,
             },
             unit_amount: Math.round(Number(listing.baseprice) * 100),
           },
@@ -110,7 +109,7 @@ export async function POST(req: Request) {
         },
       ],
 
-      // 🔥 FIX #3 — Correct success page route
+      // ⭐ FIXED SUCCESS URL ⭐
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success-booking?session_id={CHECKOUT_SESSION_ID}`,
 
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/canceled`,
