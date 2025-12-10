@@ -12,7 +12,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-04-10",
 });
 
-// Supabase Service Role (bypasses RLS completely)
+// Supabase Service Role (bypasses RLS)
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -23,10 +23,7 @@ export async function POST(req: Request) {
   const body = await req.text();
 
   if (!sig) {
-    return NextResponse.json(
-      { error: "Missing Stripe signature" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Missing Stripe signature" }, { status: 400 });
   }
 
   let event;
@@ -45,51 +42,51 @@ export async function POST(req: Request) {
   console.log("🔔 Webhook received:", event.type);
 
   // -----------------------------------------------------
-  // ✅ CHECKOUT SUCCESS → CREATE BOOKING
+  // HANDLE CHECKOUT SUCCESS
   // -----------------------------------------------------
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
 
-    // Metadata included from the checkout session
-    const listing_id = session.metadata?.listing_id || null;
-    const metadataEmail = session.metadata?.user_email || "";
-    const metadataUserId = session.metadata?.user_id || null;
+    // Metadata from Stripe
+    const listing_id = session.metadata?.listing_id ?? null;
+    const rawUserId = session.metadata?.user_id ?? null;
+    const rawEmail = session.metadata?.user_email ?? null;
 
-    const checkoutEmail = session.customer_details?.email;
-    const finalEmail =
-      metadataEmail && metadataEmail !== "" ? metadataEmail : checkoutEmail;
-
+    // Convert Stripe amount_total to dollars
     const amountPaid = session.amount_total
       ? session.amount_total / 100
       : null;
 
-    console.log("📌 Booking metadata resolved:", {
-      listing_id,
-      metadataUserId,
-      finalEmail,
-      amountPaid,
-      session_id: session.id,
-    });
+    // -----------------------------------------------------
+    // FIX 1: Replace "guest" or empty string with NULL (valid for Supabase)
+    // -----------------------------------------------------
+    const user_id =
+      !rawUserId || rawUserId === "guest" || rawUserId === "" ? null : rawUserId;
+
+    // Email fallback: metadata → Stripe customer email
+    const user_email = rawEmail || session.customer_details?.email || null;
 
     // -----------------------------------------------------
-    // 🚨 SAFETY CHECK: listing_id MUST exist
+    // SAFETY CHECK
     // -----------------------------------------------------
     if (!listing_id) {
-      console.error("❌ ERROR: Missing listing_id in metadata");
+      console.error("❌ Missing listing_id in metadata");
       return NextResponse.json(
         { error: "Missing listing_id in metadata" },
         { status: 400 }
       );
     }
 
-    // Fetch owner of listing
+    // -----------------------------------------------------
+    // LOOKUP LISTING OWNER
+    // -----------------------------------------------------
     const { data: listingData, error: listingErr } = await supabase
       .from("listings")
       .select("owner_id")
       .eq("id", listing_id)
       .single();
 
-    if (listingErr) {
+    if (listingErr || !listingData) {
       console.error("❌ Listing lookup failed:", listingErr);
       return NextResponse.json(
         { error: "Listing not found", details: listingErr },
@@ -97,32 +94,22 @@ export async function POST(req: Request) {
       );
     }
 
-    const owner_id = listingData?.owner_id || null;
+    const owner_id = listingData.owner_id;
 
     // -----------------------------------------------------
-    // 🚨 SAFETY CHECK: Assign fallback user_id
+    // INSERT BOOKING (NOW VALID FOR GUEST USERS)
     // -----------------------------------------------------
-    const safeUserId =
-      metadataUserId ??
-      "00000000-0000-0000-0000-000000000000"; // fallback UUID so insert never fails
-
-    // -----------------------------------------------------
-    // 🚀 INSERT BOOKING
-    // -----------------------------------------------------
-    const { data: inserted, error: insertErr } = await supabase
-      .from("bookings")
-      .insert([
-        {
-          listing_id,
-          owner_id,
-          user_id: safeUserId,
-          user_email: finalEmail,
-          amount_paid: amountPaid,
-          stripe_session_id: session.id,
-          status: "paid",
-        },
-      ])
-      .select();
+    const { error: insertErr } = await supabase.from("bookings").insert([
+      {
+        listing_id,
+        owner_id,
+        user_id,           // logged-in users = UUID, guests = NULL
+        user_email,
+        amount_paid: amountPaid,
+        stripe_session_id: session.id,
+        status: "paid",
+      },
+    ]);
 
     if (insertErr) {
       console.error("❌ SUPABASE INSERT FAILED:", insertErr);
@@ -132,7 +119,7 @@ export async function POST(req: Request) {
       );
     }
 
-    console.log("✅ Booking inserted:", inserted);
+    console.log("✅ Booking inserted successfully!");
   }
 
   return NextResponse.json({ received: true }, { status: 200 });
