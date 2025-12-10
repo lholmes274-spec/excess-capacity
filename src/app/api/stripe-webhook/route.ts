@@ -12,10 +12,10 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-04-10",
 });
 
-// ✅ MUST USE PRIVATE SUPABASE URL (NOT NEXT_PUBLIC)
+// Supabase Service Role (server-side only — NEVER use NEXT_PUBLIC here)
 const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_URL!,                // 🔥 FIXED
+  process.env.SUPABASE_SERVICE_ROLE_KEY!    // 🔥 FIXED
 );
 
 export async function POST(req: Request) {
@@ -48,25 +48,24 @@ export async function POST(req: Request) {
     const rawUserId = session.metadata?.user_id ?? null;
     const rawEmail = session.metadata?.user_email ?? null;
 
-    const amountPaid = session.amount_total
-      ? session.amount_total / 100
-      : null;
+    // Convert amount
+    const amountPaid = session.amount_total ? session.amount_total / 100 : null;
 
-    // Convert metadata to proper nulls
+    // Normalize user_id
     const user_id =
-      !rawUserId || rawUserId === "guest" || rawUserId === "0" ? null : rawUserId;
+      !rawUserId || rawUserId === "guest" || rawUserId === "0" || rawUserId === ""
+        ? null
+        : rawUserId;
 
-    // Stripe customer_details always overrides metadata "unknown"
-    const user_email =
-      session.customer_details?.email ||
-      (rawEmail && rawEmail !== "unknown" ? rawEmail : null);
+    // Best email available
+    const user_email = rawEmail || session.customer_details?.email || null;
 
     if (!listing_id) {
-      console.error("❌ Missing listing_id in metadata");
+      console.error("❌ Missing listing_id");
       return NextResponse.json({ error: "Missing listing_id" }, { status: 400 });
     }
 
-    // Get owner_id
+    // Get listing owner
     const { data: listingData, error: listingErr } = await supabase
       .from("listings")
       .select("owner_id")
@@ -79,21 +78,11 @@ export async function POST(req: Request) {
     }
 
     const owner_id = listingData.owner_id;
+
+    // Clean session ID
     const cleanSessionId = String(session.id).trim();
 
-    // 🔥 Prevent duplicate inserts
-    const { data: existing } = await supabase
-      .from("bookings")
-      .select("id")
-      .eq("stripe_session_id", cleanSessionId)
-      .maybeSingle();
-
-    if (existing) {
-      console.log("⚠️ Booking already exists — skipping insert");
-      return NextResponse.json({ received: true }, { status: 200 });
-    }
-
-    // 🔥 Final insert
+    // Insert booking
     const { error: insertErr } = await supabase.from("bookings").insert([
       {
         listing_id,
@@ -108,7 +97,7 @@ export async function POST(req: Request) {
 
     if (insertErr) {
       console.error("❌ SUPABASE INSERT FAILED:", insertErr);
-      return NextResponse.json({ error: "Insert failed" }, { status: 500 });
+      return NextResponse.json({ error: "Insert failed", details: insertErr }, { status: 500 });
     }
 
     console.log("✅ Booking inserted successfully!");
