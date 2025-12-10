@@ -1,126 +1,129 @@
 // @ts-nocheck
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { cookies } from "next/headers";
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
+import { createClient } from "@supabase/supabase-js";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
+// Stripe client
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-04-10",
 });
 
-// Convert pricing type for Stripe display
-function formatPricingUnit(type: string) {
-  switch (type) {
-    case "per_hour":
-      return "per hour";
-    case "per_day":
-      return "per day";
-    case "per_week":
-      return "per week";
-    case "per_month":
-      return "per month";
-    case "per_use":
-      return "per use";
-    case "per_item":
-      return "per item";
-    case "per_service":
-      return "per service";
-    case "per_trip":
-      return "per trip";
-    case "for_sale":
-      return "for sale";
-    case "flat_rate":
-      return "flat rate";
-    default:
-      return "per unit";
-  }
-}
+// Supabase Service Role (bypasses RLS)
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-    const { listing_id } = body;
+  const sig = headers().get("stripe-signature");
+  const body = await req.text();
 
+  if (!sig) {
+    return NextResponse.json({ error: "Missing Stripe signature" }, { status: 400 });
+  }
+
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(
+      body,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET!
+    );
+  } catch (err) {
+    console.error("❌ Invalid signature:", err);
+    return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
+  }
+
+  console.log("🔔 Webhook received:", event.type);
+
+  // -----------------------------------------------------
+  // HANDLE CHECKOUT SUCCESS
+  // -----------------------------------------------------
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object;
+
+    // Metadata from Stripe
+    const listing_id = session.metadata?.listing_id ?? null;
+    const rawUserId = session.metadata?.user_id ?? null;
+    const rawEmail = session.metadata?.user_email ?? null;
+
+    // Convert Stripe amount_total to dollars
+    const amountPaid = session.amount_total
+      ? session.amount_total / 100
+      : null;
+
+    // -----------------------------------------------------
+    // FIXED USER ID HANDLING ("0" = guest)
+    // -----------------------------------------------------
+    const user_id = rawUserId === "0" ? null : rawUserId;
+
+    // Email fallback: metadata → Stripe customer email
+    const user_email = rawEmail || session.customer_details?.email || null;
+
+    // -----------------------------------------------------
+    // SAFETY CHECK
+    // -----------------------------------------------------
     if (!listing_id) {
+      console.error("❌ Missing listing_id in metadata");
       return NextResponse.json(
-        { error: "Missing listing_id" },
+        { error: "Missing listing_id in metadata" },
         { status: 400 }
       );
     }
 
-    // Supabase client using user's cookie auth
-    const supabase = createRouteHandlerClient({ cookies });
-
-    // Load listing
-    const { data: listing, error: listingError } = await supabase
+    // -----------------------------------------------------
+    // LOOKUP LISTING OWNER
+    // -----------------------------------------------------
+    const { data: listingData, error: listingErr } = await supabase
       .from("listings")
-      .select("*")
+      .select("owner_id")
       .eq("id", listing_id)
       .single();
 
-    if (listingError || !listing) {
+    if (listingErr || !listingData) {
+      console.error("❌ Listing lookup failed:", listingErr);
       return NextResponse.json(
-        { error: "Listing not found" },
-        { status: 404 }
+        { error: "Listing not found", details: listingErr },
+        { status: 400 }
       );
     }
 
-    // Logged-in user?
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const owner_id = listingData.owner_id;
 
-    // DO NOT use empty strings — use NULL instead
-    const userId = user?.id ?? null;
-    const userEmail = user?.email ?? null;
-
-    const pricingLabel = formatPricingUnit(listing.pricing_type);
-
-    // Create Stripe Checkout session
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      payment_method_types: ["card"],
-      billing_address_collection: "required",
-
-      // Pre-fill email in Stripe only if logged in
-      customer_email: userEmail || undefined,
-
-      // NEVER pass empty strings to metadata
-      metadata: {
+    // -----------------------------------------------------
+    // INSERT BOOKING (WORKS FOR GUESTS + LOGGED-IN USERS)
+    // -----------------------------------------------------
+    const { error: insertErr } = await supabase.from("bookings").insert([
+      {
         listing_id,
-        user_id: userId ?? "guest",
-        user_email: userEmail ?? "",
-        pricing_type: listing.pricing_type,
+        owner_id,
+        user_id,              // UUID or NULL
+        user_email,
+        amount_paid: amountPaid,
+        stripe_session_id: session.id,
+        status: "paid",
       },
+    ]);
 
-      line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            product_data: {
-              name: listing.title,
-              description: pricingLabel,
-            },
-            unit_amount: Math.round(Number(listing.baseprice) * 100),
-          },
-          quantity: 1,
-        },
-      ],
+    if (insertErr) {
+      console.error("❌ SUPABASE INSERT FAILED:", insertErr);
+      return NextResponse.json(
+        { error: "Insert failed", details: insertErr },
+        { status: 500 }
+      );
+    }
 
-      // ⭐ FIXED SUCCESS URL ⭐
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success-booking?session_id={CHECKOUT_SESSION_ID}`,
-
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/canceled`,
-    });
-
-    return NextResponse.json({ url: session.url });
-  } catch (err: any) {
-    console.error("Checkout session error:", err);
-    return NextResponse.json(
-      { error: "Failed to create checkout session", details: err.message },
-      { status: 500 }
-    );
+    console.log("✅ Booking inserted successfully!");
   }
+
+  return NextResponse.json({ received: true }, { status: 200 });
+}
+
+export async function GET() {
+  return NextResponse.json({ error: "Method Not Allowed" }, { status: 405 });
 }
