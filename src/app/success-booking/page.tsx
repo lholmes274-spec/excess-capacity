@@ -46,7 +46,7 @@ function SuccessBookingContent() {
   const [booking, setBooking] = useState<any>(null);
 
   /* -----------------------------------------
-     Supabase client WITH session header
+     NEW: Supabase client WITH RLS session header
   -----------------------------------------*/
   function supabaseWithSession() {
     return supabase.withHeaders({
@@ -55,11 +55,11 @@ function SuccessBookingContent() {
   }
 
   /* -----------------------------------------
-     POLL FOR BOOKING — 5 seconds max
+     POLL FOR BOOKING — 5 seconds total
   -----------------------------------------*/
   async function pollForBooking(session_id: string) {
-    const maxAttempts = 5;
-    const delay = 1000;
+    const maxAttempts = 5; // 5 attempts
+    const delay = 1000; // 1 second each
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       const client = supabaseWithSession();
@@ -71,7 +71,6 @@ function SuccessBookingContent() {
         .maybeSingle();
 
       if (data) return data;
-
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
 
@@ -87,7 +86,7 @@ function SuccessBookingContent() {
       }
 
       try {
-        // Logged-in user
+        // Load logged-in user
         const { data: userData } = await supabase.auth.getUser();
         const email = userData?.user?.email || null;
         setLoggedInEmail(email);
@@ -105,7 +104,7 @@ function SuccessBookingContent() {
 
         setBooking(bookingData);
 
-        // 🔥 Load listing WITH RLS HEADER
+        // Load listing WITH HEADER (required for RLS)
         const client = supabaseWithSession();
         const { data: listingData, error: listingError } = await client
           .from("listings")
@@ -132,12 +131,20 @@ function SuccessBookingContent() {
     load();
   }, [session_id]);
 
+  /* -----------------------------
+     Loading
+  ------------------------------*/
   if (loading) return <Loading message="Loading your booking…" />;
 
+  /* -----------------------------
+     Error Message
+  ------------------------------*/
   if (secureError) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-red-50 text-center p-6">
-        <p className="text-red-600 text-xl font-semibold mb-3">❌ {secureError}</p>
+        <p className="text-red-600 text-xl font-semibold mb-3">
+          ❌ {secureError}
+        </p>
 
         <button
           onClick={() => window.location.reload()}
@@ -158,6 +165,9 @@ function SuccessBookingContent() {
 
   const isLoggedIn = Boolean(loggedInEmail);
 
+  /* -----------------------------
+     SUCCESS PAGE UI
+  ------------------------------*/
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-green-50 to-green-100 text-center p-6">
 
@@ -185,11 +195,12 @@ function SuccessBookingContent() {
         Booking Confirmed 🎉
       </h1>
 
+      {/* Local Time */}
       <p className="text-lg font-semibold text-green-800 mb-8">
         {formatLocalTime(booking?.created_at)}
       </p>
 
-      {/* Guest and logged-in views remain unchanged */}
+      {/* GUEST VIEW */}
       {!isLoggedIn ? (
         <div className="max-w-xl w-full bg-white shadow-lg border border-gray-200 rounded-2xl p-6 text-left">
           <h2 className="text-xl font-semibold text-green-700 mb-2">
@@ -200,6 +211,7 @@ function SuccessBookingContent() {
           </p>
         </div>
       ) : (
+        /* LOGGED-IN VIEW */
         <div className="max-w-xl w-full bg-white shadow-lg border border-gray-200 rounded-2xl p-6 text-left">
           <h2 className="text-xl font-semibold text-green-700 mb-4">
             🔒 Your Booking Details
