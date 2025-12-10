@@ -27,6 +27,7 @@ export async function POST(req: Request) {
   }
 
   let event;
+
   try {
     event = stripe.webhooks.constructEvent(
       body,
@@ -46,28 +47,24 @@ export async function POST(req: Request) {
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
 
-    // Stripe Metadata (always string)
-    const listing_id = session.metadata?.listing_id;
-    const rawUserId = session.metadata?.user_id;
-    const rawEmail = session.metadata?.user_email;
+    // Metadata from Stripe
+    const listing_id = session.metadata?.listing_id ?? null;
+    const rawUserId = session.metadata?.user_id ?? null;
+    const rawEmail = session.metadata?.user_email ?? null;
 
-    // Convert Stripe amount_total → dollars
+    // Convert Stripe amount_total to dollars
     const amountPaid = session.amount_total
       ? session.amount_total / 100
       : null;
 
-    // -----------------------------------------------------
-    // UPDATED FIXES FOR NEW METADATA FORMAT
-    // -----------------------------------------------------
+    // Replace "guest" or empty string with NULL
+    const user_id =
+      !rawUserId || rawUserId === "guest" || rawUserId === "0" || rawUserId === ""
+        ? null
+        : rawUserId;
 
-    // "0" = guest → null
-    const user_id = rawUserId === "0" ? null : rawUserId;
-
-    // guest emails come in as "unknown"
-    const user_email =
-      rawEmail && rawEmail !== "unknown"
-        ? rawEmail
-        : session.customer_details?.email || null;
+    // Email fallback
+    const user_email = rawEmail || session.customer_details?.email || null;
 
     if (!listing_id) {
       console.error("❌ Missing listing_id in metadata");
@@ -77,9 +74,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // -----------------------------------------------------
-    // LOOKUP LISTING OWNER
-    // -----------------------------------------------------
+    // Lookup listing owner
     const { data: listingData, error: listingErr } = await supabase
       .from("listings")
       .select("owner_id")
@@ -97,16 +92,18 @@ export async function POST(req: Request) {
     const owner_id = listingData.owner_id;
 
     // -----------------------------------------------------
-    // INSERT BOOKING — NOW COMPATIBLE WITH NEW METADATA
+    // INSERT BOOKING (session_id TRIMMED)
     // -----------------------------------------------------
+    const cleanSessionId = String(session.id).trim();
+
     const { error: insertErr } = await supabase.from("bookings").insert([
       {
         listing_id,
         owner_id,
-        user_id,         // UUID or NULL
-        user_email,      // valid email or null
+        user_id,
+        user_email,
         amount_paid: amountPaid,
-        stripe_session_id: session.id,
+        stripe_session_id: cleanSessionId, // 🔥 FIX
         status: "paid",
       },
     ]);

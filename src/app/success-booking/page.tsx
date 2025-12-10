@@ -23,23 +23,23 @@ function Loading({ message }) {
 ------------------------------*/
 function SuccessBookingContent() {
   const searchParams = useSearchParams();
-  const session_id = searchParams.get("session_id");
 
-  // ⭐ NEW: Debug log to confirm if session_id is missing
+  // 🔥 FIX: Trim the incoming ID so matching works perfectly
+  const session_id = (searchParams.get("session_id") || "").trim();
+
   console.log("SESSION ID RECEIVED:", session_id);
 
   const [loading, setLoading] = useState(true);
   const [secureError, setSecureError] = useState<string | null>(null);
   const [listing, setListing] = useState<any>(null);
   const [loggedInEmail, setLoggedInEmail] = useState<string | null>(null);
-  const [booking, setBooking] = useState<any>(null);
 
   /* -----------------------------------------
-     NEW: Poll Supabase until booking exists
+     Poll Supabase until booking exists
   -----------------------------------------*/
   async function pollForBooking(session_id: string) {
     const maxAttempts = 10;
-    const delay = 1000; // 1 sec
+    const delay = 1200; // 1.2 sec
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       const { data, error } = await supabase
@@ -50,31 +50,27 @@ function SuccessBookingContent() {
 
       if (data) return data;
 
-      // wait 1 second then check again
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
 
-    return null; // booking never appeared
+    return null;
   }
 
   useEffect(() => {
     async function load() {
-      // ⭐ If no session_id, show correct error
       if (!session_id) {
-        setSecureError(
-          "Missing session ID. Your booking is complete, but this page did not receive the confirmation code."
-        );
+        setSecureError("Missing session ID.");
         setLoading(false);
         return;
       }
 
       try {
-        // 1) Load logged-in user
+        // Logged-in user (optional)
         const { data: userData } = await supabase.auth.getUser();
         const email = userData?.user?.email || null;
         setLoggedInEmail(email);
 
-        // 2) POLL FOR BOOKING
+        // Wait for booking
         const bookingData = await pollForBooking(session_id);
 
         if (!bookingData) {
@@ -85,9 +81,7 @@ function SuccessBookingContent() {
           return;
         }
 
-        setBooking(bookingData);
-
-        // 3) Fetch listing details
+        // Load listing details
         const { data: listingData, error: listingError } = await supabase
           .from("listings")
           .select("*")
@@ -118,7 +112,7 @@ function SuccessBookingContent() {
   if (loading) return <Loading message="Loading your booking…" />;
 
   /* -----------------------------
-     Stripe Error or Delay Message
+     Stripe Error
   ------------------------------*/
   if (secureError) {
     return (
@@ -145,7 +139,7 @@ function SuccessBookingContent() {
   const isLoggedIn = Boolean(loggedInEmail);
 
   /* -----------------------------
-     SUCCESS PAGE (Guest + Logged-In)
+     Success UI
   ------------------------------*/
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-green-50 to-green-100 text-center p-6">
@@ -158,14 +152,7 @@ function SuccessBookingContent() {
         className="mb-6"
       >
         <div className="w-24 h-24 rounded-full bg-green-500 flex items-center justify-center shadow-lg">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-14 w-14 text-white"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-14 w-14 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         </div>
@@ -197,20 +184,18 @@ function SuccessBookingContent() {
           </h2>
 
           {listing.pickup_instructions ? (
-            <p className="text-gray-700 whitespace-pre-line">
-              {listing.pickup_instructions}
-            </p>
+            <p className="text-gray-700 whitespace-pre-line">{listing.pickup_instructions}</p>
           ) : (
             <p className="text-gray-500">No pickup instructions provided.</p>
           )}
 
           <p className="mt-4 text-sm text-gray-500">
-            Log in to view the private address and full booking details.
+            Log in to view private address and booking details.
           </p>
         </div>
       )}
 
-      {/* Logged-in View */}
+      {/* Logged-In View */}
       {isLoggedIn && (
         <div className="max-w-xl w-full bg-white shadow-lg border border-gray-200 rounded-2xl p-6 text-left">
           <h2 className="text-xl font-semibold text-green-700 mb-4">
@@ -226,9 +211,7 @@ function SuccessBookingContent() {
 
           {listing.private_instructions && (
             <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-4">
-              <h3 className="font-semibold text-green-700 mb-2">
-                Private Instructions
-              </h3>
+              <h3 className="font-semibold text-green-700 mb-2">Private Instructions</h3>
               <p className="text-gray-700 whitespace-pre-line">
                 {listing.private_instructions}
               </p>
@@ -237,9 +220,7 @@ function SuccessBookingContent() {
 
           {listing.pickup_instructions && (
             <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <h3 className="font-semibold text-yellow-700 mb-2">
-                Pickup Instructions
-              </h3>
+              <h3 className="font-semibold text-yellow-700 mb-2">Pickup Instructions</h3>
               <p className="text-gray-700 whitespace-pre-line">
                 {listing.pickup_instructions}
               </p>
