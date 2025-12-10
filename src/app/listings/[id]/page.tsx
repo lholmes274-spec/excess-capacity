@@ -67,11 +67,11 @@ export default function ListingDetailPage() {
     fetchListing();
   }, [id]);
 
-  // Only show "not found" if done loading AND nothing exists
+  // Not found
   if (!loading && !listing)
     return <div className="p-8 text-red-500">Listing not found.</div>;
 
-  // While loading, show skeleton shell
+  // Loading UI
   if (loading && !listing) {
     return (
       <div className="max-w-3xl mx-auto p-8 bg-white rounded-2xl mt-6 border border-gray-100">
@@ -104,7 +104,6 @@ export default function ListingDetailPage() {
 
   const finalImages = buildImageList(listing);
 
-  // Format pricing
   const formattedPricing =
     listing.pricing_type ? listing.pricing_type.replace("_", " ") : "per unit";
 
@@ -195,15 +194,8 @@ export default function ListingDetailPage() {
         </div>
       )}
 
-      {/* CONTACT INFO */}
-      <div className="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
-        <h3 className="font-semibold text-gray-800 mb-2">
-          Contact Information
-        </h3>
-        <p><strong>Contact:</strong> {listing.contact_name || "—"}</p>
-        <p><strong>Phone:</strong> {listing.contact_phone || "—"}</p>
-        <p><strong>Email:</strong> {listing.contact_email || "—"}</p>
-      </div>
+      {/* CONTACT INFO REMOVED — PRIVACY LIKE AIRBNB */}
+      {/* Private contact details only shown after booking, not here */}
 
       {/* CHECKOUT BUTTON */}
       <button
