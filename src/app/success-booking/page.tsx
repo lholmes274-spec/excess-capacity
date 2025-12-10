@@ -46,14 +46,25 @@ function SuccessBookingContent() {
   const [booking, setBooking] = useState<any>(null);
 
   /* -----------------------------------------
-     POLL SUPABASE UNTIL BOOKING EXISTS (5 sec)
+     Supabase client WITH session header
+  -----------------------------------------*/
+  function supabaseWithSession() {
+    return supabase.withHeaders({
+      "x-session-id": session_id || "",
+    });
+  }
+
+  /* -----------------------------------------
+     POLL FOR BOOKING (5 seconds max)
   -----------------------------------------*/
   async function pollForBooking(session_id: string) {
-    const maxAttempts = 5;   // was 30
-    const delay = 1000;      // 1 sec
+    const maxAttempts = 5;
+    const delay = 1000;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      const { data } = await supabase
+      const client = supabaseWithSession();
+
+      const { data } = await client
         .from("bookings")
         .select("*")
         .eq("stripe_session_id", session_id)
@@ -81,6 +92,7 @@ function SuccessBookingContent() {
         const email = userData?.user?.email || null;
         setLoggedInEmail(email);
 
+        // LOAD BOOKING WITH HEADER
         const bookingData = await pollForBooking(session_id);
 
         if (!bookingData) {
@@ -93,7 +105,7 @@ function SuccessBookingContent() {
 
         setBooking(bookingData);
 
-        // Load listing
+        // LOAD LISTING (no RLS issue)
         const { data: listingData } = await supabase
           .from("listings")
           .select("*")
@@ -171,16 +183,7 @@ function SuccessBookingContent() {
         Booking Confirmed 🎉
       </motion.h1>
 
-      <motion.p
-        className="text-gray-700 max-w-md mb-2"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.4, duration: 0.8 }}
-      >
-        Your booking was completed on:
-      </motion.p>
-
-      {/* ⭐ Display Local Time */}
+      {/* Local time */}
       <motion.p
         className="text-lg font-semibold text-green-800 mb-8"
         initial={{ opacity: 0 }}
@@ -190,8 +193,8 @@ function SuccessBookingContent() {
         {formatLocalTime(booking?.created_at)}
       </motion.p>
 
-      {/* Guest View */}
-      {!isLoggedIn && (
+      {/* Guest + Logged-in view (unchanged) */}
+      {!isLoggedIn ? (
         <div className="max-w-xl w-full bg-white shadow-lg border border-gray-200 rounded-2xl p-6 text-left">
           <h2 className="text-xl font-semibold text-green-700 mb-2">
             Public Pickup Instructions
@@ -209,10 +212,7 @@ function SuccessBookingContent() {
             Log in to view the private address and full booking details.
           </p>
         </div>
-      )}
-
-      {/* Logged-in View */}
-      {isLoggedIn && (
+      ) : (
         <div className="max-w-xl w-full bg-white shadow-lg border border-gray-200 rounded-2xl p-6 text-left">
           <h2 className="text-xl font-semibold text-green-700 mb-4">
             🔒 Your Booking Details
