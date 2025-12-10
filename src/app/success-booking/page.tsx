@@ -46,11 +46,11 @@ function SuccessBookingContent() {
   const [booking, setBooking] = useState<any>(null);
 
   /* -----------------------------------------
-     POLL SUPABASE UNTIL BOOKING EXISTS (30 sec)
+     POLL SUPABASE UNTIL BOOKING EXISTS (5 sec)
   -----------------------------------------*/
   async function pollForBooking(session_id: string) {
-    const maxAttempts = 30;
-    const delay = 1000;
+    const maxAttempts = 5;   // was 30
+    const delay = 1000;      // 1 sec
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       const { data } = await supabase
