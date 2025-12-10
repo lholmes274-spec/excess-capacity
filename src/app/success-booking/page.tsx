@@ -8,6 +8,20 @@ import { supabase } from "@/lib/supabaseClient";
 import { motion } from "framer-motion";
 
 /* -----------------------------
+   Local Time Formatting
+------------------------------*/
+function formatLocalTime(utcString) {
+  if (!utcString) return "Unknown time";
+  return new Date(utcString).toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+/* -----------------------------
    Loading Component
 ------------------------------*/
 function Loading({ message }) {
@@ -35,11 +49,11 @@ function SuccessBookingContent() {
      POLL SUPABASE UNTIL BOOKING EXISTS (30 sec)
   -----------------------------------------*/
   async function pollForBooking(session_id: string) {
-    const maxAttempts = 30;  // 🔥 Increased from 10 → 30
-    const delay = 1000; // 1 second
+    const maxAttempts = 30;
+    const delay = 1000;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("bookings")
         .select("*")
         .eq("stripe_session_id", session_id)
@@ -50,7 +64,7 @@ function SuccessBookingContent() {
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
 
-    return null; // never appeared
+    return null;
   }
 
   useEffect(() => {
@@ -67,7 +81,6 @@ function SuccessBookingContent() {
         const email = userData?.user?.email || null;
         setLoggedInEmail(email);
 
-        // POLL FOR BOOKING LONGER (30 seconds)
         const bookingData = await pollForBooking(session_id);
 
         if (!bookingData) {
@@ -80,18 +93,12 @@ function SuccessBookingContent() {
 
         setBooking(bookingData);
 
-        // Fetch listing details
-        const { data: listingData, error: listingError } = await supabase
+        // Load listing
+        const { data: listingData } = await supabase
           .from("listings")
           .select("*")
           .eq("id", bookingData.listing_id)
           .single();
-
-        if (listingError || !listingData) {
-          setSecureError("Listing details unavailable.");
-          setLoading(false);
-          return;
-        }
 
         setListing(listingData);
         setLoading(false);
@@ -105,14 +112,8 @@ function SuccessBookingContent() {
     load();
   }, [session_id]);
 
-  /* -----------------------------
-     Loading
-------------------------------*/
   if (loading) return <Loading message="Loading your booking…" />;
 
-  /* -----------------------------
-     Stripe Error or Delay Message
-------------------------------*/
   if (secureError) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-red-50 text-center p-6">
@@ -137,13 +138,10 @@ function SuccessBookingContent() {
 
   const isLoggedIn = Boolean(loggedInEmail);
 
-  /* -----------------------------
-     SUCCESS PAGE (Guest + Logged-In)
-------------------------------*/
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-green-50 to-green-100 text-center p-6">
 
-      {/* Checkmark Animation */}
+      {/* Animated Checkmark */}
       <motion.div
         initial={{ scale: 0, rotate: -45 }}
         animate={{ scale: 1, rotate: 0 }}
@@ -174,12 +172,22 @@ function SuccessBookingContent() {
       </motion.h1>
 
       <motion.p
-        className="text-gray-700 mb-8 max-w-md"
+        className="text-gray-700 max-w-md mb-2"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4, duration: 0.8 }}
       >
-        Thank you! Your booking is complete. The details are shown below.
+        Your booking was completed on:
+      </motion.p>
+
+      {/* ⭐ Display Local Time */}
+      <motion.p
+        className="text-lg font-semibold text-green-800 mb-8"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.6, duration: 0.8 }}
+      >
+        {formatLocalTime(booking?.created_at)}
       </motion.p>
 
       {/* Guest View */}
@@ -203,7 +211,7 @@ function SuccessBookingContent() {
         </div>
       )}
 
-      {/* Logged-In View */}
+      {/* Logged-in View */}
       {isLoggedIn && (
         <div className="max-w-xl w-full bg-white shadow-lg border border-gray-200 rounded-2xl p-6 text-left">
           <h2 className="text-xl font-semibold text-green-700 mb-4">
