@@ -12,7 +12,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-04-10",
 });
 
-// Supabase Service Role (bypasses RLS)
+// Supabase Service Role (bypasses RLS completely)
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -44,19 +44,18 @@ export async function POST(req: Request) {
 
   console.log("🔔 Webhook received:", event.type);
 
-  // ----------------------------
-  // ✅ HANDLE CHECKOUT SUCCESS
-  // ----------------------------
+  // -----------------------------------------------------
+  // ✅ CHECKOUT SUCCESS → CREATE BOOKING
+  // -----------------------------------------------------
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
 
+    // Metadata included from the checkout session
     const listing_id = session.metadata?.listing_id || null;
     const metadataEmail = session.metadata?.user_email || "";
     const metadataUserId = session.metadata?.user_id || null;
 
     const checkoutEmail = session.customer_details?.email;
-
-    // Final resolved buyer email
     const finalEmail =
       metadataEmail && metadataEmail !== "" ? metadataEmail : checkoutEmail;
 
@@ -64,13 +63,24 @@ export async function POST(req: Request) {
       ? session.amount_total / 100
       : null;
 
-    console.log("📌 Booking:", {
+    console.log("📌 Booking metadata resolved:", {
       listing_id,
       metadataUserId,
       finalEmail,
       amountPaid,
       session_id: session.id,
     });
+
+    // -----------------------------------------------------
+    // 🚨 SAFETY CHECK: listing_id MUST exist
+    // -----------------------------------------------------
+    if (!listing_id) {
+      console.error("❌ ERROR: Missing listing_id in metadata");
+      return NextResponse.json(
+        { error: "Missing listing_id in metadata" },
+        { status: 400 }
+      );
+    }
 
     // Fetch owner of listing
     const { data: listingData, error: listingErr } = await supabase
@@ -79,18 +89,33 @@ export async function POST(req: Request) {
       .eq("id", listing_id)
       .single();
 
+    if (listingErr) {
+      console.error("❌ Listing lookup failed:", listingErr);
+      return NextResponse.json(
+        { error: "Listing not found", details: listingErr },
+        { status: 400 }
+      );
+    }
+
     const owner_id = listingData?.owner_id || null;
 
-    // ----------------------------
-    // 🚀 INSERT BOOKING (FIXED)
-    // ----------------------------
+    // -----------------------------------------------------
+    // 🚨 SAFETY CHECK: Assign fallback user_id
+    // -----------------------------------------------------
+    const safeUserId =
+      metadataUserId ??
+      "00000000-0000-0000-0000-000000000000"; // fallback UUID so insert never fails
+
+    // -----------------------------------------------------
+    // 🚀 INSERT BOOKING
+    // -----------------------------------------------------
     const { data: inserted, error: insertErr } = await supabase
       .from("bookings")
       .insert([
         {
           listing_id,
           owner_id,
-          user_id: metadataUserId || null,       // ⭐ FIXED
+          user_id: safeUserId,
           user_email: finalEmail,
           amount_paid: amountPaid,
           stripe_session_id: session.id,
