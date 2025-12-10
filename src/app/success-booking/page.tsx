@@ -31,6 +31,29 @@ function SuccessBookingContent() {
   const [loggedInEmail, setLoggedInEmail] = useState<string | null>(null);
   const [booking, setBooking] = useState<any>(null);
 
+  /* -----------------------------------------
+     NEW: Poll Supabase until booking exists
+  -----------------------------------------*/
+  async function pollForBooking(session_id: string) {
+    const maxAttempts = 10;
+    const delay = 1000; // 1 sec
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      const { data, error } = await supabase
+        .from("bookings")
+        .select("*")
+        .eq("stripe_session_id", session_id)
+        .maybeSingle();
+
+      if (data) return data;
+
+      // wait 1 second then check again
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+
+    return null; // booking never appeared
+  }
+
   useEffect(() => {
     async function load() {
       if (!session_id) {
@@ -40,27 +63,25 @@ function SuccessBookingContent() {
       }
 
       try {
-        // 🔹 1) Check login status
+        // 1) Load logged-in user (to decide guest vs logged-in view)
         const { data: userData } = await supabase.auth.getUser();
         const email = userData?.user?.email || null;
         setLoggedInEmail(email);
 
-        // 🔹 2) Fetch booking from Supabase
-        const { data: bookingData, error: bookingError } = await supabase
-          .from("bookings")
-          .select("*")
-          .eq("stripe_session_id", session_id)
-          .single();
+        // 2) POLL FOR BOOKING (instead of 1 single check)
+        const bookingData = await pollForBooking(session_id);
 
-        if (bookingError || !bookingData) {
-          setSecureError("Booking not found. Payment may still be processing.");
+        if (!bookingData) {
+          setSecureError(
+            "Your payment is complete, but your booking is still processing. Please refresh in a moment."
+          );
           setLoading(false);
           return;
         }
 
         setBooking(bookingData);
 
-        // 🔹 3) Fetch listing details
+        // 3) Fetch listing details
         const { data: listingData, error: listingError } = await supabase
           .from("listings")
           .select("*")
@@ -91,12 +112,20 @@ function SuccessBookingContent() {
   if (loading) return <Loading message="Loading your booking…" />;
 
   /* -----------------------------
-     Stripe Error
+     Stripe Error or Delay Message
   ------------------------------*/
   if (secureError) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-red-50 text-center p-6">
         <p className="text-red-600 text-xl font-semibold mb-3">❌ {secureError}</p>
+
+        <button
+          onClick={() => window.location.reload()}
+          className="px-6 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition mb-4"
+        >
+          Refresh Page
+        </button>
+
         <Link
           href="/"
           className="px-6 py-3 bg-gray-700 text-white rounded-lg shadow hover:bg-gray-800 transition"
