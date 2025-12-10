@@ -50,10 +50,10 @@ export async function POST(req: Request) {
       );
     }
 
-    // Supabase client with cookie auth
+    // Supabase client with cookie auth (VERY IMPORTANT)
     const supabase = createRouteHandlerClient({ cookies });
 
-    // Fetch listing
+    // Fetch listing info
     const { data: listing, error: listingError } = await supabase
       .from("listings")
       .select("*")
@@ -67,29 +67,32 @@ export async function POST(req: Request) {
       );
     }
 
-    // Logged-in user?
+    // Logged-in user check
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
-    const userId = user?.id || "";
-    const userEmail = user?.email || "";
+    // 🔥 FIX #1 — DO NOT USE EMPTY STRINGS
+    const userId = user?.id ?? null;
+    const userEmail = user?.email ?? null;
 
-    // Build label for Stripe
+    // Pricing wording for Stripe
     const pricingLabel = formatPricingUnit(listing.pricing_type);
 
+    // Create checkout session
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
       billing_address_collection: "required",
 
-      // Preload email if logged in
+      // Pre-fill Stripe email if logged in
       customer_email: userEmail || undefined,
 
+      // 🔥 FIX #2 — Metadata must NEVER be empty strings
       metadata: {
         listing_id,
-        user_id: userId,
-        user_email: userEmail,
+        user_id: userId ?? "guest", // guests labeled safely
+        user_email: userEmail ?? "",
         pricing_type: listing.pricing_type,
       },
 
@@ -107,7 +110,9 @@ export async function POST(req: Request) {
         },
       ],
 
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
+      // 🔥 FIX #3 — Correct success page route
+      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success-booking?session_id={CHECKOUT_SESSION_ID}`,
+
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/canceled`,
     });
 
@@ -115,7 +120,7 @@ export async function POST(req: Request) {
   } catch (err: any) {
     console.error("Checkout session error:", err);
     return NextResponse.json(
-      { error: "Failed to create checkout session" },
+      { error: "Failed to create checkout session", details: err.message },
       { status: 500 }
     );
   }
