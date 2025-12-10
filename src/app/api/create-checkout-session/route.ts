@@ -1,129 +1,121 @@
 // @ts-nocheck
-import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { createClient } from "@supabase/supabase-js";
+import { cookies } from "next/headers";
+import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
 
 export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
 
-// Stripe client
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-04-10",
 });
 
-// Supabase Service Role (bypasses RLS)
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Convert pricing type for Stripe display
+function formatPricingUnit(type: string) {
+  switch (type) {
+    case "per_hour":
+      return "per hour";
+    case "per_day":
+      return "per day";
+    case "per_week":
+      return "per week";
+    case "per_month":
+      return "per month";
+    case "per_use":
+      return "per use";
+    case "per_item":
+      return "per item";
+    case "per_service":
+      return "per service";
+    case "per_trip":
+      return "per trip";
+    case "for_sale":
+      return "for sale";
+    case "flat_rate":
+      return "flat rate";
+    default:
+      return "per unit";
+  }
+}
 
 export async function POST(req: Request) {
-  const sig = headers().get("stripe-signature");
-  const body = await req.text();
-
-  if (!sig) {
-    return NextResponse.json({ error: "Missing Stripe signature" }, { status: 400 });
-  }
-
-  let event;
-
   try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    );
-  } catch (err) {
-    console.error("❌ Invalid signature:", err);
-    return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
-  }
+    const body = await req.json();
+    const { listing_id } = body;
 
-  console.log("🔔 Webhook received:", event.type);
-
-  // -----------------------------------------------------
-  // HANDLE CHECKOUT SUCCESS
-  // -----------------------------------------------------
-  if (event.type === "checkout.session.completed") {
-    const session = event.data.object;
-
-    // Metadata from Stripe
-    const listing_id = session.metadata?.listing_id ?? null;
-    const rawUserId = session.metadata?.user_id ?? null;
-    const rawEmail = session.metadata?.user_email ?? null;
-
-    // Convert Stripe amount_total to dollars
-    const amountPaid = session.amount_total
-      ? session.amount_total / 100
-      : null;
-
-    // -----------------------------------------------------
-    // FIXED USER ID HANDLING ("0" = guest)
-    // -----------------------------------------------------
-    const user_id = rawUserId === "0" ? null : rawUserId;
-
-    // Email fallback: metadata → Stripe customer email
-    const user_email = rawEmail || session.customer_details?.email || null;
-
-    // -----------------------------------------------------
-    // SAFETY CHECK
-    // -----------------------------------------------------
     if (!listing_id) {
-      console.error("❌ Missing listing_id in metadata");
       return NextResponse.json(
-        { error: "Missing listing_id in metadata" },
+        { error: "Missing listing_id" },
         { status: 400 }
       );
     }
 
-    // -----------------------------------------------------
-    // LOOKUP LISTING OWNER
-    // -----------------------------------------------------
-    const { data: listingData, error: listingErr } = await supabase
+    // Supabase auth client
+    const supabase = createRouteHandlerClient({ cookies });
+
+    // Load listing
+    const { data: listing, error: listingError } = await supabase
       .from("listings")
-      .select("owner_id")
+      .select("*")
       .eq("id", listing_id)
       .single();
 
-    if (listingErr || !listingData) {
-      console.error("❌ Listing lookup failed:", listingErr);
+    if (listingError || !listing) {
       return NextResponse.json(
-        { error: "Listing not found", details: listingErr },
-        { status: 400 }
+        { error: "Listing not found" },
+        { status: 404 }
       );
     }
 
-    const owner_id = listingData.owner_id;
+    // Logged-in?
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    // -----------------------------------------------------
-    // INSERT BOOKING (WORKS FOR GUESTS + LOGGED-IN USERS)
-    // -----------------------------------------------------
-    const { error: insertErr } = await supabase.from("bookings").insert([
-      {
-        listing_id,
-        owner_id,
-        user_id,              // UUID or NULL
-        user_email,
-        amount_paid: amountPaid,
-        stripe_session_id: session.id,
-        status: "paid",
+    // Always string values — critical for Stripe metadata
+    const userId = user?.id ? String(user.id) : "0";
+    const userEmail = user?.email ? String(user.email) : "unknown";
+
+    const pricingLabel = formatPricingUnit(listing.pricing_type);
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      payment_method_types: ["card"],
+      billing_address_collection: "required",
+
+      customer_email: user?.email || undefined,
+
+      metadata: {
+        listing_id: String(listing_id),
+        user_id: String(userId),
+        user_email: String(userEmail),
+        pricing_type: String(listing.pricing_type),
       },
-    ]);
 
-    if (insertErr) {
-      console.error("❌ SUPABASE INSERT FAILED:", insertErr);
-      return NextResponse.json(
-        { error: "Insert failed", details: insertErr },
-        { status: 500 }
-      );
-    }
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: listing.title,
+              description: pricingLabel,
+            },
+            unit_amount: Math.round(Number(listing.baseprice) * 100),
+          },
+          quantity: 1,
+        },
+      ],
 
-    console.log("✅ Booking inserted successfully!");
+      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success-booking?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/canceled`,
+    });
+
+    return NextResponse.json({ url: session.url });
+  } catch (err: any) {
+    console.error("Checkout session error:", err);
+    return NextResponse.json(
+      { error: "Failed to create checkout session", details: err.message },
+      { status: 500 }
+    );
   }
-
-  return NextResponse.json({ received: true }, { status: 200 });
-}
-
-export async function GET() {
-  return NextResponse.json({ error: "Method Not Allowed" }, { status: 405 });
 }
