@@ -15,23 +15,20 @@ export async function POST(req: Request) {
       );
     }
 
-    // 1️⃣ MUST USE COOKIE-BASED CLIENT
+    // 1️⃣ Create cookie-based Supabase client (REQUIRED)
     const supabase = createRouteHandlerClient({ cookies });
 
-    // 2️⃣ Get logged-in user
+    // 2️⃣ Get session → this is the ONLY method that works in API routes
     const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
 
-    if (!user) {
-      return NextResponse.json(
-        { error: "Not authenticated" },
-        { status: 401 }
-      );
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const user_id = user.id;
+    const user_id = session.user.id;
 
     // 3️⃣ Fetch listing to verify owner
     const { data: listing, error: listingError } = await supabase
@@ -49,12 +46,12 @@ export async function POST(req: Request) {
 
     if (listing.owner_id !== user_id) {
       return NextResponse.json(
-        { error: "Unauthorized" },
+        { error: "Unauthorized: You do not own this listing" },
         { status: 403 }
       );
     }
 
-    // 4️⃣ Delete listing (RLS now passes)
+    // 4️⃣ Delete listing (passes RLS)
     const { error: deleteError } = await supabase
       .from("listings")
       .delete()
@@ -69,7 +66,6 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ success: true }, { status: 200 });
-
   } catch (err) {
     console.error("Delete listing route error:", err);
     return NextResponse.json(
