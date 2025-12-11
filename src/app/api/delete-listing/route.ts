@@ -1,9 +1,10 @@
 // @ts-nocheck
 import { NextResponse } from "next/server";
+import { createRouteHandlerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
@@ -16,43 +17,39 @@ export async function POST(req: Request) {
       );
     }
 
-    // IMPORTANT — wrap cookies in a function so Supabase can call .get()
-    const cookieStore = cookies();
+    // ✔ CORRECT Supabase SSR client (fixes context.cookies errors)
+    const supabase = createRouteHandlerClient(
+      { cookies },
+      {
+        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      }
+    );
 
-    const supabase = createRouteHandlerClient({
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name);
-        },
-      },
-    });
-
-    // Load auth session
+    // ✔ Load session with SSR-safe client
     const {
       data: { session },
       error: sessionError,
     } = await supabase.auth.getSession();
 
-    if (sessionError) console.log("Session Error:", sessionError);
-    console.log("SESSION:", session);
+    if (sessionError) {
+      console.error("SESSION ERROR:", sessionError);
+    }
 
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Not authenticated" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
     const user_id = session.user.id;
 
-    // Verify ownership
-    const { data: listing, error: listingErr } = await supabase
+    // ✔ Confirm this user owns the listing
+    const { data: listing, error: fetchErr } = await supabase
       .from("listings")
       .select("owner_id")
       .eq("id", listing_id)
       .single();
 
-    if (listingErr || !listing) {
+    if (fetchErr || !listing) {
       return NextResponse.json(
         { error: "Listing not found" },
         { status: 404 }
@@ -66,23 +63,23 @@ export async function POST(req: Request) {
       );
     }
 
-    // Delete the listing
+    // ✔ Delete (RLS will allow it now)
     const { error: deleteErr } = await supabase
       .from("listings")
       .delete()
       .eq("id", listing_id);
 
     if (deleteErr) {
-      console.log("DELETE ERROR:", deleteErr);
+      console.error("DELETE ERROR:", deleteErr);
       return NextResponse.json(
         { error: deleteErr.message },
         { status: 500 }
       );
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true }, { status: 200 });
   } catch (err) {
-    console.log("SERVER ERROR:", err);
+    console.error("SERVER ERROR:", err);
     return NextResponse.json(
       { error: "Internal server error", detail: err },
       { status: 500 }
