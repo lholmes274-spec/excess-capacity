@@ -21,7 +21,6 @@ export async function POST(req: Request) {
     // 2️⃣ Load user session
     const {
       data: { session },
-      error: sessionError,
     } = await supabase.auth.getSession();
 
     if (!session?.user?.id) {
@@ -30,10 +29,10 @@ export async function POST(req: Request) {
 
     const user_id = session.user.id;
 
-    // 3️⃣ Fetch listing to verify owner (FIXED: correct column is user_id)
+    // 3️⃣ Verify the listing exists and belongs to this user
     const { data: listing, error: listingError } = await supabase
       .from("listings")
-      .select("user_id")
+      .select("owner_id")
       .eq("id", listing_id)
       .single();
 
@@ -44,15 +43,14 @@ export async function POST(req: Request) {
       );
     }
 
-    // 4️⃣ Correct ownership check
-    if (listing.user_id !== user_id) {
+    if (listing.owner_id !== user_id) {
       return NextResponse.json(
         { error: "Unauthorized: You do not own this listing" },
         { status: 403 }
       );
     }
 
-    // 5️⃣ Delete listing
+    // 4️⃣ Delete listing
     const { error: deleteError } = await supabase
       .from("listings")
       .delete()
