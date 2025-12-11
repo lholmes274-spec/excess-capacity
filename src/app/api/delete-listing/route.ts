@@ -15,13 +15,18 @@ export async function POST(req: Request) {
       );
     }
 
-    // 1️⃣ Correct way to pass cookies to Supabase
-    const supabase = createRouteHandlerClient({ cookies: cookies() });
+    // ✅ FIXED: correct Supabase client for server-side auth
+    const supabase = createRouteHandlerClient({ cookies });
 
-    // 2️⃣ Load user session
+    // ✅ Load authenticated session
     const {
       data: { session },
+      error: sessionError,
     } = await supabase.auth.getSession();
+
+    if (sessionError) {
+      console.error("Session load error:", sessionError);
+    }
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
@@ -29,14 +34,15 @@ export async function POST(req: Request) {
 
     const user_id = session.user.id;
 
-    // 3️⃣ Fetch listing to confirm ownership (owner_id)
+    // ✅ Confirm listing exists & belongs to user
     const { data: listing, error: listingError } = await supabase
       .from("listings")
       .select("owner_id")
       .eq("id", listing_id)
       .single();
 
-    if (!listing) {
+    if (listingError) {
+      console.error("Listing load error:", listingError);
       return NextResponse.json(
         { error: "Listing not found" },
         { status: 404 }
@@ -50,7 +56,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 4️⃣ Delete listing (RLS will allow because owner_id matches auth.uid())
+    // ✅ Delete listing (RLS will allow it)
     const { error: deleteError } = await supabase
       .from("listings")
       .delete()
