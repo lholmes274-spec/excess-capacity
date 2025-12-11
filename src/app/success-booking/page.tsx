@@ -8,16 +8,21 @@ import { supabase } from "@/lib/supabaseClient";
 import { motion } from "framer-motion";
 
 /* -----------------------------
-   Local Time Formatting
+   Local Time Formatting — FIXED
 ------------------------------*/
 function formatLocalTime(utcString) {
   if (!utcString) return "Unknown time";
-  return new Date(utcString).toLocaleString(undefined, {
+
+  // Ensure timestamp is interpreted as UTC
+  const date = new Date(utcString + "Z");
+
+  return date.toLocaleString(undefined, {
     year: "numeric",
     month: "short",
     day: "numeric",
-    hour: "2-digit",
+    hour: "numeric",
     minute: "2-digit",
+    hour12: true,
   });
 }
 
@@ -53,7 +58,7 @@ function SuccessBookingContent() {
     const delay = 1000;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("bookings")
         .select("*")
         .eq("stripe_session_id", session_id)
@@ -94,7 +99,7 @@ function SuccessBookingContent() {
 
         setBooking(bookingData);
 
-        // Load listing normally — guests allowed via RLS public columns
+        // Fetch listing
         const { data: listingData, error: listingError } = await supabase
           .from("listings")
           .select("*")
