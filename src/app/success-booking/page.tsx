@@ -33,7 +33,7 @@ function Loading({ message }) {
 }
 
 /* -----------------------------
-   Success Page Content
+   Success Page
 ------------------------------*/
 function SuccessBookingContent() {
   const searchParams = useSearchParams();
@@ -46,31 +46,21 @@ function SuccessBookingContent() {
   const [booking, setBooking] = useState<any>(null);
 
   /* -----------------------------------------
-     NEW: Supabase client WITH RLS session header
-  -----------------------------------------*/
-  function supabaseWithSession() {
-    return supabase.withHeaders({
-      "x-session-id": session_id || "",
-    });
-  }
-
-  /* -----------------------------------------
      POLL FOR BOOKING — 5 seconds total
   -----------------------------------------*/
   async function pollForBooking(session_id: string) {
-    const maxAttempts = 5; // 5 attempts
-    const delay = 1000; // 1 second each
+    const maxAttempts = 5;
+    const delay = 1000;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      const client = supabaseWithSession();
-
-      const { data, error } = await client
+      const { data, error } = await supabase
         .from("bookings")
         .select("*")
         .eq("stripe_session_id", session_id)
         .maybeSingle();
 
       if (data) return data;
+
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
 
@@ -104,9 +94,8 @@ function SuccessBookingContent() {
 
         setBooking(bookingData);
 
-        // Load listing WITH HEADER (required for RLS)
-        const client = supabaseWithSession();
-        const { data: listingData, error: listingError } = await client
+        // Load listing normally — guests allowed via RLS public columns
+        const { data: listingData, error: listingError } = await supabase
           .from("listings")
           .select("*")
           .eq("id", bookingData.listing_id)
