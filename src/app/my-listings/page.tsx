@@ -56,9 +56,8 @@ export default function MyListingsPage() {
     setDeleteTarget(null);
   }
 
-  // Delete listing
+  // Delete listing (UPDATED)
   async function deleteListing(listingId) {
-    // NEW STEP → Ask user FIRST
     const confirmDelete = confirm("Are you sure you want to delete this listing?");
     if (!confirmDelete) return;
 
@@ -70,19 +69,22 @@ export default function MyListingsPage() {
       body: JSON.stringify({
         listing_id: listingId,
       }),
+      credentials: "include", // 🔥 REQUIRED so Supabase sends session cookie
     });
 
     setDeleting(false);
 
     if (!res.ok) {
+      const err = await res.json().catch(() => null);
+      console.error("Delete failed:", err);
       alert("Failed to delete listing.");
       return;
     }
 
-    // Small delay so UI doesn’t feel abrupt
-    await new Promise((resolve) => setTimeout(resolve, 400));
+    // Smooth UI removal
+    await new Promise((resolve) => setTimeout(resolve, 300));
 
-    // Remove from UI
+    // Remove from listings
     setListings((prev) => prev.filter((l) => l.id !== listingId));
 
     // Close modal
@@ -158,7 +160,7 @@ export default function MyListingsPage() {
                   </p>
                 )}
 
-                {/* Button Row */}
+                {/* Buttons */}
                 <div className="flex justify-between mt-2">
                   <Link
                     href={`/listings/${listing.id}`}
