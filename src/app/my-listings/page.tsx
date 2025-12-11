@@ -62,7 +62,11 @@ export default function MyListingsPage() {
 
     const res = await fetch("/api/delete-listing", {
       method: "POST",
-      body: JSON.stringify({ listing_id: listingId }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        listing_id: listingId,
+        user_id: userId, // ⭐ REQUIRED FOR AUTH CHECK
+      }),
     });
 
     setDeleting(false);
