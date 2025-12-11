@@ -1,7 +1,8 @@
 // @ts-nocheck
 import { NextResponse } from "next/server";
-import { createRouteHandlerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { createRouteHandlerClient } from "@supabase/ssr";
+import type { Database } from "@/types/supabase";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -17,8 +18,8 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✔ CORRECT Supabase SSR client (NOT auth-helpers)
-    const supabase = createRouteHandlerClient(
+    // ✔ Correct Supabase SSR client
+    const supabase = createRouteHandlerClient<Database>(
       { cookies },
       {
         supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -26,21 +27,24 @@ export async function POST(req: Request) {
       }
     );
 
-    // ✔ Load session
+    // ✔ Get logged-in session
     const {
       data: { session },
       error: sessionError,
     } = await supabase.auth.getSession();
 
-    if (sessionError) console.log("Session Error:", sessionError);
+    if (sessionError) console.log("Session error:", sessionError);
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Not authenticated" },
+        { status: 401 }
+      );
     }
 
     const user_id = session.user.id;
 
-    // ✔ Verify booking belongs to this user
+    // ✔ Fetch booking to confirm ownership
     const { data: booking, error: lookupError } = await supabase
       .from("bookings")
       .select("user_id")
@@ -61,7 +65,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✔ Delete booking
+    // ✔ Delete the booking
     const { error: deleteError } = await supabase
       .from("bookings")
       .delete()
@@ -70,17 +74,16 @@ export async function POST(req: Request) {
     if (deleteError) {
       console.error("Delete error:", deleteError);
       return NextResponse.json(
-        { error: deleteError.message },
+        { error: "Failed to delete booking" },
         { status: 500 }
       );
     }
 
-    return NextResponse.json({ success: true }, { status: 200 });
-
+    return NextResponse.json({ success: true });
   } catch (err) {
-    console.error("SERVER ERROR:", err);
+    console.error("Delete route error:", err);
     return NextResponse.json(
-      { error: "Internal server error", detail: err },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }
