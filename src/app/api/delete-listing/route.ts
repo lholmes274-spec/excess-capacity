@@ -1,7 +1,6 @@
 // @ts-nocheck
 import { NextResponse } from "next/server";
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
-import { cookies } from "next/headers";
+import { createClient } from "@supabase/supabase-js";
 
 export const dynamic = "force-dynamic";
 
@@ -11,20 +10,36 @@ export async function POST(req: Request) {
     if (!listing_id)
       return NextResponse.json({ error: "Missing listing_id" }, { status: 400 });
 
-    // 1️⃣ Create a server client WITH cookies (required to get user)
-    const supabase = createRouteHandlerClient({ cookies });
+    // 1️⃣ Extract JWT token from Authorization header
+    const authHeader = req.headers.get("Authorization") || "";
+    const token = authHeader.replace("Bearer ", "");
 
-    // 2️⃣ Get logged-in user
+    if (!token)
+      return NextResponse.json({ error: "Missing auth token" }, { status: 401 });
+
+    // 2️⃣ Public client to validate the user
+    const supabaseAuth = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+
     const {
       data: { user },
-    } = await supabase.auth.getUser();
+      error: userError,
+    } = await supabaseAuth.auth.getUser(token);
 
-    if (!user)
+    if (userError || !user)
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
 
     const user_id = user.id;
 
-    // 3️⃣ Load listing to verify ownership
+    // 3️⃣ Service role client to bypass RLS during delete logic
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    // 4️⃣ Verify listing ownership
     const { data: listing } = await supabase
       .from("listings")
       .select("owner_id")
@@ -40,7 +55,7 @@ export async function POST(req: Request) {
         { status: 403 }
       );
 
-    // 4️⃣ Delete listing (RLS now allows it)
+    // 5️⃣ Delete listing
     const { error: deleteError } = await supabase
       .from("listings")
       .delete()

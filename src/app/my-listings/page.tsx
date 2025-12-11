@@ -56,17 +56,22 @@ export default function MyListingsPage() {
     setDeleteTarget(null);
   }
 
-  // Delete listing
+  // ⭐ DELETE LISTING WITH AUTH TOKEN
   async function deleteListing(listingId) {
     setDeleting(true);
 
+    // Get logged-in session token
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
     const res = await fetch("/api/delete-listing", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        listing_id: listingId,
-        user_id: userId, // ⭐ REQUIRED FOR AUTH CHECK
-      }),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session?.access_token}`, // ⭐ REQUIRED
+      },
+      body: JSON.stringify({ listing_id: listingId }),
     });
 
     setDeleting(false);
@@ -118,7 +123,6 @@ export default function MyListingsPage() {
             const thumbnail =
               listing.image_urls?.[0] || listing.image_url || null;
 
-            // ⭐ FORMAT PRICING DISPLAY
             const priceDisplay = listing.pricing_type
               ? `/ ${listing.pricing_type.replace("_", " ")}`
               : "";
@@ -142,7 +146,6 @@ export default function MyListingsPage() {
 
                 <h2 className="text-lg font-semibold mb-1">{listing.title}</h2>
 
-                {/* ⭐ UPDATED PRICE WITH PRICING TYPE */}
                 <p className="text-gray-600 text-sm mb-1">
                   ${listing.baseprice} {priceDisplay}
                 </p>
@@ -153,7 +156,6 @@ export default function MyListingsPage() {
                   </p>
                 )}
 
-                {/* Button Row */}
                 <div className="flex justify-between mt-2">
                   <Link
                     href={`/listings/${listing.id}`}
@@ -182,7 +184,6 @@ export default function MyListingsPage() {
         </div>
       )}
 
-      {/* Delete Modal */}
       {deleteTarget && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-40">
           <div className="bg-white p-6 rounded-xl shadow-xl w-80 text-center">
