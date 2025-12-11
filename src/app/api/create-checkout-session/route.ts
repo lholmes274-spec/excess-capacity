@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { cookies } from "next/headers";
-import { createRouteHandlerClient } from "@supabase/ssr";
+import { createServerClient } from "@supabase/ssr";
 import type { Database } from "@/types/supabase";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +12,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-04-10",
 });
 
-// Convert pricing type for Stripe display
+// Human readable pricing unit for Stripe
 function formatPricingUnit(type: string) {
   switch (type) {
     case "per_hour":
@@ -51,16 +51,21 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✔ CORRECT Supabase SSR Client
-    const supabase = createRouteHandlerClient<Database>(
-      { cookies },
+    // 🍪 Correct new SSR Supabase client
+    const cookieStore = cookies();
+    const supabase = createServerClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
-        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        cookies: {
+          get(name) {
+            return cookieStore.get(name)?.value;
+          },
+        },
       }
     );
 
-    // ✔ Fetch listing
+    // Fetch listing
     const { data: listing, error: listingError } = await supabase
       .from("listings")
       .select("*")
@@ -75,26 +80,27 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✔ Load user session
+    // Get logged-in user
     const {
       data: { session },
     } = await supabase.auth.getSession();
 
     const user = session?.user || null;
 
-    // ✔ ALWAYS strings for Stripe metadata
-    const userId = user?.id ? String(user.id) : "0";
+    // Always strings for Stripe metadata
+    const userId = user?.id ? String(user.id) : "0"; // 0 = guest
     const userEmail = user?.email ? String(user.email) : "unknown";
 
     const pricingLabel = formatPricingUnit(listing.pricing_type);
 
-    // ✔ Create Stripe checkout session
+    // Create the Stripe Checkout session
     const stripeSession = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
       billing_address_collection: "required",
 
-      customer_email: userEmail !== "unknown" ? userEmail : undefined,
+      customer_email:
+        userEmail !== "unknown" ? userEmail : undefined,
 
       metadata: {
         listing_id: String(listing_id),
@@ -125,7 +131,10 @@ export async function POST(req: Request) {
   } catch (err) {
     console.error("Checkout session error:", err);
     return NextResponse.json(
-      { error: "Failed to create checkout session", details: `${err}` },
+      {
+        error: "Failed to create checkout session",
+        details: String(err),
+      },
       { status: 500 }
     );
   }
