@@ -14,8 +14,8 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 // Supabase Service Role client (bypasses RLS)
 const supabase = createClient(
-  process.env.SUPABASE_URL!,               // ❗ Use NON-public URL
-  process.env.SUPABASE_SERVICE_ROLE_KEY!   // ❗ Full RLS bypass key
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,     // ✔ FIXED — correct URL
+  process.env.SUPABASE_SERVICE_ROLE_KEY!     // ✔ Service role key
 );
 
 export async function POST(req: Request) {
@@ -23,7 +23,10 @@ export async function POST(req: Request) {
   const body = await req.text();
 
   if (!sig) {
-    return NextResponse.json({ error: "Missing Stripe signature" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Missing Stripe signature" },
+      { status: 400 }
+    );
   }
 
   let event;
@@ -41,30 +44,27 @@ export async function POST(req: Request) {
   console.log("🔔 Webhook received:", event.type);
 
   // -----------------------------------------------------
-  // HANDLE CHECKOUT SUCCESS
+  // CHECKOUT COMPLETED
   // -----------------------------------------------------
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
 
-    // Stripe Metadata
     const listing_id = session.metadata?.listing_id;
     const rawUserId = session.metadata?.user_id;
     const rawEmail = session.metadata?.user_email;
 
-    // Convert Stripe amount_total → dollars
     const amountPaid = session.amount_total
       ? session.amount_total / 100
       : null;
 
     if (!listing_id) {
-      console.error("❌ Missing listing_id in metadata");
+      console.error("❌ Missing listing_id");
       return NextResponse.json(
         { error: "Missing listing_id in metadata" },
         { status: 400 }
       );
     }
 
-    // Guest → null / real user → UUID
     const user_id = rawUserId === "0" ? null : rawUserId;
 
     const user_email =
@@ -82,9 +82,9 @@ export async function POST(req: Request) {
       .single();
 
     if (listingErr || !listingData) {
-      console.error("❌ Listing lookup failed:", listingErr);
+      console.error("❌ Owner lookup failed:", listingErr);
       return NextResponse.json(
-        { error: "Listing not found", details: listingErr },
+        { error: "Listing owner lookup failed" },
         { status: 400 }
       );
     }
@@ -92,7 +92,7 @@ export async function POST(req: Request) {
     const owner_id = listingData.owner_id;
 
     // -----------------------------------------------------
-    // INSERT BOOKING INTO SUPABASE USING SERVICE ROLE
+    // INSERT BOOKING USING SERVICE ROLE
     // -----------------------------------------------------
     const { error: insertErr } = await supabase.from("bookings").insert([
       {

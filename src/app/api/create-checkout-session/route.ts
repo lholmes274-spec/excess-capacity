@@ -1,12 +1,12 @@
 // @ts-nocheck
-
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { cookies } from "next/headers";
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
+import { createRouteHandlerClient } from "@supabase/ssr";
 import type { Database } from "@/types/supabase";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-04-10",
@@ -42,8 +42,7 @@ function formatPricingUnit(type: string) {
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { listing_id } = body;
+    const { listing_id } = await req.json();
 
     if (!listing_id) {
       return NextResponse.json(
@@ -52,15 +51,16 @@ export async function POST(req: Request) {
       );
     }
 
-    // 🍪 Correct server-side Supabase client with PKCE-safe cookie adapter
-    const cookieStore = cookies();
-    const supabase = createRouteHandlerClient<Database>({
-      cookies: {
-        get: (name: string) => cookieStore.get(name)?.value,
-      },
-    });
+    // ✔ CORRECT Supabase SSR Client
+    const supabase = createRouteHandlerClient<Database>(
+      { cookies },
+      {
+        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      }
+    );
 
-    // Load listing
+    // ✔ Fetch listing
     const { data: listing, error: listingError } = await supabase
       .from("listings")
       .select("*")
@@ -68,27 +68,28 @@ export async function POST(req: Request) {
       .single();
 
     if (listingError || !listing) {
+      console.error("Listing fetch error:", listingError);
       return NextResponse.json(
         { error: "Listing not found" },
         { status: 404 }
       );
     }
 
-    // Load logged-in user (session)
+    // ✔ Load user session
     const {
       data: { session },
     } = await supabase.auth.getSession();
 
     const user = session?.user || null;
 
-    // Metadata must ALWAYS be strings
+    // ✔ ALWAYS strings for Stripe metadata
     const userId = user?.id ? String(user.id) : "0";
     const userEmail = user?.email ? String(user.email) : "unknown";
 
     const pricingLabel = formatPricingUnit(listing.pricing_type);
 
-    // Create Stripe Checkout session
-    const sessionStripe = await stripe.checkout.sessions.create({
+    // ✔ Create Stripe checkout session
+    const stripeSession = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
       billing_address_collection: "required",
@@ -120,7 +121,7 @@ export async function POST(req: Request) {
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/canceled`,
     });
 
-    return NextResponse.json({ url: sessionStripe.url });
+    return NextResponse.json({ url: stripeSession.url });
   } catch (err) {
     console.error("Checkout session error:", err);
     return NextResponse.json(

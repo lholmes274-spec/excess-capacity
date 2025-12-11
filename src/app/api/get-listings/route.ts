@@ -1,24 +1,24 @@
 // @ts-nocheck
-
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
+import { createRouteHandlerClient } from "@supabase/ssr";
 import type { Database } from "@/types/supabase";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export async function GET() {
   try {
-    const cookieStore = cookies();
+    // ✔ Correct Supabase SSR client
+    const supabase = createRouteHandlerClient<Database>(
+      { cookies },
+      {
+        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      }
+    );
 
-    // Correct PKCE-safe server Supabase client
-    const supabase = createRouteHandlerClient<Database>({
-      cookies: {
-        get: (name: string) => cookieStore.get(name)?.value,
-      },
-    });
-
-    // Fetch listings (public endpoint)
+    // ✔ Public fetch – does NOT require auth
     const { data, error } = await supabase
       .from("listings")
       .select("*")
@@ -29,9 +29,12 @@ export async function GET() {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    return NextResponse.json(data);
+    return NextResponse.json(data, { status: 200 });
   } catch (err) {
-    console.error("Server error:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error("Server Error:", err);
+    return NextResponse.json(
+      { error: "Internal server error", detail: err },
+      { status: 500 }
+    );
   }
 }

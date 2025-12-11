@@ -1,11 +1,11 @@
 // @ts-nocheck
-
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
+import { createRouteHandlerClient } from "@supabase/ssr";
 import type { Database } from "@/types/supabase";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
@@ -32,22 +32,23 @@ export async function POST(req: Request) {
       image_urls,
     } = body;
 
-    // 🍪 Server-side Supabase client with proper cookie adapter
-    const cookieStore = cookies();
-    const supabase = createRouteHandlerClient<Database>({
-      cookies: {
-        get: (name: string) => cookieStore.get(name)?.value,
-      },
-    });
+    // ✔ Correct Supabase SSR client (NO deprecated auth helpers)
+    const supabase = createRouteHandlerClient<Database>(
+      { cookies },
+      {
+        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      }
+    );
 
-    // 🔐 Load authenticated user
+    // ✔ Load authenticated user with SSR-safe token refresh
     const {
       data: { session },
       error: sessionError,
     } = await supabase.auth.getSession();
 
     if (sessionError) {
-      console.error("Session read error:", sessionError);
+      console.error("Session Error:", sessionError);
     }
 
     if (!session?.user?.id) {
@@ -59,7 +60,7 @@ export async function POST(req: Request) {
 
     const owner_id = session.user.id;
 
-    // 📝 Insert new listing (RLS will check owner_id)
+    // ✔ RLS-safe insert
     const { data, error } = await supabase.from("listings").insert([
       {
         owner_id,
@@ -85,7 +86,7 @@ export async function POST(req: Request) {
     ]);
 
     if (error) {
-      console.error("Insert error:", error);
+      console.error("Insert Error:", error);
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
@@ -94,9 +95,9 @@ export async function POST(req: Request) {
       { status: 201 }
     );
   } catch (err) {
-    console.error("Server error:", err);
+    console.error("SERVER ERROR:", err);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: "Internal Server Error", detail: err },
       { status: 500 }
     );
   }

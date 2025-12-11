@@ -3,7 +3,9 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
+// Initialize Stripe client
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-04-10",
 });
@@ -12,6 +14,7 @@ export async function POST(req: Request) {
   try {
     const { session_id } = await req.json();
 
+    // Validate session_id
     if (!session_id || typeof session_id !== "string") {
       return NextResponse.json(
         { error: "Invalid or missing session_id" },
@@ -19,7 +22,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 🔍 Retrieve the Stripe checkout session securely
+    // Retrieve Stripe session securely
     const session = await stripe.checkout.sessions.retrieve(session_id, {
       expand: ["payment_intent"],
     });
@@ -31,7 +34,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // ❌ Payment incomplete
+    // Payment must be completed
     if (session.payment_status !== "paid") {
       return NextResponse.json(
         { error: "Payment not completed" },
@@ -39,10 +42,9 @@ export async function POST(req: Request) {
       );
     }
 
-    // Metadata validation
     const metadata = session.metadata || {};
 
-    // Sanitize for frontend — only safe values returned
+    // Return only safe values to frontend
     return NextResponse.json(
       {
         ok: true,
@@ -55,7 +57,7 @@ export async function POST(req: Request) {
       },
       { status: 200 }
     );
-  } catch (err) {
+  } catch (err: any) {
     console.error("Stripe session verification error:", err);
     return NextResponse.json(
       { error: err.message || "Internal Server Error" },
@@ -64,7 +66,7 @@ export async function POST(req: Request) {
   }
 }
 
-// Block GET requests
+// ❌ Block GET requests for security
 export async function GET() {
   return NextResponse.json(
     { error: "Method Not Allowed" },
