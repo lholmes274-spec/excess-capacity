@@ -1,61 +1,60 @@
 // @ts-nocheck
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
+import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
     const { listing_id } = await req.json();
-    if (!listing_id)
-      return NextResponse.json({ error: "Missing listing_id" }, { status: 400 });
+    if (!listing_id) {
+      return NextResponse.json(
+        { error: "Missing listing_id" },
+        { status: 400 }
+      );
+    }
 
-    // 1️⃣ Extract JWT token from Authorization header
-    const authHeader = req.headers.get("Authorization") || "";
-    const token = authHeader.replace("Bearer ", "");
+    // 1️⃣ MUST USE COOKIE-BASED CLIENT
+    const supabase = createRouteHandlerClient({ cookies });
 
-    if (!token)
-      return NextResponse.json({ error: "Missing auth token" }, { status: 401 });
-
-    // 2️⃣ Public client to validate the user
-    const supabaseAuth = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
-
+    // 2️⃣ Get logged-in user
     const {
       data: { user },
       error: userError,
-    } = await supabaseAuth.auth.getUser(token);
+    } = await supabase.auth.getUser();
 
-    if (userError || !user)
-      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    if (!user) {
+      return NextResponse.json(
+        { error: "Not authenticated" },
+        { status: 401 }
+      );
+    }
 
     const user_id = user.id;
 
-    // 3️⃣ Service role client to bypass RLS during delete logic
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-
-    // 4️⃣ Verify listing ownership
-    const { data: listing } = await supabase
+    // 3️⃣ Fetch listing to verify owner
+    const { data: listing, error: listingError } = await supabase
       .from("listings")
       .select("owner_id")
       .eq("id", listing_id)
       .single();
 
-    if (!listing)
-      return NextResponse.json({ error: "Listing not found" }, { status: 404 });
+    if (!listing) {
+      return NextResponse.json(
+        { error: "Listing not found" },
+        { status: 404 }
+      );
+    }
 
-    if (listing.owner_id !== user_id)
+    if (listing.owner_id !== user_id) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 403 }
       );
+    }
 
-    // 5️⃣ Delete listing
+    // 4️⃣ Delete listing (RLS now passes)
     const { error: deleteError } = await supabase
       .from("listings")
       .delete()
@@ -70,6 +69,7 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ success: true }, { status: 200 });
+
   } catch (err) {
     console.error("Delete listing route error:", err);
     return NextResponse.json(
