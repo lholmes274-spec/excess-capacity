@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { createRouteHandlerClient } from "@supabase/ssr";
+import { createServerClient } from "@supabase/ssr";
 import type { Database } from "@/types/supabase";
 
 export const dynamic = "force-dynamic";
@@ -18,16 +18,20 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✔ EXACT SAME CLIENT AS delete-listing route
-    const supabase = createRouteHandlerClient<Database>(
-      { cookies },
+    // ✅ Correct SSR Supabase client
+    const supabase = createServerClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
-        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        cookies: {
+          get(name: string) {
+            return cookies().get(name)?.value;
+          },
+        },
       }
     );
 
-    // ✔ Load session
+    // Load session
     const {
       data: { session },
       error: sessionError,
@@ -42,7 +46,7 @@ export async function POST(req: Request) {
 
     const user_id = session.user.id;
 
-    // ✔ Check booking ownership
+    // Verify ownership
     const { data: booking, error: lookupError } = await supabase
       .from("bookings")
       .select("user_id")
@@ -63,7 +67,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✔ Delete the booking
+    // Delete
     const { error: deleteError } = await supabase
       .from("bookings")
       .delete()
