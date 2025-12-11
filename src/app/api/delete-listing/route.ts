@@ -4,30 +4,41 @@ import { createClient } from "@supabase/supabase-js";
 
 export const dynamic = "force-dynamic";
 
-// ⭐ Service role client (full access)
+// Service role client for database actions
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// ⭐ Public client for reading auth session
-const supabasePublic = createClient(
+// Public client to read auth session
+const supabaseAuth = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
 export async function POST(req: Request) {
   try {
-    const { listing_id, user_id } = await req.json();
+    const { listing_id } = await req.json();
 
-    if (!listing_id || !user_id) {
+    if (!listing_id) {
       return NextResponse.json(
-        { error: "Missing listing_id or user_id" },
+        { error: "Missing listing_id" },
         { status: 400 }
       );
     }
 
-    // 1️⃣ Verify listing exists & get owner
+    // 1️⃣ Get logged-in user ID
+    const { data: sessionData } = await supabaseAuth.auth.getUser();
+    const user_id = sessionData?.user?.id || null;
+
+    if (!user_id) {
+      return NextResponse.json(
+        { error: "Not authenticated" },
+        { status: 401 }
+      );
+    }
+
+    // 2️⃣ Verify listing exists & get owner
     const { data: listing, error: listingError } = await supabase
       .from("listings")
       .select("owner_id")
@@ -41,7 +52,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 2️⃣ SECURITY CHECK — OWNER MATCH
+    // 3️⃣ Security: Only owner can delete
     if (listing.owner_id !== user_id) {
       return NextResponse.json(
         { error: "Unauthorized — cannot delete another user's listing" },
@@ -49,14 +60,14 @@ export async function POST(req: Request) {
       );
     }
 
-    // 3️⃣ Delete the listing
+    // 4️⃣ Delete the listing
     const { error } = await supabase
       .from("listings")
       .delete()
       .eq("id", listing_id);
 
     if (error) {
-      console.error("Delete listing error:", error);
+      console.error("Delete error:", error);
       return NextResponse.json(
         { error: "Failed to delete listing" },
         { status: 500 }
