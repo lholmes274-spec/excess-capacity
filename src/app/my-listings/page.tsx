@@ -56,22 +56,20 @@ export default function MyListingsPage() {
     setDeleteTarget(null);
   }
 
-  // ⭐ DELETE LISTING WITH AUTH TOKEN
+  // Delete listing
   async function deleteListing(listingId) {
-    setDeleting(true);
+    // NEW STEP → Ask user FIRST
+    const confirmDelete = confirm("Are you sure you want to delete this listing?");
+    if (!confirmDelete) return;
 
-    // Get logged-in session token
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    setDeleting(true);
 
     const res = await fetch("/api/delete-listing", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${session?.access_token}`, // ⭐ REQUIRED
-      },
-      body: JSON.stringify({ listing_id: listingId }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        listing_id: listingId,
+      }),
     });
 
     setDeleting(false);
@@ -81,9 +79,13 @@ export default function MyListingsPage() {
       return;
     }
 
-    // Remove instantly from UI
+    // Small delay so UI doesn’t feel abrupt
+    await new Promise((resolve) => setTimeout(resolve, 400));
+
+    // Remove from UI
     setListings((prev) => prev.filter((l) => l.id !== listingId));
 
+    // Close modal
     closeDeleteModal();
   }
 
@@ -156,6 +158,7 @@ export default function MyListingsPage() {
                   </p>
                 )}
 
+                {/* Button Row */}
                 <div className="flex justify-between mt-2">
                   <Link
                     href={`/listings/${listing.id}`}
@@ -184,6 +187,7 @@ export default function MyListingsPage() {
         </div>
       )}
 
+      {/* Delete Modal */}
       {deleteTarget && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-40">
           <div className="bg-white p-6 rounded-xl shadow-xl w-80 text-center">
