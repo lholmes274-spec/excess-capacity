@@ -15,10 +15,10 @@ export async function POST(req: Request) {
       );
     }
 
-    // 1️⃣ Create cookie-based Supabase client (REQUIRED)
+    // 1️⃣ Create cookie-based Supabase client
     const supabase = createRouteHandlerClient({ cookies });
 
-    // 2️⃣ Get session → this is the ONLY method that works in API routes
+    // 2️⃣ Load user session
     const {
       data: { session },
       error: sessionError,
@@ -30,10 +30,10 @@ export async function POST(req: Request) {
 
     const user_id = session.user.id;
 
-    // 3️⃣ Fetch listing to verify owner
+    // 3️⃣ Fetch listing to verify owner (FIXED: correct column is user_id)
     const { data: listing, error: listingError } = await supabase
       .from("listings")
-      .select("owner_id")
+      .select("user_id")
       .eq("id", listing_id)
       .single();
 
@@ -44,14 +44,15 @@ export async function POST(req: Request) {
       );
     }
 
-    if (listing.owner_id !== user_id) {
+    // 4️⃣ Correct ownership check
+    if (listing.user_id !== user_id) {
       return NextResponse.json(
         { error: "Unauthorized: You do not own this listing" },
         { status: 403 }
       );
     }
 
-    // 4️⃣ Delete listing (passes RLS)
+    // 5️⃣ Delete listing
     const { error: deleteError } = await supabase
       .from("listings")
       .delete()
