@@ -17,7 +17,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✔ Correct SSR Supabase client
+    // ✔ CORRECT Supabase SSR client (NOT auth-helpers)
     const supabase = createRouteHandlerClient(
       { cookies },
       {
@@ -32,25 +32,22 @@ export async function POST(req: Request) {
       error: sessionError,
     } = await supabase.auth.getSession();
 
-    if (sessionError) console.error("SESSION ERROR:", sessionError);
+    if (sessionError) console.log("Session Error:", sessionError);
 
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Not authenticated" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
     const user_id = session.user.id;
 
-    // ✔ Confirm this booking belongs to the user
-    const { data: booking, error: fetchErr } = await supabase
+    // ✔ Verify booking belongs to this user
+    const { data: booking, error: lookupError } = await supabase
       .from("bookings")
       .select("user_id")
       .eq("id", booking_id)
       .single();
 
-    if (fetchErr || !booking) {
+    if (lookupError || !booking) {
       return NextResponse.json(
         { error: "Booking not found" },
         { status: 404 }
@@ -64,21 +61,22 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✔ Delete booking (RLS now allows it)
-    const { error: deleteErr } = await supabase
+    // ✔ Delete booking
+    const { error: deleteError } = await supabase
       .from("bookings")
       .delete()
       .eq("id", booking_id);
 
-    if (deleteErr) {
-      console.error("DELETE ERROR:", deleteErr);
+    if (deleteError) {
+      console.error("Delete error:", deleteError);
       return NextResponse.json(
-        { error: deleteErr.message },
+        { error: deleteError.message },
         { status: 500 }
       );
     }
 
     return NextResponse.json({ success: true }, { status: 200 });
+
   } catch (err) {
     console.error("SERVER ERROR:", err);
     return NextResponse.json(
