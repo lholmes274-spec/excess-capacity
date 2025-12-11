@@ -20,12 +20,12 @@ export default function BookingDetailsPage() {
     async function load() {
       if (!id) return;
 
-      // Load logged-in user
+      // Load logged-in user (may be null if guest checkout)
       const auth = await supabase.auth.getUser();
-      const loggedInUser = auth.data.user;
+      const loggedInUser = auth.data.user || null;
       setUser(loggedInUser);
 
-      // Fetch booking with relation
+      // Fetch booking + listing details
       const { data, error } = await supabase
         .from("bookings")
         .select("*, listings(*)")
@@ -33,25 +33,42 @@ export default function BookingDetailsPage() {
         .single();
 
       if (error || !data) {
-        console.error("Booking not found:", error);
+        console.error("Booking not found or blocked by RLS:", error);
         setLoading(false);
         return;
       }
 
-      // ⭐ FIXED SECURITY CHECK:
-      // Allow if:
-      // 1. Logged in + user_id matches
-      // 2. Logged in + email matches (Express Checkout fallback)
-      const isOwner =
-        (loggedInUser?.id && data.user_id === loggedInUser.id) ||
-        (loggedInUser?.email &&
-          data.user_email === loggedInUser.email);
+      // ⭐ SECURITY CHECK:
+      // User may be:
+      // - Logged in buyer
+      // - Logged in owner
+      // - Guest checkout → match by email
 
-      if (!isOwner) {
+      const buyerId = data.user_id;
+      const buyerEmail = data.user_email;
+
+      const isLoggedInBuyer =
+        loggedInUser?.id && buyerId === loggedInUser.id;
+
+      const isLoggedInEmailMatch =
+        loggedInUser?.email && buyerEmail === loggedInUser.email;
+
+      const isGuestEmailMatch =
+        !loggedInUser && typeof window !== "undefined"
+          ? localStorage.getItem("guest_email") === buyerEmail
+          : false;
+
+      // ⭐ If none match, deny access
+      if (!isLoggedInBuyer && !isLoggedInEmailMatch && !isGuestEmailMatch) {
         console.warn("Unauthorized access to booking");
         setBooking(null);
         setLoading(false);
         return;
+      }
+
+      // Save guest email so guest sessions work after refresh
+      if (!loggedInUser && buyerEmail) {
+        localStorage.setItem("guest_email", buyerEmail);
       }
 
       setBooking(data);
@@ -91,7 +108,6 @@ export default function BookingDetailsPage() {
     <div className="container mx-auto px-6 py-10 max-w-3xl">
       <h1 className="text-3xl font-bold mb-6 text-center">Booking Details</h1>
 
-      {/* Image */}
       <img
         src={thumbnail}
         className="w-full h-64 object-cover rounded-lg shadow mb-6"
@@ -124,7 +140,6 @@ export default function BookingDetailsPage() {
 
         <hr />
 
-        {/* Pickup Instructions */}
         {listing?.pickup_instructions && (
           <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
             <h3 className="font-semibold text-yellow-700 mb-2">
@@ -136,8 +151,7 @@ export default function BookingDetailsPage() {
           </div>
         )}
 
-        {/* Private instructions only for logged-in user */}
-        {user && listing?.private_instructions && (
+        {listing?.private_instructions && (
           <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
             <h3 className="font-semibold text-green-700 mb-2">
               Private Instructions
@@ -148,7 +162,6 @@ export default function BookingDetailsPage() {
           </div>
         )}
 
-        {/* Address */}
         <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg">
           <h3 className="font-semibold text-gray-800 mb-2">Address</h3>
           <p className="text-gray-700">
@@ -159,7 +172,6 @@ export default function BookingDetailsPage() {
           </p>
         </div>
 
-        {/* Contact info */}
         <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
           <h3 className="font-semibold text-blue-700 mb-2">Contact</h3>
           <p className="text-gray-700">
