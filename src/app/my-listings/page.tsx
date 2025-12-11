@@ -15,29 +15,42 @@ export default function MyListingsPage() {
 
   useEffect(() => {
     async function load() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      try {
+        // ✅ SAFE way to get user session (never throws)
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
 
-      if (!user) {
-        setUserId(null);
-        setListings([]);
-        setLoading(false);
-        return;
-      }
+        if (sessionError) {
+          console.error("Session error:", sessionError);
+        }
 
-      setUserId(user.id);
+        const user = session?.user || null;
 
-      const { data, error } = await supabase
-        .from("listings")
-        .select("*")
-        .eq("owner_id", user.id)
-        .order("created_at", { ascending: false });
+        if (!user) {
+          setUserId(null);
+          setListings([]);
+          setLoading(false);
+          return;
+        }
 
-      if (error) {
-        console.error("Error fetching listings:", error);
-      } else {
-        setListings(data || []);
+        setUserId(user.id);
+
+        // ✅ Fetch only authenticated user's listings
+        const { data, error } = await supabase
+          .from("listings")
+          .select("*")
+          .eq("owner_id", user.id)
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          console.error("Error fetching listings:", error);
+        } else {
+          setListings(data || []);
+        }
+      } catch (err) {
+        console.error("Runtime error in load():", err);
       }
 
       setLoading(false);
@@ -46,49 +59,62 @@ export default function MyListingsPage() {
     load();
   }, []);
 
-  // Open delete modal
   function openDeleteModal(listing) {
     setDeleteTarget(listing);
   }
 
-  // Close modal
   function closeDeleteModal() {
     setDeleteTarget(null);
   }
 
-  // Delete listing (UPDATED)
+  // 🔥 DEBUG + FIXED delete function
   async function deleteListing(listingId) {
-    const confirmDelete = confirm("Are you sure you want to delete this listing?");
-    if (!confirmDelete) return;
+    console.log("DELETE BUTTON CLICKED → listingId =", listingId);
 
-    setDeleting(true);
-
-    const res = await fetch("/api/delete-listing", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        listing_id: listingId,
-      }),
-      credentials: "include", // 🔥 REQUIRED so Supabase sends session cookie
-    });
-
-    setDeleting(false);
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => null);
-      console.error("Delete failed:", err);
-      alert("Failed to delete listing.");
+    if (!listingId) {
+      alert("Invalid listing ID.");
       return;
     }
 
-    // Smooth UI removal
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    const confirmDelete = confirm(
+      "Are you sure you want to delete this listing?"
+    );
 
-    // Remove from listings
-    setListings((prev) => prev.filter((l) => l.id !== listingId));
+    console.log("confirmDelete =", confirmDelete);
+    if (!confirmDelete) return;
 
-    // Close modal
-    closeDeleteModal();
+    try {
+      setDeleting(true);
+
+      console.log("SENDING DELETE REQUEST TO /api/delete-listing…");
+
+      const res = await fetch("/api/delete-listing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ listing_id: listingId }),
+        credentials: "include",
+      });
+
+      console.log("RESPONSE STATUS =", res.status);
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => null);
+        console.error("Delete failed:", err);
+        alert("Failed to delete listing.");
+        setDeleting(false);
+        return;
+      }
+
+      // Smooth UI removal
+      await new Promise((resolve) => setTimeout(resolve, 250));
+
+      setListings((prev) => prev.filter((l) => l.id !== listingId));
+      closeDeleteModal();
+    } catch (err) {
+      console.error("Error during deleteListing():", err);
+    }
+
+    setDeleting(false);
   }
 
   if (loading)
@@ -160,7 +186,6 @@ export default function MyListingsPage() {
                   </p>
                 )}
 
-                {/* Buttons */}
                 <div className="flex justify-between mt-2">
                   <Link
                     href={`/listings/${listing.id}`}
