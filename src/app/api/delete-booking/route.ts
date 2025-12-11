@@ -18,7 +18,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✔ Correct Supabase SSR client
+    // ✔ EXACT SAME CLIENT AS delete-listing route
     const supabase = createRouteHandlerClient<Database>(
       { cookies },
       {
@@ -27,13 +27,11 @@ export async function POST(req: Request) {
       }
     );
 
-    // ✔ Get logged-in session
+    // ✔ Load session
     const {
       data: { session },
       error: sessionError,
     } = await supabase.auth.getSession();
-
-    if (sessionError) console.log("Session error:", sessionError);
 
     if (!session?.user?.id) {
       return NextResponse.json(
@@ -44,7 +42,7 @@ export async function POST(req: Request) {
 
     const user_id = session.user.id;
 
-    // ✔ Fetch booking to confirm ownership
+    // ✔ Check booking ownership
     const { data: booking, error: lookupError } = await supabase
       .from("bookings")
       .select("user_id")
