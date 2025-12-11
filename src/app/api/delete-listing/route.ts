@@ -15,8 +15,8 @@ export async function POST(req: Request) {
       );
     }
 
-    // 1️⃣ Create cookie-based Supabase client
-    const supabase = createRouteHandlerClient({ cookies });
+    // 1️⃣ Correct way to pass cookies to Supabase
+    const supabase = createRouteHandlerClient({ cookies: cookies() });
 
     // 2️⃣ Load user session
     const {
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
 
     const user_id = session.user.id;
 
-    // 3️⃣ Verify the listing exists and belongs to this user
+    // 3️⃣ Fetch listing to confirm ownership (owner_id)
     const { data: listing, error: listingError } = await supabase
       .from("listings")
       .select("owner_id")
@@ -50,7 +50,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 4️⃣ Delete listing
+    // 4️⃣ Delete listing (RLS will allow because owner_id matches auth.uid())
     const { error: deleteError } = await supabase
       .from("listings")
       .delete()
@@ -75,5 +75,8 @@ export async function POST(req: Request) {
 }
 
 export async function GET() {
-  return NextResponse.json({ error: "Method Not Allowed" }, { status: 405 });
+  return NextResponse.json(
+    { error: "Method Not Allowed" },
+    { status: 405 }
+  );
 }
