@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { NextResponse } from "next/server";
-import { createRouteHandlerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { createServerClient } from "@supabase/ssr";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -17,24 +17,29 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✔ CORRECT Supabase SSR client (fixes context.cookies errors)
-    const supabase = createRouteHandlerClient(
-      { cookies },
+    // ✔ Correct SSR Supabase client (NOT the old helper)
+    const cookieStore = cookies();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
-        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value;
+          },
+          set() {},
+          remove() {}
+        }
       }
     );
 
-    // ✔ Load session with SSR-safe client
+    // ✔ Load authenticated user (SSR-safe)
     const {
       data: { session },
       error: sessionError,
     } = await supabase.auth.getSession();
 
-    if (sessionError) {
-      console.error("SESSION ERROR:", sessionError);
-    }
+    if (sessionError) console.error("SESSION ERROR:", sessionError);
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
@@ -42,7 +47,7 @@ export async function POST(req: Request) {
 
     const user_id = session.user.id;
 
-    // ✔ Confirm this user owns the listing
+    // ✔ Verify listing ownership
     const { data: listing, error: fetchErr } = await supabase
       .from("listings")
       .select("owner_id")
@@ -63,7 +68,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✔ Delete (RLS will allow it now)
+    // ✔ Delete listing (RLS passes because user owns it)
     const { error: deleteErr } = await supabase
       .from("listings")
       .delete()
@@ -78,10 +83,11 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ success: true }, { status: 200 });
+
   } catch (err) {
     console.error("SERVER ERROR:", err);
     return NextResponse.json(
-      { error: "Internal server error", detail: err },
+      { error: "Internal server error", detail: `${err}` },
       { status: 500 }
     );
   }
