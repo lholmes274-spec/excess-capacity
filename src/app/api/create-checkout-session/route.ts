@@ -1,8 +1,10 @@
 // @ts-nocheck
+
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { cookies } from "next/headers";
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
+import type { Database } from "@/types/supabase";
 
 export const dynamic = "force-dynamic";
 
@@ -50,8 +52,13 @@ export async function POST(req: Request) {
       );
     }
 
-    // Supabase auth client
-    const supabase = createRouteHandlerClient({ cookies });
+    // 🍪 Correct server-side Supabase client with PKCE-safe cookie adapter
+    const cookieStore = cookies();
+    const supabase = createRouteHandlerClient<Database>({
+      cookies: {
+        get: (name: string) => cookieStore.get(name)?.value,
+      },
+    });
 
     // Load listing
     const { data: listing, error: listingError } = await supabase
@@ -67,23 +74,26 @@ export async function POST(req: Request) {
       );
     }
 
-    // Logged-in?
+    // Load logged-in user (session)
     const {
-      data: { user },
-    } = await supabase.auth.getUser();
+      data: { session },
+    } = await supabase.auth.getSession();
 
-    // Always string values — critical for Stripe metadata
+    const user = session?.user || null;
+
+    // Metadata must ALWAYS be strings
     const userId = user?.id ? String(user.id) : "0";
     const userEmail = user?.email ? String(user.email) : "unknown";
 
     const pricingLabel = formatPricingUnit(listing.pricing_type);
 
-    const session = await stripe.checkout.sessions.create({
+    // Create Stripe Checkout session
+    const sessionStripe = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
       billing_address_collection: "required",
 
-      customer_email: user?.email || undefined,
+      customer_email: userEmail !== "unknown" ? userEmail : undefined,
 
       metadata: {
         listing_id: String(listing_id),
@@ -110,11 +120,11 @@ export async function POST(req: Request) {
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/canceled`,
     });
 
-    return NextResponse.json({ url: session.url });
-  } catch (err: any) {
+    return NextResponse.json({ url: sessionStripe.url });
+  } catch (err) {
     console.error("Checkout session error:", err);
     return NextResponse.json(
-      { error: "Failed to create checkout session", details: err.message },
+      { error: "Failed to create checkout session", details: `${err}` },
       { status: 500 }
     );
   }

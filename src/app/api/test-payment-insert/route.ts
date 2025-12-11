@@ -1,11 +1,14 @@
+// @ts-nocheck
+
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
 export const runtime = "nodejs";
 
+// Use the REAL Supabase URL for server routes
 const admin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_URL!,                // ✔ Correct non-public URL
+  process.env.SUPABASE_SERVICE_ROLE_KEY!    // ✔ Full RLS bypass
 );
 
 export async function GET() {
@@ -26,11 +29,18 @@ export async function GET() {
 
     if (error) {
       console.error("test-payment-insert error:", error.message);
-      return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+      return NextResponse.json(
+        { ok: false, error: error.message },
+        { status: 500 }
+      );
     }
+
     return NextResponse.json({ ok: true, row: data }, { status: 200 });
   } catch (e: any) {
     console.error("test-payment-insert fatal:", e?.message || e);
-    return NextResponse.json({ ok: false, error: e?.message || "fatal" }, { status: 500 });
+    return NextResponse.json(
+      { ok: false, error: e?.message || "fatal" },
+      { status: 500 }
+    );
   }
 }

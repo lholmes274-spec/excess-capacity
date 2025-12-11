@@ -12,10 +12,10 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-04-10",
 });
 
-// Supabase Service Role (bypasses RLS)
+// Supabase Service Role client (bypasses RLS)
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_URL!,               // ❗ Use NON-public URL
+  process.env.SUPABASE_SERVICE_ROLE_KEY!   // ❗ Full RLS bypass key
 );
 
 export async function POST(req: Request) {
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
 
-    // Stripe Metadata (always string)
+    // Stripe Metadata
     const listing_id = session.metadata?.listing_id;
     const rawUserId = session.metadata?.user_id;
     const rawEmail = session.metadata?.user_email;
@@ -56,19 +56,6 @@ export async function POST(req: Request) {
       ? session.amount_total / 100
       : null;
 
-    // -----------------------------------------------------
-    // UPDATED FIXES FOR NEW METADATA FORMAT
-    // -----------------------------------------------------
-
-    // "0" = guest → null
-    const user_id = rawUserId === "0" ? null : rawUserId;
-
-    // guest emails come in as "unknown"
-    const user_email =
-      rawEmail && rawEmail !== "unknown"
-        ? rawEmail
-        : session.customer_details?.email || null;
-
     if (!listing_id) {
       console.error("❌ Missing listing_id in metadata");
       return NextResponse.json(
@@ -76,6 +63,14 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+
+    // Guest → null / real user → UUID
+    const user_id = rawUserId === "0" ? null : rawUserId;
+
+    const user_email =
+      rawEmail && rawEmail !== "unknown"
+        ? rawEmail
+        : session.customer_details?.email || null;
 
     // -----------------------------------------------------
     // LOOKUP LISTING OWNER
@@ -97,14 +92,14 @@ export async function POST(req: Request) {
     const owner_id = listingData.owner_id;
 
     // -----------------------------------------------------
-    // INSERT BOOKING — NOW COMPATIBLE WITH NEW METADATA
+    // INSERT BOOKING INTO SUPABASE USING SERVICE ROLE
     // -----------------------------------------------------
     const { error: insertErr } = await supabase.from("bookings").insert([
       {
         listing_id,
         owner_id,
-        user_id,         // UUID or NULL
-        user_email,      // valid email or null
+        user_id,
+        user_email,
         amount_paid: amountPaid,
         stripe_session_id: session.id,
         status: "paid",
