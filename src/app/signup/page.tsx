@@ -33,6 +33,32 @@ export default function SignupPage() {
     }
   }, [signupSuccess]);
 
+  // ✅ EMAIL VALIDATION FUNCTION
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+    if (!emailRegex.test(email)) {
+      throw new Error("Please enter a valid email address.");
+    }
+
+    const blockedDomains = [
+      "yaoo.com",
+      "yaoo.co",
+      "gmal.com",
+      "gmial.com",
+      "hotmial.com",
+      "outlok.com",
+    ];
+
+    const domain = email.split("@")[1]?.toLowerCase();
+
+    if (blockedDomains.includes(domain)) {
+      throw new Error(
+        "It looks like there may be a typo in your email address. Please double-check it."
+      );
+    }
+  };
+
   const handleSignup = async () => {
     if (!email || !password || !confirmPassword) {
       alert("Please fill out all fields.");
@@ -44,9 +70,20 @@ export default function SignupPage() {
       return;
     }
 
+    // ✅ VALIDATE EMAIL BEFORE SIGNUP
+    try {
+      validateEmail(email);
+    } catch (err: any) {
+      alert(err.message);
+      return;
+    }
+
     setLoading(true);
 
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
 
     setLoading(false);
 
