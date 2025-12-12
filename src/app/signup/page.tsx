@@ -41,12 +41,19 @@ export default function SignupPage() {
       throw new Error("Please enter a valid email address.");
     }
 
+    // 🚫 Common typo domains (explicitly blocked)
     const blockedDomains = [
+      // Yahoo typos
       "yaoo.com",
       "yaoo.co",
-      "yhoo.com",      // ✅ ADDED
+      "yhoo.com",
+      "yaho.com",
+
+      // Gmail typos
       "gmal.com",
       "gmial.com",
+
+      // Outlook / Hotmail typos
       "hotmial.com",
       "outlok.com",
     ];
