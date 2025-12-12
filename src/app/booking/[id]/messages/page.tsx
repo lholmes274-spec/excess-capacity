@@ -10,7 +10,7 @@ import { supabase } from "@/lib/supabaseClient";
    Booking Messages Page
 ------------------------------*/
 export default function BookingMessagesPage() {
-  const { bookingId } = useParams();
+  const { id: bookingId } = useParams(); // ✅ FIXED
   const router = useRouter();
 
   const [loading, setLoading] = useState(true);
@@ -35,7 +35,7 @@ export default function BookingMessagesPage() {
 
         setCurrentUserId(authData.user.id);
 
-        // Load booking
+        // Load booking (RLS-protected)
         const { data: bookingData, error: bookingError } = await supabase
           .from("bookings")
           .select("*")
@@ -72,8 +72,10 @@ export default function BookingMessagesPage() {
       }
     }
 
-    load();
-  }, [bookingId]);
+    if (bookingId) {
+      load();
+    }
+  }, [bookingId, router]);
 
   /* -----------------------------
      Send Message
@@ -81,10 +83,11 @@ export default function BookingMessagesPage() {
   async function sendMessage() {
     if (!messageText.trim()) return;
 
+    // ✅ FIXED: match your real schema
     const receiverId =
-      currentUserId === booking.provider_id
-        ? booking.booker_id
-        : booking.provider_id;
+      currentUserId === booking.owner_id
+        ? booking.user_id
+        : booking.owner_id;
 
     const { error: insertError } = await supabase
       .from("booking_messages")
@@ -134,7 +137,8 @@ export default function BookingMessagesPage() {
     );
   }
 
-  const isProvider = currentUserId === booking.provider_id;
+  // ✅ FIXED: provider detection
+  const isProvider = currentUserId === booking.owner_id;
 
   /* -----------------------------
      UI
