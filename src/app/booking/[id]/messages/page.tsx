@@ -10,7 +10,7 @@ import { supabase } from "@/lib/supabaseClient";
    Booking Messages Page
 ------------------------------*/
 export default function BookingMessagesPage() {
-  const { id: bookingId } = useParams(); // ✅ FIXED
+  const { id: bookingId } = useParams();
   const router = useRouter();
 
   const [loading, setLoading] = useState(true);
@@ -19,6 +19,7 @@ export default function BookingMessagesPage() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [messageText, setMessageText] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
 
   /* -----------------------------
      Load booking + messages
@@ -26,7 +27,6 @@ export default function BookingMessagesPage() {
   useEffect(() => {
     async function load() {
       try {
-        // Ensure user is logged in
         const { data: authData } = await supabase.auth.getUser();
         if (!authData?.user) {
           router.push("/login");
@@ -35,7 +35,6 @@ export default function BookingMessagesPage() {
 
         setCurrentUserId(authData.user.id);
 
-        // Load booking (RLS-protected)
         const { data: bookingData, error: bookingError } = await supabase
           .from("bookings")
           .select("*")
@@ -50,7 +49,6 @@ export default function BookingMessagesPage() {
 
         setBooking(bookingData);
 
-        // Load messages
         const { data: messageData, error: messageError } = await supabase
           .from("booking_messages")
           .select("*")
@@ -72,47 +70,47 @@ export default function BookingMessagesPage() {
       }
     }
 
-    if (bookingId) {
-      load();
-    }
+    if (bookingId) load();
   }, [bookingId, router]);
 
   /* -----------------------------
-     Send Message
+     Send Message (SERVER API)
   ------------------------------*/
   async function sendMessage() {
-    if (!messageText.trim()) return;
+    if (!messageText.trim() || sending) return;
 
-    // ✅ FIXED: match your real schema
-    const receiverId =
-      currentUserId === booking.owner_id
-        ? booking.user_id
-        : booking.owner_id;
+    setSending(true);
 
-    const { error: insertError } = await supabase
-      .from("booking_messages")
-      .insert({
-        booking_id: bookingId,
-        sender_id: currentUserId,
-        receiver_id: receiverId,
-        message: messageText.trim(),
+    try {
+      const res = await fetch(`/api/booking/${bookingId}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sender_id: currentUserId,
+          message: messageText.trim(),
+        }),
       });
 
-    if (insertError) {
+      if (!res.ok) {
+        throw new Error("Message send failed");
+      }
+
+      setMessageText("");
+
+      // Reload messages
+      const { data } = await supabase
+        .from("booking_messages")
+        .select("*")
+        .eq("booking_id", bookingId)
+        .order("created_at", { ascending: true });
+
+      setMessages(data || []);
+    } catch (err) {
+      console.error(err);
       alert("Failed to send message.");
-      return;
+    } finally {
+      setSending(false);
     }
-
-    setMessageText("");
-
-    // Reload messages
-    const { data } = await supabase
-      .from("booking_messages")
-      .select("*")
-      .eq("booking_id", bookingId)
-      .order("created_at", { ascending: true });
-
-    setMessages(data || []);
   }
 
   /* -----------------------------
@@ -137,7 +135,6 @@ export default function BookingMessagesPage() {
     );
   }
 
-  // ✅ FIXED: provider detection
   const isProvider = currentUserId === booking.owner_id;
 
   /* -----------------------------
@@ -146,7 +143,6 @@ export default function BookingMessagesPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-6 flex flex-col">
       <div className="max-w-2xl mx-auto w-full bg-white rounded-2xl shadow p-6 flex flex-col">
-
         <h1 className="text-2xl font-bold text-gray-800 mb-4">
           Booking Conversation
         </h1>
@@ -189,12 +185,14 @@ export default function BookingMessagesPage() {
             onChange={(e) => setMessageText(e.target.value)}
             placeholder="Type your message…"
             className="flex-1 border rounded-lg px-4 py-2"
+            disabled={sending}
           />
           <button
             onClick={sendMessage}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            disabled={sending}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
           >
-            Send
+            {sending ? "Sending…" : "Send"}
           </button>
         </div>
 
