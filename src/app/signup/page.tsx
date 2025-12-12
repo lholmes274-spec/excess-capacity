@@ -44,6 +44,7 @@ export default function SignupPage() {
     const blockedDomains = [
       "yaoo.com",
       "yaoo.co",
+      "yhoo.com",      // ✅ ADDED
       "gmal.com",
       "gmial.com",
       "hotmial.com",
@@ -105,7 +106,6 @@ export default function SignupPage() {
     <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
       <div className="bg-white shadow-2xl border border-gray-200 rounded-2xl p-10 w-full max-w-md">
 
-        {/* HEADER */}
         <h1 className="text-3xl font-bold text-gray-900 text-center mb-2">
           Create Your Account
         </h1>
@@ -113,7 +113,6 @@ export default function SignupPage() {
           Join Prosperity Hub and unlock access to listings, bookings, and community.
         </p>
 
-        {/* SUCCESS MESSAGE */}
         {signupSuccess && (
           <div className="mb-5 p-4 text-green-800 bg-green-100 border border-green-300 rounded-lg text-center">
             Account created! Check your email for confirmation.
@@ -123,7 +122,6 @@ export default function SignupPage() {
           </div>
         )}
 
-        {/* SIGNUP FORM */}
         {!signupSuccess && (
           <>
             <input
@@ -150,7 +148,6 @@ export default function SignupPage() {
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
 
-            {/* Sign Up Button */}
             <button
               onClick={handleSignup}
               disabled={loading}
@@ -159,14 +156,12 @@ export default function SignupPage() {
               {loading ? "Creating account..." : "Sign Up"}
             </button>
 
-            {/* Divider */}
             <div className="flex items-center my-6">
               <div className="flex-grow border-t"></div>
               <span className="mx-3 text-gray-500 text-sm">OR</span>
               <div className="flex-grow border-t"></div>
             </div>
 
-            {/* GOOGLE LOGIN */}
             <button
               onClick={handleGoogleLogin}
               className="w-full border border-gray-300 py-3 rounded-lg flex items-center justify-center gap-3 text-gray-700 bg-white hover:bg-gray-100 transition"
