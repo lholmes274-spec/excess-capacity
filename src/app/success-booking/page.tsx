@@ -8,14 +8,11 @@ import { supabase } from "@/lib/supabaseClient";
 import { motion } from "framer-motion";
 
 /* -----------------------------
-   Local Time Formatting — FIXED
+   Local Time Formatting
 ------------------------------*/
 function formatLocalTime(utcString) {
   if (!utcString) return "Unknown time";
-
-  // Ensure timestamp is interpreted as UTC
   const date = new Date(utcString + "Z");
-
   return date.toLocaleString(undefined, {
     year: "numeric",
     month: "short",
@@ -49,10 +46,8 @@ function SuccessBookingContent() {
   const [listing, setListing] = useState<any>(null);
   const [loggedInEmail, setLoggedInEmail] = useState<string | null>(null);
   const [booking, setBooking] = useState<any>(null);
+  const [provider, setProvider] = useState<any>(null);
 
-  /* -----------------------------------------
-     POLL FOR BOOKING — 5 seconds total
-  -----------------------------------------*/
   async function pollForBooking(session_id: string) {
     const maxAttempts = 5;
     const delay = 1000;
@@ -65,7 +60,6 @@ function SuccessBookingContent() {
         .maybeSingle();
 
       if (data) return data;
-
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
 
@@ -81,43 +75,38 @@ function SuccessBookingContent() {
       }
 
       try {
-        // Load logged-in user
         const { data: userData } = await supabase.auth.getUser();
         const email = userData?.user?.email || null;
         setLoggedInEmail(email);
 
-        // Load booking
         const bookingData = await pollForBooking(session_id);
-
         if (!bookingData) {
-          setSecureError(
-            "Your payment is complete, but your booking is still processing. Please refresh in a moment."
-          );
+          setSecureError("Your payment is complete, but booking is still processing.");
           setLoading(false);
           return;
         }
 
         setBooking(bookingData);
 
-        // Fetch listing
-        const { data: listingData, error: listingError } = await supabase
+        const { data: listingData } = await supabase
           .from("listings")
           .select("*")
           .eq("id", bookingData.listing_id)
           .single();
 
-        if (listingError) {
-          console.error("Listing fetch error:", listingError);
-          setSecureError("Unable to load listing details.");
-          setLoading(false);
-          return;
-        }
-
         setListing(listingData);
+
+        const { data: providerData } = await supabase
+          .from("profiles")
+          .select("id, full_name")
+          .eq("id", listingData.user_id)
+          .single();
+
+        setProvider(providerData);
         setLoading(false);
       } catch (err) {
-        console.error("Success page error:", err);
-        setSecureError("Unexpected error loading booking details.");
+        console.error(err);
+        setSecureError("Unexpected error loading booking.");
         setLoading(false);
       }
     }
@@ -125,32 +114,15 @@ function SuccessBookingContent() {
     load();
   }, [session_id]);
 
-  /* -----------------------------
-     Loading
-  ------------------------------*/
   if (loading) return <Loading message="Loading your booking…" />;
 
-  /* -----------------------------
-     Error Message
-  ------------------------------*/
   if (secureError) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-red-50 text-center p-6">
         <p className="text-red-600 text-xl font-semibold mb-3">
           ❌ {secureError}
         </p>
-
-        <button
-          onClick={() => window.location.reload()}
-          className="px-6 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition mb-4"
-        >
-          Refresh Page
-        </button>
-
-        <Link
-          href="/"
-          className="px-6 py-3 bg-gray-700 text-white rounded-lg shadow hover:bg-gray-800 transition"
-        >
+        <Link href="/" className="px-6 py-3 bg-gray-700 text-white rounded-lg">
           Back to Home
         </Link>
       </div>
@@ -159,11 +131,8 @@ function SuccessBookingContent() {
 
   const isLoggedIn = Boolean(loggedInEmail);
 
-  /* -----------------------------
-     SUCCESS PAGE UI
-  ------------------------------*/
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-green-50 to-green-100 text-center p-6">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-green-50 to-green-100 p-6 text-center">
 
       <motion.div
         initial={{ scale: 0, rotate: -45 }}
@@ -172,14 +141,7 @@ function SuccessBookingContent() {
         className="mb-6"
       >
         <div className="w-24 h-24 rounded-full bg-green-500 flex items-center justify-center shadow-lg">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-14 w-14 text-white"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-14 w-14 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         </div>
@@ -189,34 +151,52 @@ function SuccessBookingContent() {
         Booking Confirmed 🎉
       </h1>
 
-      {/* Local Time */}
       <p className="text-lg font-semibold text-green-800 mb-8">
-        {formatLocalTime(booking?.created_at)}
+        {formatLocalTime(booking.created_at)}
       </p>
 
-      {/* GUEST VIEW */}
-      {!isLoggedIn ? (
-        <div className="max-w-xl w-full bg-white shadow-lg border border-gray-200 rounded-2xl p-6 text-left">
-          <h2 className="text-xl font-semibold text-green-700 mb-2">
-            Public Pickup Instructions
-          </h2>
-          <p className="text-gray-700 whitespace-pre-line">
-            {listing.pickup_instructions}
-          </p>
-        </div>
-      ) : (
-        /* LOGGED-IN VIEW */
-        <div className="max-w-xl w-full bg-white shadow-lg border border-gray-200 rounded-2xl p-6 text-left">
-          <h2 className="text-xl font-semibold text-green-700 mb-4">
-            🔒 Your Booking Details
-          </h2>
+      {/* LOGGED-IN VIEW */}
+      {isLoggedIn && (
+        <div className="max-w-xl w-full bg-white shadow-lg border rounded-2xl p-6 text-left space-y-6">
 
-          <p className="mb-3">
-            <strong>Address:</strong><br />
-            {listing.address_line1}<br />
-            {listing.address_line2 && <>{listing.address_line2}<br /></>}
-            {listing.city}, {listing.state} {listing.zip}
-          </p>
+          {/* Address */}
+          <div>
+            <h2 className="text-lg font-semibold text-green-700 mb-2">
+              📍 Booking Location
+            </h2>
+            <p>
+              {listing.address_line1}<br />
+              {listing.address_line2 && <>{listing.address_line2}<br /></>}
+              {listing.city}, {listing.state} {listing.zip}
+            </p>
+          </div>
+
+          {/* Private Instructions */}
+          {listing.private_instructions && (
+            <div>
+              <h2 className="text-lg font-semibold text-green-700 mb-2">
+                🔒 Private Access Instructions
+              </h2>
+              <p className="whitespace-pre-line text-gray-700">
+                {listing.private_instructions}
+              </p>
+            </div>
+          )}
+
+          {/* Provider Contact */}
+          <div className="border-t pt-4">
+            <h2 className="text-lg font-semibold text-green-700 mb-2">
+              👤 Provider
+            </h2>
+            <p className="mb-3">{provider?.full_name || "Listing Provider"}</p>
+
+            <Link
+              href={`/booking/${booking.id}/messages`}
+              className="inline-block px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+            >
+              Message Provider
+            </Link>
+          </div>
         </div>
       )}
 
