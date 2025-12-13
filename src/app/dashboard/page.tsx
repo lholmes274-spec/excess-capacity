@@ -11,13 +11,12 @@ export default function Dashboard() {
 
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
-  const [loading, setLoading] = useState(true);  // ⭐ NEW — prevents flash
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadUser = async () => {
       const { data } = await supabase.auth.getUser();
 
-      // If no user → redirect
       if (!data?.user) {
         router.push("/login");
         return;
@@ -25,7 +24,6 @@ export default function Dashboard() {
 
       setUser(data.user);
 
-      // Load subscription status
       const { data: profileData } = await supabase
         .from("profiles")
         .select("is_subscribed, membership_tier")
@@ -33,13 +31,12 @@ export default function Dashboard() {
         .single();
 
       setProfile(profileData);
-      setLoading(false); // ⭐ Only show UI after everything is loaded
+      setLoading(false);
     };
 
     loadUser();
   }, [router]);
 
-  // ⭐ PREVENT FLASH — Don't render anything until loading is done
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-600">
@@ -62,7 +59,6 @@ export default function Dashboard() {
       <div className="flex justify-center px-4 mt-10">
         <div className="w-full max-w-2xl">
 
-          {/* Welcome text with Pro badge */}
           <h1 className="text-2xl font-bold mb-6">
             Welcome, {user?.email} {isSubscribed && "💎"}
           </h1>
@@ -87,13 +83,21 @@ export default function Dashboard() {
               </div>
             </Link>
 
+            {/* ✅ NEW — PROVIDER BOOKINGS */}
+            <Link href="/provider/bookings" className="w-full">
+              <div className="p-6 bg-white rounded-xl shadow hover:shadow-lg transition cursor-pointer text-center border border-green-200">
+                <h3 className="text-lg font-semibold">
+                  Bookings on My Listings
+                </h3>
+              </div>
+            </Link>
+
             <Link href="/listings" className="w-full">
               <div className="p-6 bg-white rounded-xl shadow hover:shadow-lg transition cursor-pointer text-center">
                 <h3 className="text-lg font-semibold">Browse Listings</h3>
               </div>
             </Link>
 
-            {/* ⭐ PRO MEMBERSHIP ACTIVE */}
             {isSubscribed && (
               <div className="col-span-1 sm:col-span-2 w-full max-w-md">
                 <div className="p-6 bg-white border-2 border-green-500 rounded-xl shadow text-center">
@@ -107,7 +111,6 @@ export default function Dashboard() {
               </div>
             )}
 
-            {/* ⭐ UPGRADE TO PRO */}
             {!isSubscribed && (
               <div className="col-span-1 sm:col-span-2 w-full max-w-md">
                 <Link href="/subscribe">
