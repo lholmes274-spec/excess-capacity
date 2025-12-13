@@ -36,7 +36,7 @@ export async function POST(
     // --------------------------------------------------
     const { data: booking, error: bookingErr } = await supabase
       .from("bookings")
-      .select("id, owner_id, user_id")
+      .select("id, owner_id, user_id, user_email")
       .eq("id", bookingId)
       .single();
 
@@ -83,17 +83,28 @@ export async function POST(
     }
 
     // --------------------------------------------------
-    // Lookup recipient email
+    // Lookup recipient email (AUTH USER OR GUEST)
     // --------------------------------------------------
-    const { data: recipient, error: userErr } =
+    let recipientEmail: string | null = null;
+
+    // 1️⃣ Try Supabase auth user
+    const { data: recipient } =
       await supabase.auth.admin.getUserById(receiver_id);
 
-    if (userErr || !recipient?.user?.email) {
-      console.error("❌ Email lookup failed:", userErr);
-      return NextResponse.json({ success: true });
+    if (recipient?.user?.email) {
+      recipientEmail = recipient.user.email;
     }
 
-    const recipientEmail = recipient.user.email;
+    // 2️⃣ Fallback to booking email (guest / express checkout)
+    if (!recipientEmail) {
+      recipientEmail = booking.user_email || null;
+    }
+
+    // If still no email, exit gracefully
+    if (!recipientEmail) {
+      console.warn("⚠️ No recipient email found. Skipping email send.");
+      return NextResponse.json({ success: true });
+    }
 
     // --------------------------------------------------
     // Send Prosperity Hub™ email
