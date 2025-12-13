@@ -13,6 +13,7 @@ export default function EditListingPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const [form, setForm] = useState({
     title: "",
@@ -93,9 +94,8 @@ export default function EditListingPage() {
     setExistingImages(existingImages.filter((img) => img !== url));
   };
 
-  // Save submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // 🔒 ACTUAL SAVE LOGIC (UNCHANGED – just moved behind confirmation)
+  const performSave = async () => {
     setSaving(true);
 
     let newUploadedUrls = [];
@@ -147,10 +147,51 @@ export default function EditListingPage() {
     setShowSuccessModal(true);
   };
 
+  // 🧠 Save button now only asks for confirmation
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setShowConfirmModal(true);
+  };
+
   if (loading) return <p className="text-center mt-10">Loading…</p>;
 
   return (
     <div className="max-w-2xl mx-auto p-6 relative">
+
+      {/* CONFIRM SAVE MODAL */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-xl p-6 w-full max-w-sm shadow-xl text-center">
+            <h2 className="text-xl font-bold mb-2 text-gray-800">
+              Confirm Changes
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to save these changes?
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowConfirmModal(false)}
+                className="flex-1 bg-gray-300 text-gray-800 py-2 rounded-lg font-semibold hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowConfirmModal(false);
+                  performSave();
+                }}
+                className="flex-1 bg-orange-600 text-white py-2 rounded-lg font-semibold hover:bg-orange-700"
+              >
+                Confirm Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* SUCCESS MODAL */}
       {showSuccessModal && (
@@ -163,23 +204,13 @@ export default function EditListingPage() {
               Your changes were saved successfully.
             </p>
 
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => router.push("/my-listings")}
-                className="flex-1 bg-green-600 text-white py-2 rounded-lg font-semibold hover:bg-green-700"
-              >
-                OK
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setShowSuccessModal(false)}
-                className="flex-1 bg-gray-300 text-gray-800 py-2 rounded-lg font-semibold hover:bg-gray-400"
-              >
-                Cancel
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => router.push("/my-listings")}
+              className="w-full bg-green-600 text-white py-2 rounded-lg font-semibold hover:bg-green-700"
+            >
+              OK
+            </button>
           </div>
         </div>
       )}
