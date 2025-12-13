@@ -39,7 +39,7 @@ export default function EditListingPage() {
   const [newImages, setNewImages] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
 
-  // 🔔 Warn user about unsaved changes
+  // 🔔 Warn user about unsaved changes (refresh / close tab)
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
       if (!hasUnsavedChanges) return;
@@ -48,6 +48,32 @@ export default function EditListingPage() {
     };
     window.addEventListener("beforeunload", handler);
     return () => window.removeEventListener("beforeunload", handler);
+  }, [hasUnsavedChanges]);
+
+  // 🔔 Warn user about unsaved changes on internal navigation
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (!hasUnsavedChanges) return;
+
+      const target = e.target as HTMLElement;
+      const anchor = target.closest("a") as HTMLAnchorElement | null;
+      if (!anchor || !anchor.href) return;
+
+      const currentOrigin = window.location.origin;
+      if (!anchor.href.startsWith(currentOrigin)) return;
+
+      const confirmed = window.confirm(
+        "You have unsaved changes. Are you sure you want to leave this page?"
+      );
+
+      if (!confirmed) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+
+    document.addEventListener("click", handleClick, true);
+    return () => document.removeEventListener("click", handleClick, true);
   }, [hasUnsavedChanges]);
 
   // Load listing
