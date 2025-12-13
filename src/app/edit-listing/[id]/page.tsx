@@ -14,6 +14,7 @@ export default function EditListingPage() {
   const [saving, setSaving] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const [form, setForm] = useState({
     title: "",
@@ -37,6 +38,17 @@ export default function EditListingPage() {
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [newImages, setNewImages] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+
+  // 🔔 Warn user about unsaved changes
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (!hasUnsavedChanges) return;
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [hasUnsavedChanges]);
 
   // Load listing
   useEffect(() => {
@@ -80,6 +92,7 @@ export default function EditListingPage() {
   }, [id, router]);
 
   const handleChange = (e) => {
+    setHasUnsavedChanges(true);
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
@@ -88,13 +101,15 @@ export default function EditListingPage() {
     const files = Array.from(e.target.files);
     setNewImages(files);
     setPreviewUrls(files.map((file) => URL.createObjectURL(file)));
+    setHasUnsavedChanges(true);
   };
 
   const handleRemoveImage = (url) => {
     setExistingImages(existingImages.filter((img) => img !== url));
+    setHasUnsavedChanges(true);
   };
 
-  // 🔒 ACTUAL SAVE LOGIC (UNCHANGED – just moved behind confirmation)
+  // 🔒 ACTUAL SAVE LOGIC
   const performSave = async () => {
     setSaving(true);
 
@@ -143,6 +158,7 @@ export default function EditListingPage() {
       return;
     }
 
+    setHasUnsavedChanges(false);
     setSaving(false);
     setShowSuccessModal(true);
   };
@@ -425,14 +441,9 @@ export default function EditListingPage() {
           {saving ? "Saving…" : "Save Changes"}
         </button>
 
-        {/* CANCEL */}
-        <button
-          type="button"
-          onClick={() => router.push("/my-listings")}
-          className="w-full mt-2 bg-gray-300 text-gray-800 p-3 rounded-lg font-semibold hover:bg-gray-400 transition"
-        >
-          Cancel
-        </button>
+        <p className="text-sm text-gray-500 text-center">
+          You’ll be asked to confirm before saving.
+        </p>
       </form>
     </div>
   );
