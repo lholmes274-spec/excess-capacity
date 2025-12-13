@@ -48,7 +48,7 @@ export default function Dashboard() {
   const isSubscribed = profile?.is_subscribed === true;
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen bg-gray-50">
 
       {/* Banner */}
       <div className="w-full bg-gradient-to-r from-yellow-300 to-yellow-500 text-black py-3 text-center font-semibold">
@@ -83,7 +83,6 @@ export default function Dashboard() {
               </div>
             </Link>
 
-            {/* ✅ NEW — PROVIDER BOOKINGS */}
             <Link href="/provider/bookings" className="w-full">
               <div className="p-6 bg-white rounded-xl shadow hover:shadow-lg transition cursor-pointer text-center border border-green-200">
                 <h3 className="text-lg font-semibold">
@@ -129,19 +128,6 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-
-      {/* Footer */}
-      <footer className="mt-auto py-10 text-center text-gray-600 text-sm border-t bg-white">
-        <div className="flex justify-center space-x-6 mb-3">
-          <Link href="/about" className="hover:text-black">About</Link>
-          <Link href="/services" className="hover:text-black">Services</Link>
-          <Link href="/contact" className="hover:text-black">Contact</Link>
-          <Link href="/terms" className="hover:text-black">Terms</Link>
-          <Link href="/privacy" className="hover:text-black">Privacy</Link>
-        </div>
-        <div>© {new Date().getFullYear()} Prosperity Voyage LLC</div>
-      </footer>
-
     </div>
   );
 }
