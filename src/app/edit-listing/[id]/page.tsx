@@ -12,6 +12,7 @@ export default function EditListingPage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const [form, setForm] = useState({
     title: "",
@@ -75,7 +76,7 @@ export default function EditListingPage() {
     }
 
     loadListing();
-  }, [id]);
+  }, [id, router]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -83,7 +84,6 @@ export default function EditListingPage() {
 
   const handleImageSelect = (e) => {
     if (!e.target.files) return;
-
     const files = Array.from(e.target.files);
     setNewImages(files);
     setPreviewUrls(files.map((file) => URL.createObjectURL(file)));
@@ -143,14 +143,47 @@ export default function EditListingPage() {
       return;
     }
 
-    alert("Listing updated successfully!");
-    router.push("/my-listings");
+    setSaving(false);
+    setShowSuccessModal(true);
   };
 
   if (loading) return <p className="text-center mt-10">Loading…</p>;
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
+    <div className="max-w-2xl mx-auto p-6 relative">
+
+      {/* SUCCESS MODAL */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-xl p-6 w-full max-w-sm shadow-xl text-center">
+            <h2 className="text-xl font-bold mb-2 text-green-700">
+              Listing Updated
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Your changes were saved successfully.
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => router.push("/my-listings")}
+                className="flex-1 bg-green-600 text-white py-2 rounded-lg font-semibold hover:bg-green-700"
+              >
+                OK
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowSuccessModal(false)}
+                className="flex-1 bg-gray-300 text-gray-800 py-2 rounded-lg font-semibold hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <h1 className="text-3xl font-bold mb-6 text-center text-orange-800">
         Edit Listing
       </h1>
@@ -178,14 +211,8 @@ export default function EditListingPage() {
               <option value="vehicle">Vehicle</option>
               <option value="recreation">Recreation</option>
               <option value="home">Home</option>
-
-              {/* ⭐ FURNITURE */}
               <option value="furniture">Furniture</option>
-
-              {/* ⭐ APPLIANCES */}
               <option value="appliances">Appliances</option>
-
-              {/* ⭐ ELECTRONICS */}
               <option value="electronics">Electronics</option>
             </optgroup>
 
@@ -358,7 +385,7 @@ export default function EditListingPage() {
           </div>
         )}
 
-        {/* SAVE BUTTON */}
+        {/* SAVE */}
         <button
           type="submit"
           disabled={saving}
