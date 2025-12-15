@@ -16,6 +16,7 @@ export default function Header() {
         {/* Desktop Nav */}
         <nav className="hidden md:flex space-x-6 text-sm">
           <Link href="/" className="hover:text-white">Home</Link>
+          <Link href="/faq" className="hover:text-white">FAQ</Link>
           <Link href="/admin" className="hover:text-white">Admin</Link>
           <Link href="/terms" className="hover:text-white">Terms</Link>
           <Link href="/privacy" className="hover:text-white">Privacy</Link>
@@ -42,10 +43,21 @@ export default function Header() {
       {/* Mobile Dropdown */}
       {menuOpen && (
         <nav className="md:hidden bg-gray-800 text-sm">
-          <Link href="/" className="block px-6 py-3 border-b border-gray-700 hover:bg-gray-700">Home</Link>
-          <Link href="/admin" className="block px-6 py-3 border-b border-gray-700 hover:bg-gray-700">Admin</Link>
-          <Link href="/terms" className="block px-6 py-3 border-b border-gray-700 hover:bg-gray-700">Terms</Link>
-          <Link href="/privacy" className="block px-6 py-3 hover:bg-gray-700">Privacy</Link>
+          <Link href="/" className="block px-6 py-3 border-b border-gray-700 hover:bg-gray-700">
+            Home
+          </Link>
+          <Link href="/faq" className="block px-6 py-3 border-b border-gray-700 hover:bg-gray-700">
+            FAQ
+          </Link>
+          <Link href="/admin" className="block px-6 py-3 border-b border-gray-700 hover:bg-gray-700">
+            Admin
+          </Link>
+          <Link href="/terms" className="block px-6 py-3 border-b border-gray-700 hover:bg-gray-700">
+            Terms
+          </Link>
+          <Link href="/privacy" className="block px-6 py-3 hover:bg-gray-700">
+            Privacy
+          </Link>
         </nav>
       )}
     </header>
