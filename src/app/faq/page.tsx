@@ -20,6 +20,14 @@ export default function FAQPage() {
         </div>
 
         <div>
+          <h2 className="font-semibold text-lg">Who are providers on Prosperity Hub?</h2>
+          <p className="text-gray-700 mt-2">
+            Providers are individuals or businesses that list assets or services
+            on Prosperity Hub, including asset owners and service providers.
+          </p>
+        </div>
+
+        <div>
           <h2 className="font-semibold text-lg">What can I list on Prosperity Hub?</h2>
           <p className="text-gray-700 mt-2">
             You can list a wide range of items and services including spaces,
@@ -63,11 +71,11 @@ export default function FAQPage() {
         </div>
 
         <div>
-          <h2 className="font-semibold text-lg">How do hosts get paid?</h2>
+          <h2 className="font-semibold text-lg">How do providers get paid?</h2>
           <p className="text-gray-700 mt-2">
-            Hosts receive payouts after successful bookings according to the
-            platform’s payment schedule. Timing may vary based on payment
-            method and verification.
+            Providers receive payouts after a successful booking according to
+            Prosperity Hub’s payment schedule. Timing may vary based on payment
+            method and verification status.
           </p>
         </div>
 
