@@ -2,9 +2,15 @@
 
 // ✅ Force HTTP only (for local development)
 if (process.env.NODE_ENV === "development") {
-  process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"; // disables SSL certificate checks
-  process.env.NEXT_FORCE_HTTP = "true"; // 🧩 Added line to force HTTP only
-  process.env.NEXT_PUBLIC_SITE_URL = "http://127.0.0.1:5173"; // your dev URL
+  // ❌ REMOVED: disabling TLS verification (caused warning)
+  // process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
+  // ✅ Keep HTTP-only local dev
+  process.env.NEXT_FORCE_HTTP = "true";
+
+  // ✅ FIXED: correct Next.js dev server URL
+  process.env.NEXT_PUBLIC_SITE_URL = "http://localhost:3000";
+
   console.log("🔓 Running in local HTTP mode — HTTPS disabled for localhost");
 }
 
