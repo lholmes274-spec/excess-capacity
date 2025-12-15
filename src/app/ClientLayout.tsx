@@ -13,14 +13,14 @@ export default function ClientLayout({
   const router = useRouter();
 
   const [user, setUser] = useState<any>(null);
-  const [authLoading, setAuthLoading] = useState(true); // ✅ Prevent flicker on navigation
+  const [authLoading, setAuthLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const fetchSession = async () => {
       const { data } = await supabase.auth.getSession();
       setUser(data?.session?.user ?? null);
-      setAuthLoading(false); // ⭐ Only render layout AFTER auth loads
+      setAuthLoading(false);
     };
 
     fetchSession();
@@ -41,7 +41,6 @@ export default function ClientLayout({
     setMenuOpen(false);
   }
 
-  // 🚫 Prevent layout from flashing on page transitions
   if (authLoading) return null;
 
   return (
@@ -65,6 +64,7 @@ export default function ClientLayout({
             <li><Link href="/services" className="hover:text-blue-300">Services</Link></li>
             <li><Link href="/about" className="hover:text-blue-300">About</Link></li>
             <li><Link href="/contact" className="hover:text-blue-300">Contact</Link></li>
+            <li><Link href="/faq" className="hover:text-blue-300">FAQ</Link></li>
 
             {user && (
               <li>
@@ -127,6 +127,7 @@ export default function ClientLayout({
             <Link href="/services" onClick={() => setMenuOpen(false)}>Services</Link>
             <Link href="/about" onClick={() => setMenuOpen(false)}>About</Link>
             <Link href="/contact" onClick={() => setMenuOpen(false)}>Contact</Link>
+            <Link href="/faq" onClick={() => setMenuOpen(false)}>FAQ</Link>
 
             {user && (
               <Link
