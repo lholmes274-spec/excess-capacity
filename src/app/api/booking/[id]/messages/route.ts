@@ -83,24 +83,48 @@ export async function POST(
     }
 
     // --------------------------------------------------
-    // Lookup recipient email (AUTH USER OR GUEST)
+    // Resolve recipient email (FIXED LOGIC)
     // --------------------------------------------------
     let recipientEmail: string | null = null;
 
-    // 1️⃣ Try Supabase auth user
-    const { data: recipient } =
-      await supabase.auth.admin.getUserById(receiver_id);
+    const receiverIsBooker = receiver_id === booking.user_id;
+    const receiverIsLister = receiver_id === booking.owner_id;
 
-    if (recipient?.user?.email) {
-      recipientEmail = recipient.user.email;
+    // --------------------------------------------------
+    // Booker receives message (guest OR auth user)
+    // --------------------------------------------------
+    if (receiverIsBooker) {
+      // 1️⃣ Guest checkout email
+      if (booking.user_email) {
+        recipientEmail = booking.user_email;
+      }
+
+      // 2️⃣ Auth user fallback
+      if (!recipientEmail) {
+        const { data: bookerAuth } =
+          await supabase.auth.admin.getUserById(receiver_id);
+
+        if (bookerAuth?.user?.email) {
+          recipientEmail = bookerAuth.user.email;
+        }
+      }
     }
 
-    // 2️⃣ Fallback to booking email (guest / express checkout)
-    if (!recipientEmail) {
-      recipientEmail = booking.user_email || null;
+    // --------------------------------------------------
+    // Lister receives message (always auth user)
+    // --------------------------------------------------
+    if (receiverIsLister) {
+      const { data: listerAuth } =
+        await supabase.auth.admin.getUserById(receiver_id);
+
+      if (listerAuth?.user?.email) {
+        recipientEmail = listerAuth.user.email;
+      }
     }
 
+    // --------------------------------------------------
     // If still no email, exit gracefully
+    // --------------------------------------------------
     if (!recipientEmail) {
       console.warn("⚠️ No recipient email found. Skipping email send.");
       return NextResponse.json({ success: true });
