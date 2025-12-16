@@ -36,7 +36,7 @@ export async function POST(
     // --------------------------------------------------
     const { data: booking, error: bookingErr } = await supabase
       .from("bookings")
-      .select("id, owner_id, user_id, user_email")
+      .select("id, owner_id, user_id, booker_email")
       .eq("id", bookingId)
       .single();
 
@@ -52,7 +52,7 @@ export async function POST(
       bookingId,
       owner_id: booking.owner_id,
       user_id: booking.user_id,
-      user_email: booking.user_email,
+      booker_email: booking.booker_email,
       sender_id,
     });
 
@@ -99,16 +99,10 @@ export async function POST(
     const senderIsLister = sender_id === booking.owner_id;
 
     // --------------------------------------------------
-    // If LISTER sent message → notify BOOKER
-    // AUTH EMAIL ONLY (no fallback)
+    // If LISTER sent message → notify BOOKER (FINAL, CORRECT)
     // --------------------------------------------------
-    if (senderIsLister && booking.user_id) {
-      const { data: bookerAuth } =
-        await supabase.auth.admin.getUserById(booking.user_id);
-
-      if (bookerAuth?.user?.email) {
-        recipientEmail = bookerAuth.user.email;
-      }
+    if (senderIsLister && booking.booker_email) {
+      recipientEmail = booking.booker_email;
     }
 
     // --------------------------------------------------
