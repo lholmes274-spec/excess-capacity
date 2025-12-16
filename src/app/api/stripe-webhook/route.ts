@@ -72,6 +72,12 @@ export async function POST(req: Request) {
         ? rawEmail
         : session.customer_details?.email || null;
 
+    // ✅ EXPLICIT, UNAMBIGUOUS BOOKER EMAIL
+    const booker_email =
+      session.customer_details?.email ||
+      user_email ||
+      null;
+
     // -----------------------------------------------------
     // LOOKUP LISTING OWNER
     // -----------------------------------------------------
@@ -100,6 +106,7 @@ export async function POST(req: Request) {
         owner_id,
         user_id,
         user_email,
+        booker_email,              // ✅ NEW FIELD (permanent fix)
         amount_paid: amountPaid,
         stripe_session_id: session.id,
         status: "paid",
