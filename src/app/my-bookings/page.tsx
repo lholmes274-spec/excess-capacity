@@ -27,16 +27,10 @@ export default function MyBookingsPage() {
       setUserId(user.id);
       setUserEmail(user.email);
 
-      // ⭐ NEW FIX:
-      // Logged-in users → filter by user_id
-      // Guest (Express Checkout) → filter by user_email
-
       const { data, error } = await supabase
         .from("bookings")
         .select("*, listings(*)")
-        .or(
-          `user_id.eq.${user.id},user_email.eq.${user.email}`
-        ) // <-- FIXED
+        .or(`user_id.eq.${user.id},user_email.eq.${user.email}`)
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -51,7 +45,6 @@ export default function MyBookingsPage() {
     load();
   }, []);
 
-  // Delete booking
   async function deleteBooking(bookingId) {
     const confirmed = confirm("Are you sure you want to delete this booking?");
     if (!confirmed) return;
@@ -136,13 +129,11 @@ export default function MyBookingsPage() {
                     {listing?.city}, {listing?.state}
                   </p>
 
-                  {/* Price display */}
                   <p className="text-green-700 font-medium text-sm">
                     ${listing?.baseprice}{" "}
                     {priceTypeDisplay ? `/ ${priceTypeDisplay}` : ""}
                   </p>
 
-                  {/* Amount paid */}
                   <p className="text-gray-700 font-semibold mt-1">
                     You paid: ${b.amount_paid}
                   </p>
@@ -158,6 +149,14 @@ export default function MyBookingsPage() {
                       {b.status}
                     </span>
                   </p>
+
+                  {/* ✅ NEW: View Conversation */}
+                  <Link
+                    href={`/booking/${b.id}/messages`}
+                    className="inline-block mt-4 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium shadow hover:bg-green-700 transition"
+                  >
+                    View Conversation
+                  </Link>
                 </div>
 
                 <button
