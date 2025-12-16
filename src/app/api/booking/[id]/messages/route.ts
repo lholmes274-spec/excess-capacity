@@ -98,6 +98,15 @@ export async function POST(
 
     const senderIsLister = sender_id === booking.owner_id;
 
+    // ✅ Resolve sender email ONCE (for safe comparisons)
+    let senderEmail: string | null = null;
+    const { data: senderAuth } =
+      await supabase.auth.admin.getUserById(sender_id);
+
+    if (senderAuth?.user?.email) {
+      senderEmail = senderAuth.user.email;
+    }
+
     // --------------------------------------------------
     // If LISTER sent message → notify BOOKER
     // --------------------------------------------------
@@ -129,13 +138,13 @@ export async function POST(
     }
 
     // --------------------------------------------------
-    // FINAL FALLBACK (sender-safe)
+    // FINAL FALLBACK (sender-email safe)
     // --------------------------------------------------
     if (
       !recipientEmail &&
       senderIsLister &&
       booking.user_email &&
-      booking.user_email !== sender_id
+      booking.user_email !== senderEmail
     ) {
       console.warn("⚠️ Using fallback booker email for notification", {
         bookingId,
