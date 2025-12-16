@@ -48,7 +48,7 @@ export async function POST(
     }
 
     // --------------------------------------------------
-    // Determine receiver
+    // Determine receiver (unchanged)
     // --------------------------------------------------
     const receiver_id =
       sender_id === booking.owner_id
@@ -83,26 +83,24 @@ export async function POST(
     }
 
     // --------------------------------------------------
-    // Resolve recipient email (FIXED LOGIC)
+    // Resolve recipient email (FINAL, DETERMINISTIC)
     // --------------------------------------------------
     let recipientEmail: string | null = null;
 
-    const receiverIsBooker = receiver_id === booking.user_id;
-    const receiverIsLister = receiver_id === booking.owner_id;
+    const senderIsLister = sender_id === booking.owner_id;
 
     // --------------------------------------------------
-    // Booker receives message (guest OR auth user)
+    // If LISTER sent message → notify BOOKER
     // --------------------------------------------------
-    if (receiverIsBooker) {
-      // 1️⃣ Guest checkout email
+    if (senderIsLister) {
+      // Guest booker
       if (booking.user_email) {
         recipientEmail = booking.user_email;
       }
-
-      // 2️⃣ Auth user fallback
-      if (!recipientEmail) {
+      // Auth booker
+      else if (booking.user_id) {
         const { data: bookerAuth } =
-          await supabase.auth.admin.getUserById(receiver_id);
+          await supabase.auth.admin.getUserById(booking.user_id);
 
         if (bookerAuth?.user?.email) {
           recipientEmail = bookerAuth.user.email;
@@ -111,11 +109,11 @@ export async function POST(
     }
 
     // --------------------------------------------------
-    // Lister receives message (always auth user)
+    // If BOOKER sent message → notify LISTER
     // --------------------------------------------------
-    if (receiverIsLister) {
+    if (!senderIsLister) {
       const { data: listerAuth } =
-        await supabase.auth.admin.getUserById(receiver_id);
+        await supabase.auth.admin.getUserById(booking.owner_id);
 
       if (listerAuth?.user?.email) {
         recipientEmail = listerAuth.user.email;
@@ -123,10 +121,14 @@ export async function POST(
     }
 
     // --------------------------------------------------
-    // If still no email, exit gracefully
+    // If still no email, exit gracefully (with context)
     // --------------------------------------------------
     if (!recipientEmail) {
-      console.warn("⚠️ No recipient email found. Skipping email send.");
+      console.warn("⚠️ No recipient email found. Skipping email send.", {
+        bookingId,
+        sender_id,
+        booking,
+      });
       return NextResponse.json({ success: true });
     }
 
