@@ -102,15 +102,17 @@ export async function POST(
     // If LISTER sent message → notify BOOKER
     // --------------------------------------------------
     if (senderIsLister) {
-      if (booking.user_email) {
-        recipientEmail = booking.user_email;
-      } else if (booking.user_id) {
+      if (booking.user_id) {
         const { data: bookerAuth } =
           await supabase.auth.admin.getUserById(booking.user_id);
 
         if (bookerAuth?.user?.email) {
           recipientEmail = bookerAuth.user.email;
         }
+      }
+
+      if (!recipientEmail && booking.user_email) {
+        recipientEmail = booking.user_email;
       }
     }
 
