@@ -14,8 +14,8 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 // Supabase Service Role client (bypasses RLS)
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,     // ✔ FIXED — correct URL
-  process.env.SUPABASE_SERVICE_ROLE_KEY!     // ✔ Service role key
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,     // ✔ correct URL
+  process.env.SUPABASE_SERVICE_ROLE_KEY!     // ✔ service role key
 );
 
 export async function POST(req: Request) {
@@ -72,6 +72,12 @@ export async function POST(req: Request) {
         ? rawEmail
         : session.customer_details?.email || null;
 
+    // ✅ Explicit, reliable booker email
+    const booker_email =
+      session.customer_details?.email ||
+      user_email ||
+      null;
+
     // -----------------------------------------------------
     // LOOKUP LISTING OWNER
     // -----------------------------------------------------
@@ -100,6 +106,7 @@ export async function POST(req: Request) {
         owner_id,
         user_id,
         user_email,
+        booker_email,              // ✅ permanent fix
         amount_paid: amountPaid,
         stripe_session_id: session.id,
         status: "paid",
@@ -123,4 +130,3 @@ export async function POST(req: Request) {
 export async function GET() {
   return NextResponse.json({ error: "Method Not Allowed" }, { status: 405 });
 }
-
