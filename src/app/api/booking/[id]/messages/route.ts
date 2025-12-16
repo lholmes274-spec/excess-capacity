@@ -129,9 +129,14 @@ export async function POST(
     }
 
     // --------------------------------------------------
-    // FINAL FALLBACK (unchanged)
+    // FINAL FALLBACK (sender-safe)
     // --------------------------------------------------
-    if (!recipientEmail && senderIsLister && booking.user_email) {
+    if (
+      !recipientEmail &&
+      senderIsLister &&
+      booking.user_email &&
+      booking.user_email !== sender_id
+    ) {
       console.warn("⚠️ Using fallback booker email for notification", {
         bookingId,
       });
