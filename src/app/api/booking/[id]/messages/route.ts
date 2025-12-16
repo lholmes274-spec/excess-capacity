@@ -47,7 +47,6 @@ export async function POST(
       );
     }
 
-    // 🔍 DEBUG — DO NOT REMOVE UNTIL ISSUE CONFIRMED
     console.log("📦 BOOKING EMAIL DEBUG", {
       bookingId,
       owner_id: booking.owner_id,
@@ -57,7 +56,7 @@ export async function POST(
     });
 
     // --------------------------------------------------
-    // Determine receiver (unchanged)
+    // Determine receiver
     // --------------------------------------------------
     const receiver_id =
       sender_id === booking.owner_id
@@ -95,7 +94,6 @@ export async function POST(
     // Resolve recipient email
     // --------------------------------------------------
     let recipientEmail: string | null = null;
-
     const senderIsLister = sender_id === booking.owner_id;
 
     // --------------------------------------------------
@@ -109,11 +107,14 @@ export async function POST(
     // If BOOKER sent message → notify LISTER
     // --------------------------------------------------
     if (!senderIsLister) {
-      const { data: listerAuth } =
-        await supabase.auth.admin.getUserById(booking.owner_id);
+      const { data: listerProfile } = await supabase
+        .from("profiles")
+        .select("email")
+        .eq("id", booking.owner_id)
+        .single();
 
-      if (listerAuth?.user?.email) {
-        recipientEmail = listerAuth.user.email;
+      if (listerProfile?.email) {
+        recipientEmail = listerProfile.email;
       }
     }
 
@@ -136,7 +137,7 @@ export async function POST(
       await resend.emails.send({
         from: `Prosperity Hub™ <${process.env.RESEND_FROM_EMAIL}>`,
         to: recipientEmail,
-        replyTo: "support@prosperityhub.app", // ✅ ADDED (only change)
+        replyTo: "support@prosperityhub.app",
         subject: "New message regarding your booking on Prosperity Hub™",
         html: `
           <div style="font-family:Arial,sans-serif;line-height:1.6">
