@@ -83,7 +83,7 @@ export async function POST(
     }
 
     // --------------------------------------------------
-    // Resolve recipient email (FINAL, DETERMINISTIC)
+    // Resolve recipient email
     // --------------------------------------------------
     let recipientEmail: string | null = null;
 
@@ -93,12 +93,9 @@ export async function POST(
     // If LISTER sent message → notify BOOKER
     // --------------------------------------------------
     if (senderIsLister) {
-      // Guest booker
       if (booking.user_email) {
         recipientEmail = booking.user_email;
-      }
-      // Auth booker
-      else if (booking.user_id) {
+      } else if (booking.user_id) {
         const { data: bookerAuth } =
           await supabase.auth.admin.getUserById(booking.user_id);
 
@@ -121,7 +118,17 @@ export async function POST(
     }
 
     // --------------------------------------------------
-    // If still no email, exit gracefully (with context)
+    // ✅ FINAL FALLBACK (minimal addition)
+    // --------------------------------------------------
+    if (!recipientEmail && senderIsLister && booking.user_email) {
+      console.warn("⚠️ Using fallback booker email for notification", {
+        bookingId,
+      });
+      recipientEmail = booking.user_email;
+    }
+
+    // --------------------------------------------------
+    // If still no email, exit gracefully
     // --------------------------------------------------
     if (!recipientEmail) {
       console.warn("⚠️ No recipient email found. Skipping email send.", {
