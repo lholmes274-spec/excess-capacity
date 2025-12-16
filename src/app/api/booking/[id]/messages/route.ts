@@ -98,35 +98,21 @@ export async function POST(
 
     const senderIsLister = sender_id === booking.owner_id;
 
-    // ✅ Resolve sender email ONCE (for safe comparisons)
-    let senderEmail: string | null = null;
-    const { data: senderAuth } =
-      await supabase.auth.admin.getUserById(sender_id);
-
-    if (senderAuth?.user?.email) {
-      senderEmail = senderAuth.user.email;
-    }
-
     // --------------------------------------------------
     // If LISTER sent message → notify BOOKER
+    // AUTH EMAIL ONLY (no fallback)
     // --------------------------------------------------
-    if (senderIsLister) {
-      if (booking.user_id) {
-        const { data: bookerAuth } =
-          await supabase.auth.admin.getUserById(booking.user_id);
+    if (senderIsLister && booking.user_id) {
+      const { data: bookerAuth } =
+        await supabase.auth.admin.getUserById(booking.user_id);
 
-        if (bookerAuth?.user?.email) {
-          recipientEmail = bookerAuth.user.email;
-        }
-      }
-
-      if (!recipientEmail && booking.user_email) {
-        recipientEmail = booking.user_email;
+      if (bookerAuth?.user?.email) {
+        recipientEmail = bookerAuth.user.email;
       }
     }
 
     // --------------------------------------------------
-    // If BOOKER sent message → notify LISTER
+    // If BOOKER sent message → notify LISTER (UNCHANGED)
     // --------------------------------------------------
     if (!senderIsLister) {
       const { data: listerAuth } =
@@ -135,21 +121,6 @@ export async function POST(
       if (listerAuth?.user?.email) {
         recipientEmail = listerAuth.user.email;
       }
-    }
-
-    // --------------------------------------------------
-    // FINAL FALLBACK (sender-email safe)
-    // --------------------------------------------------
-    if (
-      !recipientEmail &&
-      senderIsLister &&
-      booking.user_email &&
-      booking.user_email !== senderEmail
-    ) {
-      console.warn("⚠️ Using fallback booker email for notification", {
-        bookingId,
-      });
-      recipientEmail = booking.user_email;
     }
 
     // --------------------------------------------------
