@@ -99,14 +99,14 @@ export async function POST(
     const senderIsLister = sender_id === booking.owner_id;
 
     // --------------------------------------------------
-    // If LISTER sent message → notify BOOKER (FINAL, CORRECT)
+    // If LISTER sent message → notify BOOKER
     // --------------------------------------------------
     if (senderIsLister && booking.booker_email) {
       recipientEmail = booking.booker_email;
     }
 
     // --------------------------------------------------
-    // If BOOKER sent message → notify LISTER (UNCHANGED)
+    // If BOOKER sent message → notify LISTER
     // --------------------------------------------------
     if (!senderIsLister) {
       const { data: listerAuth } =
@@ -136,6 +136,7 @@ export async function POST(
       await resend.emails.send({
         from: `Prosperity Hub™ <${process.env.RESEND_FROM_EMAIL}>`,
         to: recipientEmail,
+        replyTo: "support@prosperityhub.app", // ✅ ADDED (only change)
         subject: "New message regarding your booking on Prosperity Hub™",
         html: `
           <div style="font-family:Arial,sans-serif;line-height:1.6">
