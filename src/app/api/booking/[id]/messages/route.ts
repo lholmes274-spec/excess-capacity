@@ -115,6 +115,14 @@ export async function POST(
 
       if (listerProfile?.email) {
         recipientEmail = listerProfile.email;
+      } else {
+        // 🔒 SAFE FALLBACK — profiles.email does not exist
+        const { data: listerAuth } =
+          await supabase.auth.admin.getUserById(booking.owner_id);
+
+        if (listerAuth?.user?.email) {
+          recipientEmail = listerAuth.user.email;
+        }
       }
     }
 
