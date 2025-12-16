@@ -47,6 +47,15 @@ export async function POST(
       );
     }
 
+    // 🔍 DEBUG — DO NOT REMOVE UNTIL ISSUE CONFIRMED
+    console.log("📦 BOOKING EMAIL DEBUG", {
+      bookingId,
+      owner_id: booking.owner_id,
+      user_id: booking.user_id,
+      user_email: booking.user_email,
+      sender_id,
+    });
+
     // --------------------------------------------------
     // Determine receiver (unchanged)
     // --------------------------------------------------
@@ -118,7 +127,7 @@ export async function POST(
     }
 
     // --------------------------------------------------
-    // ✅ FINAL FALLBACK (minimal addition)
+    // FINAL FALLBACK (unchanged)
     // --------------------------------------------------
     if (!recipientEmail && senderIsLister && booking.user_email) {
       console.warn("⚠️ Using fallback booker email for notification", {
