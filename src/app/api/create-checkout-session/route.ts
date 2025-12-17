@@ -51,7 +51,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 🍪 Correct new SSR Supabase client
+    // 🍪 Supabase server client
     const cookieStore = cookies();
     const supabase = createServerClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -73,27 +73,43 @@ export async function POST(req: Request) {
       .single();
 
     if (listingError || !listing) {
-      console.error("Listing fetch error:", listingError);
       return NextResponse.json(
         { error: "Listing not found" },
         { status: 404 }
       );
     }
 
-    // Get logged-in user
+    // Fetch lister profile (listing owner)
+    const { data: listerProfile } = await supabase
+      .from("profiles")
+      .select("stripe_account_id")
+      .eq("id", listing.user_id)
+      .single();
+
+    if (!listerProfile?.stripe_account_id) {
+      return NextResponse.json(
+        { error: "Lister is not connected to Stripe" },
+        { status: 400 }
+      );
+    }
+
+    // Get logged-in user (booker)
     const {
       data: { session },
     } = await supabase.auth.getSession();
 
     const user = session?.user || null;
 
-    // Always strings for Stripe metadata
-    const userId = user?.id ? String(user.id) : "0"; // 0 = guest
+    const userId = user?.id ? String(user.id) : "0";
     const userEmail = user?.email ? String(user.email) : "unknown";
 
     const pricingLabel = formatPricingUnit(listing.pricing_type);
 
-    // Create the Stripe Checkout session
+    // 💰 Platform fee (example: 10%)
+    const amountInCents = Math.round(Number(listing.baseprice) * 100);
+    const platformFee = Math.round(amountInCents * 0.1);
+
+    // Create Stripe Checkout Session (DESTINATION CHARGE)
     const stripeSession = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
@@ -104,9 +120,17 @@ export async function POST(req: Request) {
 
       metadata: {
         listing_id: String(listing_id),
+        lister_id: String(listing.user_id),
         user_id: String(userId),
         user_email: String(userEmail),
         pricing_type: String(listing.pricing_type),
+      },
+
+      payment_intent_data: {
+        application_fee_amount: platformFee,
+        transfer_data: {
+          destination: listerProfile.stripe_account_id,
+        },
       },
 
       line_items: [
@@ -117,7 +141,7 @@ export async function POST(req: Request) {
               name: listing.title,
               description: pricingLabel,
             },
-            unit_amount: Math.round(Number(listing.baseprice) * 100),
+            unit_amount: amountInCents,
           },
           quantity: 1,
         },
