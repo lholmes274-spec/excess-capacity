@@ -79,11 +79,11 @@ export async function POST(req: Request) {
       );
     }
 
-    // Fetch lister profile (listing owner)
+    // 🔑 Fetch lister (listing owner) profile
     const { data: listerProfile } = await supabase
       .from("profiles")
       .select("stripe_account_id")
-      .eq("id", listing.user_id)
+      .eq("id", listing.owner_id)
       .single();
 
     if (!listerProfile?.stripe_account_id) {
@@ -93,23 +93,22 @@ export async function POST(req: Request) {
       );
     }
 
-    // Get logged-in user (booker)
+    // Booker (logged-in user)
     const {
       data: { session },
     } = await supabase.auth.getSession();
 
     const user = session?.user || null;
-
     const userId = user?.id ? String(user.id) : "0";
     const userEmail = user?.email ? String(user.email) : "unknown";
 
     const pricingLabel = formatPricingUnit(listing.pricing_type);
 
-    // 💰 Platform fee (example: 10%)
+    // 💰 Amounts
     const amountInCents = Math.round(Number(listing.baseprice) * 100);
-    const platformFee = Math.round(amountInCents * 0.1);
+    const platformFee = Math.round(amountInCents * 0.1); // 10%
 
-    // Create Stripe Checkout Session (DESTINATION CHARGE)
+    // ✅ Stripe Checkout Session — Destination Charge
     const stripeSession = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
@@ -120,7 +119,7 @@ export async function POST(req: Request) {
 
       metadata: {
         listing_id: String(listing_id),
-        lister_id: String(listing.user_id),
+        lister_id: String(listing.owner_id),
         user_id: String(userId),
         user_email: String(userEmail),
         pricing_type: String(listing.pricing_type),
