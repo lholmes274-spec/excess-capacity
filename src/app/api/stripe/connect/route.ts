@@ -64,7 +64,10 @@ export async function POST() {
       if (insertError) {
         console.error("Profile insert error:", insertError);
         return NextResponse.json(
-          { error: "Failed to create user profile" },
+          {
+            error: "Profile insert failed",
+            supabaseError: insertError,
+          },
           { status: 500 }
         );
       }
@@ -101,7 +104,7 @@ export async function POST() {
       if (updateError) {
         console.error("Profile update error:", updateError);
         return NextResponse.json(
-          { error: "Failed to save Stripe account" },
+          { error: "Failed to save Stripe account", supabaseError: updateError },
           { status: 500 }
         );
       }
