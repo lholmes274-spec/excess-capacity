@@ -42,22 +42,37 @@ export async function POST() {
 
     const user = session.user;
 
-    // 🔎 Fetch user profile
-    const { data: profile, error: profileError } = await supabase
+    // 🔎 Fetch user profile (DO NOT hard-fail if missing)
+    let { data: profile } = await supabase
       .from("profiles")
-      .select("stripe_account_id")
+      .select("id, stripe_account_id")
       .eq("id", user.id)
-      .single();
+      .maybeSingle();
 
-    if (profileError) {
-      console.error("Profile fetch error:", profileError);
-      return NextResponse.json(
-        { error: "Profile not found" },
-        { status: 404 }
-      );
+    // 🆕 Auto-create profile if missing
+    if (!profile) {
+      const { data: newProfile, error: insertError } = await supabase
+        .from("profiles")
+        .insert({
+          id: user.id,
+          email: user.email,
+          created_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error("Profile insert error:", insertError);
+        return NextResponse.json(
+          { error: "Failed to create user profile" },
+          { status: 500 }
+        );
+      }
+
+      profile = newProfile;
     }
 
-    let stripeAccountId = profile?.stripe_account_id;
+    let stripeAccountId = profile.stripe_account_id;
 
     // 🆕 Create Stripe Express account if one does not exist
     if (!stripeAccountId) {
