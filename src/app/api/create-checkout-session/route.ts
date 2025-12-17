@@ -51,15 +51,14 @@ export async function POST(req: Request) {
       );
     }
 
-    // 🍪 Supabase server client
-    const cookieStore = cookies();
+    // 🔐 SERVICE ROLE CLIENT (bypasses RLS)
     const supabase = createServerClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
       {
         cookies: {
-          get(name) {
-            return cookieStore.get(name)?.value;
+          get() {
+            return undefined;
           },
         },
       }
@@ -79,7 +78,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 🔑 Fetch lister (listing owner) profile
+    // Fetch lister profile (owner)
     const { data: listerProfile } = await supabase
       .from("profiles")
       .select("stripe_account_id")
@@ -93,10 +92,23 @@ export async function POST(req: Request) {
       );
     }
 
-    // Booker (logged-in user)
+    // Booker (optional auth)
+    const cookieStore = cookies();
+    const authClient = createServerClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name) {
+            return cookieStore.get(name)?.value;
+          },
+        },
+      }
+    );
+
     const {
       data: { session },
-    } = await supabase.auth.getSession();
+    } = await authClient.auth.getSession();
 
     const user = session?.user || null;
     const userId = user?.id ? String(user.id) : "0";
@@ -104,11 +116,10 @@ export async function POST(req: Request) {
 
     const pricingLabel = formatPricingUnit(listing.pricing_type);
 
-    // 💰 Amounts
     const amountInCents = Math.round(Number(listing.baseprice) * 100);
-    const platformFee = Math.round(amountInCents * 0.1); // 10%
+    const platformFee = Math.round(amountInCents * 0.1);
 
-    // ✅ Stripe Checkout Session — Destination Charge
+    // ✅ DESTINATION CHARGE
     const stripeSession = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
@@ -154,10 +165,7 @@ export async function POST(req: Request) {
   } catch (err) {
     console.error("Checkout session error:", err);
     return NextResponse.json(
-      {
-        error: "Failed to create checkout session",
-        details: String(err),
-      },
+      { error: "Failed to create checkout session", details: String(err) },
       { status: 500 }
     );
   }
