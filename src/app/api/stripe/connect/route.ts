@@ -14,7 +14,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST() {
   try {
-    // 🍪 Create server-side Supabase client
     const cookieStore = cookies();
     const supabase = createServerClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -28,7 +27,6 @@ export async function POST() {
       }
     );
 
-    // 🔐 Require authenticated user
     const {
       data: { session },
     } = await supabase.auth.getSession();
@@ -42,14 +40,12 @@ export async function POST() {
 
     const user = session.user;
 
-    // 🔎 Fetch user profile (DO NOT hard-fail if missing)
     let { data: profile } = await supabase
       .from("profiles")
       .select("id, stripe_account_id")
       .eq("id", user.id)
       .maybeSingle();
 
-    // 🆕 Auto-create profile if missing
     if (!profile) {
       const { data: newProfile, error: insertError } = await supabase
         .from("profiles")
@@ -63,10 +59,16 @@ export async function POST() {
 
       if (insertError) {
         console.error("Profile insert error:", insertError);
+
         return NextResponse.json(
           {
             error: "Profile insert failed",
-            supabaseError: insertError,
+            supabaseError: {
+              code: insertError.code,
+              message: insertError.message,
+              details: insertError.details,
+              hint: insertError.hint,
+            },
           },
           { status: 500 }
         );
@@ -77,7 +79,6 @@ export async function POST() {
 
     let stripeAccountId = profile.stripe_account_id;
 
-    // 🆕 Create Stripe Express account if one does not exist
     if (!stripeAccountId) {
       const account = await stripe.accounts.create({
         type: "express",
@@ -92,7 +93,6 @@ export async function POST() {
 
       stripeAccountId = account.id;
 
-      // 💾 Save Stripe account to profile
       const { error: updateError } = await supabase
         .from("profiles")
         .update({
@@ -102,15 +102,21 @@ export async function POST() {
         .eq("id", user.id);
 
       if (updateError) {
-        console.error("Profile update error:", updateError);
         return NextResponse.json(
-          { error: "Failed to save Stripe account", supabaseError: updateError },
+          {
+            error: "Profile update failed",
+            supabaseError: {
+              code: updateError.code,
+              message: updateError.message,
+              details: updateError.details,
+              hint: updateError.hint,
+            },
+          },
           { status: 500 }
         );
       }
     }
 
-    // 🔗 Create onboarding link
     const accountLink = await stripe.accountLinks.create({
       account: stripeAccountId,
       refresh_url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`,
@@ -120,7 +126,6 @@ export async function POST() {
 
     return NextResponse.json({ url: accountLink.url });
   } catch (err) {
-    console.error("Stripe Connect error:", err);
     return NextResponse.json(
       { error: "Stripe Connect setup failed", details: String(err) },
       { status: 500 }
