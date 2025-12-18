@@ -149,38 +149,6 @@ export default function Dashboard() {
                 </p>
               </div>
             )}
-
-            {stripeReady && (
-              <div className="p-5 bg-white border-2 border-green-500 rounded-xl shadow">
-                <h3 className="font-semibold text-green-700">
-                  ✅ Stripe account connected
-                </h3>
-                <p className="text-sm text-gray-600 mt-1">
-                  Payouts are handled by Stripe. Stripe may temporarily restrict
-                  payouts until identity and bank verification is complete.
-                </p>
-                <p className="text-sm text-gray-700 mt-2 font-medium">
-                  We strongly recommend reviewing your Stripe account to confirm
-                  there are no pending verification requirements.
-                </p>
-                <button
-                  onClick={handleConnectStripe}
-                  disabled={connectingStripe}
-                  className="mt-3 px-4 py-2 border border-gray-400 text-gray-700 rounded hover:bg-gray-50 disabled:opacity-50"
-                >
-                  {connectingStripe
-                    ? "Opening Stripe..."
-                    : "Review Stripe account"}
-                </button>
-                <p className="text-xs text-gray-500 mt-3">
-                  If you continue to see this message after reviewing Stripe,
-                  please log in to your Stripe Dashboard and check your connected
-                  account status. Some payout restrictions require manual review
-                  by Stripe and cannot be resolved through the Express setup
-                  flow.
-                </p>
-              </div>
-            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 place-items-center">
