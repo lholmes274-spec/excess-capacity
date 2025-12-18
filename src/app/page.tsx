@@ -3,11 +3,31 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 
 export default function HomePage() {
+  const router = useRouter();
   const [realListings, setRealListings] = useState([]);
   const [user, setUser] = useState(undefined); // undefined = loading, null = no user
+
+  // 🔑 Detect email confirmation and redirect ONCE to /welcome
+  useEffect(() => {
+    const handleEmailConfirmationRedirect = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const type = params.get("type");
+
+      if (type === "signup") {
+        const { data } = await supabase.auth.getUser();
+
+        if (data?.user) {
+          router.replace("/welcome");
+        }
+      }
+    };
+
+    handleEmailConfirmationRedirect();
+  }, [router]);
 
   // Load listings and check auth
   useEffect(() => {
