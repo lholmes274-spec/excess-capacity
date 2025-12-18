@@ -98,6 +98,8 @@ export async function POST() {
         .update({
           stripe_account_id: stripeAccountId,
           stripe_account_status: "pending",
+          stripe_charges_enabled: false,
+          stripe_payouts_enabled: false,
         })
         .eq("id", user.id);
 
@@ -116,6 +118,21 @@ export async function POST() {
         );
       }
     }
+
+    // 🔑 NEW: Always sync Stripe account status
+    const account = await stripe.accounts.retrieve(stripeAccountId);
+
+    await supabase
+      .from("profiles")
+      .update({
+        stripe_charges_enabled: account.charges_enabled ?? false,
+        stripe_payouts_enabled: account.payouts_enabled ?? false,
+        stripe_account_status:
+          account.charges_enabled && account.payouts_enabled
+            ? "active"
+            : "pending",
+      })
+      .eq("id", user.id);
 
     const accountLink = await stripe.accountLinks.create({
       account: stripeAccountId,
