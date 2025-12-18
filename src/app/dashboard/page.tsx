@@ -156,6 +156,13 @@ export default function Dashboard() {
                     ? "Opening Stripe..."
                     : "Review Stripe account"}
                 </button>
+                <p className="text-xs text-gray-500 mt-3">
+                  If you continue to see this message after reviewing Stripe,
+                  please log in to your Stripe Dashboard and check your connected
+                  account status. Some payout restrictions require manual review
+                  by Stripe and cannot be resolved through the Express setup
+                  flow.
+                </p>
               </div>
             )}
           </div>
