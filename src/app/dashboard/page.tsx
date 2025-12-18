@@ -123,6 +123,16 @@ export default function Dashboard() {
                 </h3>
                 <p className="text-sm text-gray-600 mt-1">
                   Stripe needs additional information before payouts can be sent.
+                  Please review your connected account in the{" "}
+                  <a
+                    href="https://dashboard.stripe.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline font-medium"
+                  >
+                    Stripe Dashboard
+                  </a>
+                  .
                 </p>
                 <button
                   onClick={handleConnectStripe}
@@ -131,6 +141,12 @@ export default function Dashboard() {
                 >
                   {connectingStripe ? "Opening Stripe..." : "Finish Setup"}
                 </button>
+                <p className="text-xs text-gray-500 mt-3">
+                  If you are redirected back here after completing setup, log in
+                  to your Stripe Dashboard directly. Some verification steps
+                  require manual review by Stripe and cannot be completed
+                  through the Express setup flow.
+                </p>
               </div>
             )}
 
