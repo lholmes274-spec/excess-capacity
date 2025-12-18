@@ -117,7 +117,10 @@ export async function POST(req: Request) {
     const pricingLabel = formatPricingUnit(listing.pricing_type);
 
     const amountInCents = Math.round(Number(listing.baseprice) * 100);
-    const platformFee = Math.round(amountInCents * 0.1);
+
+    // 🟢 10% platform fee (defensive guard added)
+    const rawPlatformFee = Math.round(amountInCents * 0.1);
+    const platformFee = Math.min(rawPlatformFee, amountInCents - 1);
 
     // ✅ DESTINATION CHARGE
     const stripeSession = await stripe.checkout.sessions.create({
