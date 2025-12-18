@@ -60,7 +60,7 @@ export default function Dashboard() {
       if (data?.url) {
         window.location.href = data.url;
       } else {
-        alert("Unable to start Stripe onboarding.");
+        alert("Unable to open Stripe.");
       }
     } catch (err) {
       console.error("Stripe connect error:", err);
@@ -143,6 +143,19 @@ export default function Dashboard() {
                   Payouts are handled by Stripe. Stripe may temporarily restrict
                   payouts until identity and bank verification is complete.
                 </p>
+                <p className="text-sm text-gray-700 mt-2 font-medium">
+                  We strongly recommend reviewing your Stripe account to confirm
+                  there are no pending verification requirements.
+                </p>
+                <button
+                  onClick={handleConnectStripe}
+                  disabled={connectingStripe}
+                  className="mt-3 px-4 py-2 border border-gray-400 text-gray-700 rounded hover:bg-gray-50 disabled:opacity-50"
+                >
+                  {connectingStripe
+                    ? "Opening Stripe..."
+                    : "Review Stripe account"}
+                </button>
               </div>
             )}
           </div>
