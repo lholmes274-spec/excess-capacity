@@ -14,14 +14,12 @@ export default function HomePage() {
   // 🔑 Detect email confirmation via HASH and redirect ONCE to /welcome
   useEffect(() => {
     const handleEmailConfirmationRedirect = async () => {
-      // Supabase puts params in the URL HASH, not search
       const hash = window.location.hash.replace("#", "");
       const params = new URLSearchParams(hash);
       const type = params.get("type");
 
       if (type === "signup") {
         const { data } = await supabase.auth.getUser();
-
         if (data?.user) {
           router.replace("/welcome");
         }
@@ -37,13 +35,15 @@ export default function HomePage() {
       const { data } = await supabase.auth.getUser();
       setUser(data?.user || null);
 
-      const { data: realData } = await supabase
+      // ✅ SHOW BOTH REAL + DEMO LISTINGS
+      // Real listings first, demo listings after
+      const { data: listingsData } = await supabase
         .from("listings")
         .select("*")
-        .eq("demo_mode", false)
+        .order("demo_mode", { ascending: true })
         .limit(6);
 
-      setRealListings(realData || []);
+      setRealListings(listingsData || []);
     }
 
     load();
@@ -52,7 +52,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
 
-      {/* ⭐ PREMIUM GRADIENT BANNER WITH BLUE TITLE BOX */}
+      {/* ⭐ PREMIUM GRADIENT BANNER */}
       <div className="w-full flex justify-center px-4 mt-6">
         <div
           className="
@@ -96,6 +96,7 @@ export default function HomePage() {
           within your local community.
         </p>
 
+        {/* CTA BUTTONS (ONLY WHEN LOGGED OUT) */}
         {user === null && (
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
             <Link href="/signup">
@@ -129,7 +130,15 @@ export default function HomePage() {
                 className="w-full h-40 object-cover rounded-lg"
               />
 
-              <h3 className="text-lg font-semibold mt-3">{listing.title}</h3>
+              <h3 className="text-lg font-semibold mt-3">
+                {listing.title}
+                {listing.demo_mode && (
+                  <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                    Demo
+                  </span>
+                )}
+              </h3>
+
               <p className="text-gray-600 text-sm">
                 {listing.city}, {listing.state}
               </p>
