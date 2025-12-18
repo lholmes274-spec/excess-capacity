@@ -11,10 +11,12 @@ export default function HomePage() {
   const [realListings, setRealListings] = useState([]);
   const [user, setUser] = useState(undefined); // undefined = loading, null = no user
 
-  // 🔑 Detect email confirmation and redirect ONCE to /welcome
+  // 🔑 Detect email confirmation via HASH and redirect ONCE to /welcome
   useEffect(() => {
     const handleEmailConfirmationRedirect = async () => {
-      const params = new URLSearchParams(window.location.search);
+      // Supabase puts params in the URL HASH, not search
+      const hash = window.location.hash.replace("#", "");
+      const params = new URLSearchParams(hash);
       const type = params.get("type");
 
       if (type === "signup") {
@@ -72,8 +74,6 @@ export default function HomePage() {
             boxShadow: "0 8px 30px rgba(0,0,0,0.10)",
           }}
         >
-
-          {/* 🔵 Blue rectangle behind the title */}
           <div className="inline-block bg-[#0057ff] px-6 py-2 rounded-md">
             <h1 className="text-4xl font-extrabold tracking-tight text-white">
               Prosperity Hub™
@@ -96,7 +96,6 @@ export default function HomePage() {
           within your local community.
         </p>
 
-        {/* CTA BUTTONS (ONLY WHEN LOGGED OUT) */}
         {user === null && (
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
             <Link href="/signup">
