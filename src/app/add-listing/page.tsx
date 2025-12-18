@@ -2,7 +2,7 @@
 "use client";
 export const dynamic = "force-dynamic";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 
@@ -34,6 +34,67 @@ export default function AddListingPage() {
   const [images, setImages] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // 🔒 Stripe payout protection
+  const [stripeReady, setStripeReady] = useState(false);
+  const [checkingStripe, setCheckingStripe] = useState(true);
+  const [connectingStripe, setConnectingStripe] = useState(false);
+
+  useEffect(() => {
+    const checkStripeStatus = async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData?.user?.id;
+
+      if (!userId) {
+        router.push("/login");
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select(
+          `
+          stripe_account_id,
+          stripe_charges_enabled,
+          stripe_payouts_enabled
+        `
+        )
+        .eq("id", userId)
+        .single();
+
+      const ready =
+        profile?.stripe_account_id &&
+        profile?.stripe_charges_enabled &&
+        profile?.stripe_payouts_enabled;
+
+      setStripeReady(!!ready);
+      setCheckingStripe(false);
+    };
+
+    checkStripeStatus();
+  }, [router]);
+
+  const handleConnectStripe = async () => {
+    try {
+      setConnectingStripe(true);
+
+      const res = await fetch("/api/stripe/connect", {
+        method: "POST",
+      });
+
+      const data = await res.json();
+
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        alert("Unable to start Stripe onboarding.");
+      }
+    } catch (err) {
+      alert("Stripe connection failed.");
+    } finally {
+      setConnectingStripe(false);
+    }
+  };
 
   const validateEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -67,6 +128,12 @@ export default function AddListingPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!stripeReady) {
+      alert("You must connect Stripe before publishing a listing.");
+      return;
+    }
+
     setLoading(true);
 
     const { data: userData } = await supabase.auth.getUser();
@@ -142,8 +209,35 @@ export default function AddListingPage() {
     router.push("/");
   };
 
+  if (checkingStripe) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-gray-600">
+        Checking payout setup...
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-2xl mx-auto p-6">
+
+      {!stripeReady && (
+        <div className="mb-6 p-5 bg-white border-2 border-red-400 rounded-xl shadow">
+          <h3 className="font-semibold text-red-700">
+            ❌ Payout setup required
+          </h3>
+          <p className="text-sm text-gray-600 mt-1">
+            You must connect Stripe to publish listings and receive payouts.
+          </p>
+          <button
+            onClick={handleConnectStripe}
+            disabled={connectingStripe}
+            className="mt-3 px-4 py-2 bg-black text-white rounded hover:opacity-90 disabled:opacity-50"
+          >
+            {connectingStripe ? "Connecting..." : "Connect Stripe"}
+          </button>
+        </div>
+      )}
+
       <h1 className="text-3xl font-bold mb-6 text-center text-orange-800">
         Add a New Listing
       </h1>
@@ -172,14 +266,8 @@ export default function AddListingPage() {
               <option value="vehicle">Vehicle</option>
               <option value="recreation">Recreation</option>
               <option value="home">Home</option>
-
-              {/* ⭐ FURNITURE */}
               <option value="furniture">Furniture</option>
-
-              {/* ⭐ APPLIANCES */}
               <option value="appliances">Appliances</option>
-
-              {/* ⭐ ELECTRONICS */}
               <option value="electronics">Electronics</option>
             </optgroup>
 
@@ -234,7 +322,6 @@ export default function AddListingPage() {
             className="w-full p-3 border rounded-lg bg-white"
           >
             <option value="">Select Pricing Type</option>
-
             <optgroup label="Time Based">
               <option value="per_hour">Per Hour</option>
               <option value="per_day">Per Day</option>
@@ -242,18 +329,15 @@ export default function AddListingPage() {
               <option value="per_week">Per Week</option>
               <option value="per_month">Per Month</option>
             </optgroup>
-
             <optgroup label="Usage Based">
               <option value="per_use">Per Use</option>
               <option value="per_item">Per Item</option>
               <option value="per_service">Per Service</option>
               <option value="per_trip">Per Trip</option>
             </optgroup>
-
             <optgroup label="Sales">
               <option value="for_sale">For Sale</option>
             </optgroup>
-
             <optgroup label="Flat Fee">
               <option value="flat_rate">Flat Rate</option>
             </optgroup>
@@ -278,7 +362,6 @@ export default function AddListingPage() {
             placeholder="Address Line 1"
             className="w-full p-3 border rounded-lg"
           />
-
           <input
             name="address_line2"
             value={form.address_line2}
@@ -286,7 +369,6 @@ export default function AddListingPage() {
             placeholder="Address Line 2 (optional)"
             className="w-full p-3 border rounded-lg"
           />
-
           <input
             name="city"
             value={form.city}
@@ -294,7 +376,6 @@ export default function AddListingPage() {
             placeholder="City"
             className="w-full p-3 border rounded-lg"
           />
-
           <input
             name="state"
             value={form.state}
@@ -302,7 +383,6 @@ export default function AddListingPage() {
             placeholder="State"
             className="w-full p-3 border rounded-lg"
           />
-
           <input
             name="zip"
             value={form.zip}
@@ -321,7 +401,6 @@ export default function AddListingPage() {
             placeholder="Contact Name"
             className="w-full p-3 border rounded-lg"
           />
-
           <input
             name="contact_phone"
             value={form.contact_phone}
@@ -329,7 +408,6 @@ export default function AddListingPage() {
             placeholder="Contact Phone"
             className="w-full p-3 border rounded-lg"
           />
-
           <div className="relative">
             <input
               name="contact_email"
@@ -340,14 +418,12 @@ export default function AddListingPage() {
                 isEmailValid === false ? "border-gray-300" : ""
               }`}
             />
-
             {isEmailValid && (
               <span className="absolute right-3 top-3 text-green-600 text-xl font-bold">
                 ✔
               </span>
             )}
           </div>
-
           <textarea
             name="pickup_instructions"
             value={form.pickup_instructions}
@@ -401,8 +477,8 @@ export default function AddListingPage() {
         {/* Submit */}
         <button
           type="submit"
-          disabled={loading}
-          className="w-full bg-orange-600 hover:bg-orange-700 text-white p-3 rounded-lg font-semibold transition"
+          disabled={loading || !stripeReady}
+          className="w-full bg-orange-600 hover:bg-orange-700 text-white p-3 rounded-lg font-semibold transition disabled:opacity-50"
         >
           {loading ? "Submitting..." : "Add Listing"}
         </button>
