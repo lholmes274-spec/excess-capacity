@@ -101,10 +101,10 @@ export default function Dashboard() {
             {!profile?.stripe_account_id && (
               <div className="p-5 bg-white border-2 border-red-400 rounded-xl shadow">
                 <h3 className="font-semibold text-red-700">
-                  ❌ Payouts not set up
+                  ❌ Stripe account not connected
                 </h3>
                 <p className="text-sm text-gray-600 mt-1">
-                  Connect Stripe to receive payouts for your listings.
+                  Connect Stripe to receive payouts.
                 </p>
                 <button
                   onClick={handleConnectStripe}
@@ -119,10 +119,10 @@ export default function Dashboard() {
             {profile?.stripe_account_id && !stripeReady && (
               <div className="p-5 bg-white border-2 border-yellow-400 rounded-xl shadow">
                 <h3 className="font-semibold text-yellow-700">
-                  ⚠️ Stripe setup incomplete
+                  ⚠️ Stripe verification required
                 </h3>
                 <p className="text-sm text-gray-600 mt-1">
-                  Stripe needs more information before payouts can be enabled.
+                  Stripe needs additional information before payouts can be sent.
                 </p>
                 <button
                   onClick={handleConnectStripe}
@@ -137,10 +137,11 @@ export default function Dashboard() {
             {stripeReady && (
               <div className="p-5 bg-white border-2 border-green-500 rounded-xl shadow">
                 <h3 className="font-semibold text-green-700">
-                  ✅ Payouts enabled
+                  ✅ Stripe account connected
                 </h3>
                 <p className="text-sm text-gray-600 mt-1">
-                  You will receive automatic payouts to your bank account.
+                  Payouts are handled by Stripe. Stripe may temporarily restrict
+                  payouts until identity and bank verification is complete.
                 </p>
               </div>
             )}
