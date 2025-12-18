@@ -3,31 +3,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 
 export default function HomePage() {
-  const router = useRouter();
   const [realListings, setRealListings] = useState([]);
   const [user, setUser] = useState(undefined); // undefined = loading, null = no user
-
-  // 🔑 Detect email confirmation via HASH and redirect ONCE to /welcome
-  useEffect(() => {
-    const handleEmailConfirmationRedirect = async () => {
-      const hash = window.location.hash.replace("#", "");
-      const params = new URLSearchParams(hash);
-      const type = params.get("type");
-
-      if (type === "signup") {
-        const { data } = await supabase.auth.getUser();
-        if (data?.user) {
-          router.replace("/welcome");
-        }
-      }
-    };
-
-    handleEmailConfirmationRedirect();
-  }, [router]);
 
   // Load listings and check auth
   useEffect(() => {
@@ -35,15 +15,13 @@ export default function HomePage() {
       const { data } = await supabase.auth.getUser();
       setUser(data?.user || null);
 
-      // ✅ SHOW BOTH REAL + DEMO LISTINGS
-      // Real listings first, demo listings after
-      const { data: listingsData } = await supabase
+      const { data: realData } = await supabase
         .from("listings")
         .select("*")
-        .order("demo_mode", { ascending: true })
+        .eq("demo_mode", false)
         .limit(6);
 
-      setRealListings(listingsData || []);
+      setRealListings(realData || []);
     }
 
     load();
@@ -52,7 +30,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
 
-      {/* ⭐ PREMIUM GRADIENT BANNER */}
+      {/* ⭐ PREMIUM GRADIENT BANNER WITH BLUE TITLE BOX */}
       <div className="w-full flex justify-center px-4 mt-6">
         <div
           className="
@@ -74,6 +52,8 @@ export default function HomePage() {
             boxShadow: "0 8px 30px rgba(0,0,0,0.10)",
           }}
         >
+
+          {/* 🔵 Blue rectangle behind the title */}
           <div className="inline-block bg-[#0057ff] px-6 py-2 rounded-md">
             <h1 className="text-4xl font-extrabold tracking-tight text-white">
               Prosperity Hub™
@@ -130,15 +110,7 @@ export default function HomePage() {
                 className="w-full h-40 object-cover rounded-lg"
               />
 
-              <h3 className="text-lg font-semibold mt-3">
-                {listing.title}
-                {listing.demo_mode && (
-                  <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
-                    Demo
-                  </span>
-                )}
-              </h3>
-
+              <h3 className="text-lg font-semibold mt-3">{listing.title}</h3>
               <p className="text-gray-600 text-sm">
                 {listing.city}, {listing.state}
               </p>
