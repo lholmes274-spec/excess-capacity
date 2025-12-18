@@ -23,16 +23,6 @@ export default function SignupPage() {
     checkUser();
   }, []);
 
-  // Redirect after success
-  useEffect(() => {
-    if (signupSuccess) {
-      const timer = setTimeout(() => {
-        router.push("/login");
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [signupSuccess]);
-
   // ✅ EMAIL VALIDATION FUNCTION
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -41,19 +31,13 @@ export default function SignupPage() {
       throw new Error("Please enter a valid email address.");
     }
 
-    // 🚫 Common typo domains (explicitly blocked)
     const blockedDomains = [
-      // Yahoo typos
       "yaoo.com",
       "yaoo.co",
       "yhoo.com",
       "yaho.com",
-
-      // Gmail typos
       "gmal.com",
       "gmial.com",
-
-      // Outlook / Hotmail typos
       "hotmial.com",
       "outlok.com",
     ];
@@ -78,7 +62,6 @@ export default function SignupPage() {
       return;
     }
 
-    // ✅ VALIDATE EMAIL BEFORE SIGNUP
     try {
       validateEmail(email);
     } catch (err: any) {
@@ -112,7 +95,6 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-gray-50">
       <div className="bg-white shadow-2xl border border-gray-200 rounded-2xl p-10 w-full max-w-md">
-
         <h1 className="text-3xl font-bold text-gray-900 text-center mb-2">
           Create Your Account
         </h1>
@@ -121,11 +103,24 @@ export default function SignupPage() {
         </p>
 
         {signupSuccess && (
-          <div className="mb-5 p-4 text-green-800 bg-green-100 border border-green-300 rounded-lg text-center">
-            Account created! Check your email for confirmation.
-            <div className="mt-2 text-sm text-gray-700">
-              Redirecting to login...
-            </div>
+          <div className="mb-6 p-5 bg-green-100 border border-green-300 rounded-lg text-center">
+            <h2 className="text-lg font-semibold text-green-900 mb-2">
+              ✅ Account created successfully
+            </h2>
+
+            <p className="text-green-800">
+              We’ve sent a confirmation email to <strong>{email}</strong>.
+              <br />
+              Please check your inbox and click the link to activate your account.
+            </p>
+
+            <p className="mt-4 text-sm text-gray-700">
+              You may safely close this tab.
+            </p>
+
+            <p className="mt-2 text-sm text-gray-600">
+              After confirming your email, return to Prosperity Hub and log in.
+            </p>
           </div>
         )}
 
@@ -179,7 +174,9 @@ export default function SignupPage() {
 
             <p className="text-center text-gray-600 mt-6">
               Already have an account?
-              <Link href="/login" className="text-blue-600 hover:underline">&nbsp;Login</Link>
+              <Link href="/login" className="text-blue-600 hover:underline">
+                &nbsp;Login
+              </Link>
             </p>
           </>
         )}
