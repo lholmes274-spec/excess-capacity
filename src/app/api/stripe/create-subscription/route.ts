@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { cookies } from "next/headers";
-import { createRouteHandlerClient } from "@supabase/ssr";
+import { createServerClient } from "@supabase/ssr"; // ✅ FIX
 import type { Database } from "@/types/supabase";
 
 export const dynamic = "force-dynamic";
@@ -15,12 +15,11 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(req: Request) {
   try {
-    const supabase = createRouteHandlerClient<Database>(
-      { cookies },
-      {
-        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      }
+    // ✅ CORRECT Supabase server client for App Router
+    const supabase = createServerClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { cookies }
     );
 
     const {
@@ -75,13 +74,11 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ url: stripeSession.url });
   } catch (error: any) {
-    // 🔴 DEBUG CHANGE — expose real Stripe error
     console.error("❌ Stripe subscription error:", error);
 
     return NextResponse.json(
       {
         error: error?.message || "Stripe subscription error",
-        raw: error,
       },
       { status: 500 }
     );
