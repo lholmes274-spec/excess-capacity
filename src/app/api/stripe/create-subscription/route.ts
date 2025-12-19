@@ -75,9 +75,14 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ url: stripeSession.url });
   } catch (error: any) {
-    console.error("Subscription session error:", error);
+    // 🔴 DEBUG CHANGE — expose real Stripe error
+    console.error("❌ Stripe subscription error:", error);
+
     return NextResponse.json(
-      { error: error.message || "Internal Server Error" },
+      {
+        error: error?.message || "Stripe subscription error",
+        raw: error,
+      },
       { status: 500 }
     );
   }
