@@ -13,11 +13,20 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 export async function POST(req: Request) {
   try {
     // ✅ Read user data from request body (frontend already knows user)
-    const body = await req.json();
+    let body: any = null; // NEW
+
+    try {
+      body = await req.json(); // NEW (wrapped safely)
+    } catch (jsonErr) {
+      console.error("❌ Invalid or missing JSON body", jsonErr); // NEW
+    }
+
     const userId = body?.user_id;
     const email = body?.email;
 
     if (!userId || !email) {
+      console.error("❌ Missing user_id or email", body); // NEW
+
       return NextResponse.json(
         { error: "Missing user_id or email" },
         { status: 400 }
