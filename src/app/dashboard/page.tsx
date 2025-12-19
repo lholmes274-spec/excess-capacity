@@ -92,9 +92,15 @@ export default function Dashboard() {
       {/* Dashboard */}
       <div className="flex justify-center px-4 mt-10">
         <div className="w-full max-w-2xl">
-          <h1 className="text-2xl font-bold mb-6">
+          <h1 className="text-2xl font-bold mb-2">
             Welcome, {user?.email} {isSubscribed && "💎"}
           </h1>
+
+          {stripeReady && (
+            <p className="text-sm text-green-700 mb-6">
+              ✅ Stripe payouts are active
+            </p>
+          )}
 
           {/* Stripe Payout Status */}
           <div className="mb-6">
