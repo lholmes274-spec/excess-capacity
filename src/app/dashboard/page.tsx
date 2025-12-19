@@ -13,6 +13,7 @@ export default function Dashboard() {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [connectingStripe, setConnectingStripe] = useState(false);
+  const [openingPortal, setOpeningPortal] = useState(false); // NEW
 
   useEffect(() => {
     const loadUser = async () => {
@@ -68,6 +69,30 @@ export default function Dashboard() {
       alert("Stripe connection failed.");
     } finally {
       setConnectingStripe(false);
+    }
+  };
+
+  // NEW — manage subscription via Stripe portal
+  const handleManageSubscription = async () => {
+    try {
+      setOpeningPortal(true);
+
+      const res = await fetch("/api/stripe/customer-portal", {
+        method: "POST",
+      });
+
+      const data = await res.json();
+
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        alert("Unable to open subscription portal.");
+      }
+    } catch (err) {
+      console.error("Customer portal error:", err);
+      alert("Unable to open subscription portal.");
+    } finally {
+      setOpeningPortal(false);
     }
   };
 
@@ -214,6 +239,17 @@ export default function Dashboard() {
                   <p className="text-sm mt-1 text-gray-600">
                     You have unlimited access.
                   </p>
+
+                  {/* NEW BUTTON */}
+                  <button
+                    onClick={handleManageSubscription}
+                    disabled={openingPortal}
+                    className="mt-4 px-4 py-2 border border-gray-400 rounded hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    {openingPortal
+                      ? "Opening subscription manager..."
+                      : "Manage subscription"}
+                  </button>
                 </div>
               </div>
             )}
