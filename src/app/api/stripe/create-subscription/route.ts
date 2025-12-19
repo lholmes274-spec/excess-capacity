@@ -1,9 +1,6 @@
 // @ts-nocheck
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { cookies } from "next/headers";
-import { createServerClient } from "@supabase/ssr"; // ✅ FIX
-import type { Database } from "@/types/supabase";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -15,40 +12,28 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(req: Request) {
   try {
-    // ✅ CORRECT Supabase server client for App Router
-    const supabase = createServerClient<Database>(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      { cookies }
-    );
+    // ✅ Read user data from request body (frontend already knows user)
+    const body = await req.json();
+    const userId = body?.user_id;
+    const email = body?.email;
 
-    const {
-      data: { session },
-      error: sessionError,
-    } = await supabase.auth.getSession();
-
-    if (sessionError) console.error("Session Error:", sessionError);
-
-    const user = session?.user;
-
-    if (!user?.id) {
+    if (!userId || !email) {
       return NextResponse.json(
-        { error: "Not authenticated" },
-        { status: 401 }
+        { error: "Missing user_id or email" },
+        { status: 400 }
       );
     }
 
-    const userId = String(user.id);
-
+    // ✅ Create Stripe Checkout session
     const stripeSession = await stripe.checkout.sessions.create({
       mode: "subscription",
       payment_method_types: ["card"],
 
-      customer_email: user.email, // ✅ REQUIRED
+      customer_email: email,
 
       line_items: [
         {
-          price: "price_1SSBDNBa56XBDKPxw7GtbCjM",
+          price: "price_1SSBDNBa56XBDKPxw7GtbCjM", // $9.99 Pro plan
           quantity: 1,
         },
       ],
@@ -65,21 +50,12 @@ export async function POST(req: Request) {
       }/canceled`,
     });
 
-    if (!stripeSession?.url) {
-      return NextResponse.json(
-        { error: "Stripe did not return a checkout URL" },
-        { status: 400 }
-      );
-    }
-
     return NextResponse.json({ url: stripeSession.url });
   } catch (error: any) {
     console.error("❌ Stripe subscription error:", error);
 
     return NextResponse.json(
-      {
-        error: error?.message || "Stripe subscription error",
-      },
+      { error: error?.message || "Stripe subscription error" },
       { status: 500 }
     );
   }
