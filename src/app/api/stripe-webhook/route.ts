@@ -50,10 +50,8 @@ export async function POST(req: Request) {
     const account = event.data.object as Stripe.Account;
 
     const stripe_account_id = account.id;
-
     const charges_enabled = account.charges_enabled === true;
     const payouts_enabled = account.payouts_enabled === true;
-
     const requirements_due =
       account.requirements?.currently_due ?? [];
 
@@ -75,40 +73,29 @@ export async function POST(req: Request) {
   }
 
   // -----------------------------------------------------
-  // 🔥 SUBSCRIPTION CHECKOUT COMPLETED (NEW)
+  // CHECKOUT SESSION COMPLETED
   // -----------------------------------------------------
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
 
-    // 🔥 Handle PRO subscription
+    // 🟡 SUBSCRIPTIONS: DO NOT ACTIVATE HERE
+    // (activation happens on invoice.paid)
     if (session.mode === "subscription") {
       const user_id = session.metadata?.user_id;
       const customer_id = session.customer as string;
       const subscription_id = session.subscription as string;
 
-      if (!user_id || !customer_id || !subscription_id) {
-        console.error("❌ Missing subscription metadata", {
-          user_id,
-          customer_id,
-          subscription_id,
-        });
-      } else {
-        const { error } = await supabase
+      if (user_id && customer_id) {
+        await supabase
           .from("profiles")
           .update({
-            is_subscribed: true,
-            membership_tier: "pro",
             stripe_customer_id: customer_id,
             stripe_subscription_id: subscription_id,
             updated_at: new Date().toISOString(),
           })
           .eq("id", user_id);
 
-        if (error) {
-          console.error("❌ Failed to activate Pro subscription:", error);
-        } else {
-          console.log("✅ Pro subscription activated for user:", user_id);
-        }
+        console.log("🟡 Subscription checkout completed (awaiting payment)");
       }
 
       return NextResponse.json({ received: true }, { status: 200 });
@@ -183,6 +170,50 @@ export async function POST(req: Request) {
     }
 
     console.log("✅ Booking inserted successfully!");
+  }
+
+  // -----------------------------------------------------
+  // 🔥 SUBSCRIPTION INVOICE PAID (ACTIVATE PRO)
+  // -----------------------------------------------------
+  if (event.type === "invoice.paid") {
+    const invoice = event.data.object as Stripe.Invoice;
+
+    const subscription_id = invoice.subscription as string;
+    const customer_id = invoice.customer as string;
+
+    if (!subscription_id || !customer_id) {
+      console.error("❌ Missing invoice subscription or customer");
+      return NextResponse.json({ received: true }, { status: 200 });
+    }
+
+    const { data: profile, error: findErr } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("stripe_customer_id", customer_id)
+      .single();
+
+    if (findErr || !profile) {
+      console.error("❌ User not found for customer:", customer_id);
+      return NextResponse.json({ received: true }, { status: 200 });
+    }
+
+    const { error: updateErr } = await supabase
+      .from("profiles")
+      .update({
+        is_subscribed: true,
+        membership_tier: "pro",
+        stripe_subscription_id: subscription_id,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", profile.id);
+
+    if (updateErr) {
+      console.error("❌ Failed to activate Pro (invoice.paid)", updateErr);
+    } else {
+      console.log("✅ Pro activated via invoice.paid for user:", profile.id);
+    }
+
+    return NextResponse.json({ received: true }, { status: 200 });
   }
 
   return NextResponse.json({ received: true }, { status: 200 });
