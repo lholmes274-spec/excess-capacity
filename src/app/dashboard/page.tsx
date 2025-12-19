@@ -34,7 +34,8 @@ export default function Dashboard() {
           stripe_account_id,
           stripe_account_status,
           stripe_charges_enabled,
-          stripe_payouts_enabled
+          stripe_payouts_enabled,
+          stripe_requirements_currently_due
         `
         )
         .eq("id", data.user.id)
@@ -82,6 +83,16 @@ export default function Dashboard() {
   const stripeReady =
     profile?.stripe_charges_enabled && profile?.stripe_payouts_enabled;
 
+  const stripeRequirements: string[] =
+    profile?.stripe_requirements_currently_due || [];
+
+  const stripeRequirementLabels: Record<string, string> = {
+    email: "Confirm your email address",
+    external_account: "Add a bank account",
+    "individual.verification.document": "Verify your identity",
+    "company.verification.document": "Verify your business documents",
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Banner */}
@@ -127,32 +138,36 @@ export default function Dashboard() {
                 <h3 className="font-semibold text-yellow-700">
                   ⚠️ Stripe verification required
                 </h3>
-                <p className="text-sm text-gray-600 mt-1">
-                  Stripe needs additional information before payouts can be sent.
-                  Please review your connected account in the{" "}
-                  <a
-                    href="https://dashboard.stripe.com/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline font-medium"
-                  >
-                    Stripe Dashboard
-                  </a>
-                  .
-                </p>
+
+                {stripeRequirements.length > 0 ? (
+                  <>
+                    <p className="text-sm text-gray-700 mt-2 font-medium">
+                      Action needed:
+                    </p>
+                    <ul className="list-disc list-inside text-sm text-gray-700 mt-1">
+                      {stripeRequirements.map((req: string) => (
+                        <li key={req}>
+                          {stripeRequirementLabels[req] || req}
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                ) : (
+                  <p className="text-sm text-gray-600 mt-2">
+                    Stripe is reviewing your account. Additional verification
+                    may be required.
+                  </p>
+                )}
+
                 <button
                   onClick={handleConnectStripe}
                   disabled={connectingStripe}
-                  className="mt-3 px-4 py-2 bg-black text-white rounded hover:opacity-90 disabled:opacity-50"
+                  className="mt-4 px-4 py-2 bg-black text-white rounded hover:opacity-90 disabled:opacity-50"
                 >
-                  {connectingStripe ? "Opening Stripe..." : "Finish Setup"}
+                  {connectingStripe
+                    ? "Opening Stripe..."
+                    : "Go to Stripe to complete verification"}
                 </button>
-                <p className="text-xs text-gray-500 mt-3">
-                  If you are redirected back here after completing setup, log in
-                  to your Stripe Dashboard directly. Some verification steps
-                  require manual review by Stripe and cannot be completed
-                  through the Express setup flow.
-                </p>
               </div>
             )}
           </div>
