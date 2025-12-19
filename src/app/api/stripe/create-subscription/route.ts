@@ -12,20 +12,20 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(req: Request) {
   try {
-    // ✅ Read user data from request body (frontend already knows user)
-    let body: any = null; // NEW
+    // ✅ Read user data from request body
+    let body: any = null;
 
     try {
-      body = await req.json(); // NEW (wrapped safely)
+      body = await req.json();
     } catch (jsonErr) {
-      console.error("❌ Invalid or missing JSON body", jsonErr); // NEW
+      console.error("❌ Invalid or missing JSON body", jsonErr);
     }
 
     const userId = body?.user_id;
     const email = body?.email;
 
     if (!userId || !email) {
-      console.error("❌ Missing user_id or email", body); // NEW
+      console.error("❌ Missing user_id or email", body);
 
       return NextResponse.json(
         { error: "Missing user_id or email" },
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ Create Stripe Checkout session
+    // ✅ Create Stripe Checkout session (SUBSCRIPTION)
     const stripeSession = await stripe.checkout.sessions.create({
       mode: "subscription",
       payment_method_types: ["card"],
@@ -51,12 +51,13 @@ export async function POST(req: Request) {
         user_id: userId,
       },
 
+      // ✅ FIXED REDIRECTS (NO 404)
       success_url: `${
         process.env.NEXT_PUBLIC_SITE_URL || "https://prosperityhub.app"
-      }/success`,
+      }/dashboard?subscribed=true`,
       cancel_url: `${
         process.env.NEXT_PUBLIC_SITE_URL || "https://prosperityhub.app"
-      }/canceled`,
+      }/subscribe`,
     });
 
     return NextResponse.json({ url: stripeSession.url });
