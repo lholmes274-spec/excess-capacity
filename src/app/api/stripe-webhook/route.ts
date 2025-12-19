@@ -14,8 +14,8 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 // Supabase Service Role client (bypasses RLS)
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,     // ✔ correct URL
-  process.env.SUPABASE_SERVICE_ROLE_KEY!     // ✔ service role key
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
 export async function POST(req: Request) {
@@ -44,7 +44,49 @@ export async function POST(req: Request) {
   console.log("🔔 Webhook received:", event.type);
 
   // -----------------------------------------------------
-  // CHECKOUT COMPLETED
+  // STRIPE CONNECT ACCOUNT UPDATED  ✅ NEW
+  // -----------------------------------------------------
+  if (event.type === "account.updated") {
+    const account = event.data.object as Stripe.Account;
+
+    const stripe_account_id = account.id;
+
+    const charges_enabled = account.charges_enabled === true;
+    const payouts_enabled = account.payouts_enabled === true;
+
+    const requirements_due =
+      account.requirements?.currently_due ?? [];
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        stripe_charges_enabled: charges_enabled,
+        stripe_payouts_enabled: payouts_enabled,
+        stripe_requirements_currently_due: requirements_due,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("stripe_account_id", stripe_account_id);
+
+    if (error) {
+      console.error(
+        "❌ Failed to update Stripe account status:",
+        error
+      );
+    } else {
+      console.log(
+        "✅ Stripe account synced:",
+        stripe_account_id,
+        {
+          charges_enabled,
+          payouts_enabled,
+          requirements_due,
+        }
+      );
+    }
+  }
+
+  // -----------------------------------------------------
+  // CHECKOUT COMPLETED (UNCHANGED)
   // -----------------------------------------------------
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
@@ -72,15 +114,11 @@ export async function POST(req: Request) {
         ? rawEmail
         : session.customer_details?.email || null;
 
-    // ✅ Explicit, reliable booker email
     const booker_email =
       session.customer_details?.email ||
       user_email ||
       null;
 
-    // -----------------------------------------------------
-    // LOOKUP LISTING OWNER
-    // -----------------------------------------------------
     const { data: listingData, error: listingErr } = await supabase
       .from("listings")
       .select("owner_id")
@@ -97,16 +135,13 @@ export async function POST(req: Request) {
 
     const owner_id = listingData.owner_id;
 
-    // -----------------------------------------------------
-    // INSERT BOOKING USING SERVICE ROLE
-    // -----------------------------------------------------
     const { error: insertErr } = await supabase.from("bookings").insert([
       {
         listing_id,
         owner_id,
         user_id,
         user_email,
-        booker_email,              // ✅ permanent fix
+        booker_email,
         amount_paid: amountPaid,
         stripe_session_id: session.id,
         status: "paid",
