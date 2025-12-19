@@ -44,7 +44,7 @@ export async function POST(req: Request) {
   console.log("🔔 Webhook received:", event.type);
 
   // -----------------------------------------------------
-  // STRIPE CONNECT ACCOUNT UPDATED  ✅ NEW
+  // STRIPE CONNECT ACCOUNT UPDATED
   // -----------------------------------------------------
   if (event.type === "account.updated") {
     const account = event.data.object as Stripe.Account;
@@ -68,29 +68,55 @@ export async function POST(req: Request) {
       .eq("stripe_account_id", stripe_account_id);
 
     if (error) {
-      console.error(
-        "❌ Failed to update Stripe account status:",
-        error
-      );
+      console.error("❌ Failed to update Stripe account status:", error);
     } else {
-      console.log(
-        "✅ Stripe account synced:",
-        stripe_account_id,
-        {
-          charges_enabled,
-          payouts_enabled,
-          requirements_due,
-        }
-      );
+      console.log("✅ Stripe account synced:", stripe_account_id);
     }
   }
 
   // -----------------------------------------------------
-  // CHECKOUT COMPLETED (UNCHANGED)
+  // 🔥 SUBSCRIPTION CHECKOUT COMPLETED (NEW)
   // -----------------------------------------------------
   if (event.type === "checkout.session.completed") {
-    const session = event.data.object;
+    const session = event.data.object as Stripe.Checkout.Session;
 
+    // 🔥 Handle PRO subscription
+    if (session.mode === "subscription") {
+      const user_id = session.metadata?.user_id;
+      const customer_id = session.customer as string;
+      const subscription_id = session.subscription as string;
+
+      if (!user_id || !customer_id || !subscription_id) {
+        console.error("❌ Missing subscription metadata", {
+          user_id,
+          customer_id,
+          subscription_id,
+        });
+      } else {
+        const { error } = await supabase
+          .from("profiles")
+          .update({
+            is_subscribed: true,
+            membership_tier: "pro",
+            stripe_customer_id: customer_id,
+            stripe_subscription_id: subscription_id,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", user_id);
+
+        if (error) {
+          console.error("❌ Failed to activate Pro subscription:", error);
+        } else {
+          console.log("✅ Pro subscription activated for user:", user_id);
+        }
+      }
+
+      return NextResponse.json({ received: true }, { status: 200 });
+    }
+
+    // -----------------------------------------------------
+    // BOOKINGS (UNCHANGED)
+    // -----------------------------------------------------
     const listing_id = session.metadata?.listing_id;
     const rawUserId = session.metadata?.user_id;
     const rawEmail = session.metadata?.user_email;
