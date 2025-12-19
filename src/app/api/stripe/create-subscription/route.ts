@@ -15,7 +15,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(req: Request) {
   try {
-    // ✔ Correct Supabase SSR client
     const supabase = createRouteHandlerClient<Database>(
       { cookies },
       {
@@ -24,7 +23,6 @@ export async function POST(req: Request) {
       }
     );
 
-    // ✔ Load authenticated user through SSR auth
     const {
       data: { session },
       error: sessionError,
@@ -43,18 +41,19 @@ export async function POST(req: Request) {
 
     const userId = String(user.id);
 
-    // ✔ Create Stripe subscription checkout session
     const stripeSession = await stripe.checkout.sessions.create({
       mode: "subscription",
       payment_method_types: ["card"],
+
+      customer_email: user.email, // ✅ REQUIRED
+
       line_items: [
         {
-          price: "price_1SSBDNBa56XBDKPxw7GtbCjM", // Your $9.99 plan
+          price: "price_1SSBDNBa56XBDKPxw7GtbCjM",
           quantity: 1,
         },
       ],
 
-      // ✔ Secure metadata
       metadata: {
         user_id: userId,
       },
