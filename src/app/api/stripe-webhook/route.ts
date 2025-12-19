@@ -79,7 +79,6 @@ export async function POST(req: Request) {
     const session = event.data.object as Stripe.Checkout.Session;
 
     // 🟡 SUBSCRIPTIONS: DO NOT ACTIVATE HERE
-    // (activation happens on invoice.paid)
     if (session.mode === "subscription") {
       const user_id = session.metadata?.user_id;
       const customer_id = session.customer as string;
@@ -173,27 +172,23 @@ export async function POST(req: Request) {
   }
 
   // -----------------------------------------------------
-  // 🔥 SUBSCRIPTION INVOICE PAID (ACTIVATE PRO)
+  // 🔥 SUBSCRIPTION INVOICE PAID (ACTIVATE PRO) — FIXED
   // -----------------------------------------------------
   if (event.type === "invoice.paid") {
     const invoice = event.data.object as Stripe.Invoice;
-
     const subscription_id = invoice.subscription as string;
-    const customer_id = invoice.customer as string;
 
-    if (!subscription_id || !customer_id) {
-      console.error("❌ Missing invoice subscription or customer");
+    if (!subscription_id) {
+      console.error("❌ Missing subscription on invoice");
       return NextResponse.json({ received: true }, { status: 200 });
     }
 
-    const { data: profile, error: findErr } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("stripe_customer_id", customer_id)
-      .single();
+    // 🔥 FIX: get user_id from subscription metadata
+    const subscription = await stripe.subscriptions.retrieve(subscription_id);
+    const user_id = subscription.metadata?.user_id;
 
-    if (findErr || !profile) {
-      console.error("❌ User not found for customer:", customer_id);
+    if (!user_id) {
+      console.error("❌ Missing user_id on subscription metadata");
       return NextResponse.json({ received: true }, { status: 200 });
     }
 
@@ -205,12 +200,12 @@ export async function POST(req: Request) {
         stripe_subscription_id: subscription_id,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", profile.id);
+      .eq("id", user_id);
 
     if (updateErr) {
       console.error("❌ Failed to activate Pro (invoice.paid)", updateErr);
     } else {
-      console.log("✅ Pro activated via invoice.paid for user:", profile.id);
+      console.log("✅ Pro activated via invoice.paid for user:", user_id);
     }
 
     return NextResponse.json({ received: true }, { status: 200 });
