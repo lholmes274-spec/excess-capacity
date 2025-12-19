@@ -9,9 +9,10 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 export async function POST() {
+  // 🔥 USE SERVICE ROLE (bypasses RLS)
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
     { cookies }
   );
 
@@ -23,13 +24,14 @@ export async function POST() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data: profile } = await supabase
+  const { data: profile, error } = await supabase
     .from("profiles")
     .select("stripe_customer_id")
     .eq("id", user.id)
     .single();
 
-  if (!profile?.stripe_customer_id) {
+  if (error || !profile?.stripe_customer_id) {
+    console.error("❌ Stripe customer not found for user:", user.id, error);
     return NextResponse.json(
       { error: "Stripe customer not found" },
       { status: 400 }
