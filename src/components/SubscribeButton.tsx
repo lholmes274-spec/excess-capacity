@@ -36,7 +36,10 @@ export default function SubscribeButton({ session }: SubscribeButtonProps) {
       const response = await fetch("/api/stripe/create-subscription", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: session.user.id }),
+        body: JSON.stringify({
+          user_id: session.user.id,      // ✅ FIX
+          email: session.user.email,     // ✅ FIX
+        }),
       });
 
       const data = await response.json();
@@ -54,6 +57,7 @@ export default function SubscribeButton({ session }: SubscribeButtonProps) {
 
   return (
     <button
+      type="button"   // ✅ defensive: prevents form submit issues
       onClick={handleSubscribe}
       className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-md transition"
     >
