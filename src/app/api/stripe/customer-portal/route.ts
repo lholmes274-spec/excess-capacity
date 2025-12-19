@@ -9,11 +9,24 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 export async function POST() {
-  // 🔥 USE SERVICE ROLE (bypasses RLS)
+  const cookieStore = cookies();
+
+  // ✅ REQUIRED cookie handlers for @supabase/ssr
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { cookies }
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options);
+          });
+        },
+      },
+    }
   );
 
   const {
@@ -31,17 +44,17 @@ export async function POST() {
     .single();
 
   if (error || !profile?.stripe_customer_id) {
-    console.error("❌ Stripe customer not found for user:", user.id, error);
+    console.error("❌ Stripe customer not found", error);
     return NextResponse.json(
       { error: "Stripe customer not found" },
       { status: 400 }
     );
   }
 
-  const session = await stripe.billingPortal.sessions.create({
+  const portalSession = await stripe.billingPortal.sessions.create({
     customer: profile.stripe_customer_id,
     return_url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`,
   });
 
-  return NextResponse.json({ url: session.url });
+  return NextResponse.json({ url: portalSession.url });
 }
