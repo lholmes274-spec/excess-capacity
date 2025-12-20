@@ -115,14 +115,70 @@ export async function POST(req: Request) {
     const userEmail = user?.email ? String(user.email) : "unknown";
 
     const pricingLabel = formatPricingUnit(listing.pricing_type);
-
     const amountInCents = Math.round(Number(listing.baseprice) * 100);
 
-    // 🟢 10% platform fee (defensive guard added)
+    // 🟢 10% platform fee
     const rawPlatformFee = Math.round(amountInCents * 0.1);
     const platformFee = Math.min(rawPlatformFee, amountInCents - 1);
 
-    // ✅ DESTINATION CHARGE
+    /**
+     * =========================================================
+     * STORAGE (MONTHLY) → SUBSCRIPTION
+     * =========================================================
+     */
+    if (listing.pricing_type === "per_month") {
+      const stripeSession = await stripe.checkout.sessions.create({
+        mode: "subscription",
+        payment_method_types: ["card"],
+        billing_address_collection: "required",
+
+        customer_email:
+          userEmail !== "unknown" ? userEmail : undefined,
+
+        metadata: {
+          listing_id: String(listing_id),
+          lister_id: String(listing.owner_id),
+          user_id: String(userId),
+          user_email: String(userEmail),
+          pricing_type: String(listing.pricing_type),
+        },
+
+        subscription_data: {
+          application_fee_percent: 10,
+          transfer_data: {
+            destination: listerProfile.stripe_account_id,
+          },
+        },
+
+        line_items: [
+          {
+            price_data: {
+              currency: "usd",
+              recurring: {
+                interval: "month",
+              },
+              product_data: {
+                name: listing.title,
+                description: pricingLabel,
+              },
+              unit_amount: amountInCents,
+            },
+            quantity: 1,
+          },
+        ],
+
+        success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success-booking?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/canceled`,
+      });
+
+      return NextResponse.json({ url: stripeSession.url });
+    }
+
+    /**
+     * =========================================================
+     * EVERYTHING ELSE → ONE-TIME PAYMENT (UNCHANGED)
+     * =========================================================
+     */
     const stripeSession = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
