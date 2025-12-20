@@ -11,7 +11,7 @@ import { motion } from "framer-motion";
    Local Time Formatting
 ------------------------------*/
 function formatLocalTime(utcString) {
-  if (!utcString) return "Unknown time";
+  if (!utcString) return "Processing…";
   const date = new Date(utcString + "Z");
   return date.toLocaleString(undefined, {
     year: "numeric",
@@ -28,8 +28,11 @@ function formatLocalTime(utcString) {
 ------------------------------*/
 function Loading({ message }) {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 text-gray-600">
-      <p className="text-lg">{message}</p>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 text-gray-600 text-center p-6">
+      <p className="text-lg font-semibold mb-2">{message}</p>
+      <p className="text-sm text-gray-500">
+        This can take a moment. Please don’t refresh.
+      </p>
     </div>
   );
 }
@@ -42,15 +45,14 @@ function SuccessBookingContent() {
   const session_id = searchParams.get("session_id");
 
   const [loading, setLoading] = useState(true);
-  const [secureError, setSecureError] = useState<string | null>(null);
   const [listing, setListing] = useState<any>(null);
   const [loggedInEmail, setLoggedInEmail] = useState<string | null>(null);
   const [booking, setBooking] = useState<any>(null);
   const [provider, setProvider] = useState<any>(null);
 
   async function pollForBooking(session_id: string) {
-    const maxAttempts = 5;
-    const delay = 1000;
+    const maxAttempts = 20; // longer for subscriptions
+    const delay = 1500;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       const { data } = await supabase
@@ -69,20 +71,20 @@ function SuccessBookingContent() {
   useEffect(() => {
     async function load() {
       if (!session_id) {
-        setSecureError("Missing session ID.");
         setLoading(false);
         return;
       }
 
       try {
         const { data: userData } = await supabase.auth.getUser();
-        const email = userData?.user?.email || null;
-        setLoggedInEmail(email);
+        setLoggedInEmail(userData?.user?.email || null);
 
         const bookingData = await pollForBooking(session_id);
+
+        // ⏳ Subscription-safe behavior:
+        // Keep showing processing instead of erroring
         if (!bookingData) {
-          setSecureError("Your payment is complete, but booking is still processing.");
-          setLoading(false);
+          setLoading(true);
           return;
         }
 
@@ -106,7 +108,6 @@ function SuccessBookingContent() {
         setLoading(false);
       } catch (err) {
         console.error(err);
-        setSecureError("Unexpected error loading booking.");
         setLoading(false);
       }
     }
@@ -114,16 +115,21 @@ function SuccessBookingContent() {
     load();
   }, [session_id]);
 
-  if (loading) return <Loading message="Loading your booking…" />;
+  if (loading) {
+    return <Loading message="Finalizing your booking…" />;
+  }
 
-  if (secureError) {
+  if (!booking || !listing) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-red-50 text-center p-6">
-        <p className="text-red-600 text-xl font-semibold mb-3">
-          ❌ {secureError}
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 text-center p-6">
+        <p className="text-lg text-gray-700 mb-4">
+          Your payment was successful.
+        </p>
+        <p className="text-gray-500 mb-6">
+          Your booking is still being finalized. You’ll be able to view it shortly.
         </p>
         <Link href="/" className="px-6 py-3 bg-gray-700 text-white rounded-lg">
-          Back to Home
+          Back to Marketplace
         </Link>
       </div>
     );
@@ -155,11 +161,9 @@ function SuccessBookingContent() {
         {formatLocalTime(booking.created_at)}
       </p>
 
-      {/* LOGGED-IN VIEW */}
       {isLoggedIn && (
         <div className="max-w-xl w-full bg-white shadow-lg border rounded-2xl p-6 text-left space-y-6">
 
-          {/* Address */}
           <div>
             <h2 className="text-lg font-semibold text-green-700 mb-2">
               📍 Booking Location
@@ -171,7 +175,6 @@ function SuccessBookingContent() {
             </p>
           </div>
 
-          {/* Private Instructions */}
           {listing.private_instructions && (
             <div>
               <h2 className="text-lg font-semibold text-green-700 mb-2">
@@ -183,7 +186,6 @@ function SuccessBookingContent() {
             </div>
           )}
 
-          {/* Provider Contact */}
           <div className="border-t pt-4">
             <h2 className="text-lg font-semibold text-green-700 mb-2">
               👤 Provider
