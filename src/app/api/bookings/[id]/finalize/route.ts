@@ -62,7 +62,6 @@ export async function POST(
     const hourlyRate = Number(listing.baseprice);
     const minimumHours = Number(listing.minimum_hours) || 1;
 
-    // Calculate amounts
     const upfrontAmount = hourlyRate * minimumHours;
     const finalAmount = hourlyRate * final_hours;
     const additionalAmount = finalAmount - upfrontAmount;
@@ -85,22 +84,47 @@ export async function POST(
       });
     }
 
-    // Calculate Stripe amounts
+    // 🔑 Fetch Stripe Checkout Session to get customer
+    const session = await stripe.checkout.sessions.retrieve(
+      booking.stripe_session_id
+    );
+
+    if (!session.customer) {
+      return NextResponse.json(
+        { error: "Stripe customer not found" },
+        { status: 400 }
+      );
+    }
+
+    // Fetch lister Stripe account
+    const { data: ownerProfile, error: ownerErr } = await supabase
+      .from("profiles")
+      .select("stripe_account_id")
+      .eq("id", booking.owner_id)
+      .single();
+
+    if (ownerErr || !ownerProfile?.stripe_account_id) {
+      return NextResponse.json(
+        { error: "Lister Stripe account not found" },
+        { status: 400 }
+      );
+    }
+
     const chargeAmountCents = Math.round(additionalAmount * 100);
     const platformFee = Math.min(
       Math.round(chargeAmountCents * 0.1),
       chargeAmountCents - 1
     );
 
-    // Create additional charge
+    // Create additional Stripe charge
     await stripe.paymentIntents.create({
       amount: chargeAmountCents,
       currency: "usd",
-      customer: booking.stripe_customer_id,
+      customer: session.customer as string,
       description: "Additional hourly service charge",
       application_fee_amount: platformFee,
       transfer_data: {
-        destination: booking.owner_id,
+        destination: ownerProfile.stripe_account_id,
       },
       metadata: {
         booking_id: bookingId,
