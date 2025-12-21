@@ -54,6 +54,17 @@ export default function FAQPage() {
         </div>
 
         <div>
+          <h2 className="font-semibold text-lg">
+            Is Prosperity Hub Pro the same as storage or rental payments?
+          </h2>
+          <p className="text-gray-700 mt-2">
+            No. Prosperity Hub Pro is a monthly membership that gives you access
+            to the platform. Storage, rentals, and services are billed separately
+            based on each listing.
+          </p>
+        </div>
+
+        <div>
           <h2 className="font-semibold text-lg">How does booking work?</h2>
           <p className="text-gray-700 mt-2">
             You select the listing, duration, or quantity available and complete
