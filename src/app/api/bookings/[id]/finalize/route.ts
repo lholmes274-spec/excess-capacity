@@ -76,7 +76,6 @@ export async function POST(
       })
       .eq("id", bookingId);
 
-    // No additional charge needed
     if (additionalAmount <= 0) {
       return NextResponse.json({
         success: true,
@@ -84,12 +83,22 @@ export async function POST(
       });
     }
 
-    // 🔑 Fetch Stripe Checkout Session to get customer
+    // 🔑 Retrieve checkout session
     const session = await stripe.checkout.sessions.retrieve(
       booking.stripe_session_id
     );
 
-    if (!session.customer) {
+    let customerId = session.customer as string | null;
+
+    // 🔁 Fallback: get customer from PaymentIntent
+    if (!customerId && session.payment_intent) {
+      const intent = await stripe.paymentIntents.retrieve(
+        session.payment_intent as string
+      );
+      customerId = intent.customer as string;
+    }
+
+    if (!customerId) {
       return NextResponse.json(
         { error: "Stripe customer not found" },
         { status: 400 }
@@ -116,11 +125,10 @@ export async function POST(
       chargeAmountCents - 1
     );
 
-    // Create additional Stripe charge
     await stripe.paymentIntents.create({
       amount: chargeAmountCents,
       currency: "usd",
-      customer: session.customer as string,
+      customer: customerId,
       description: "Additional hourly service charge",
       application_fee_amount: platformFee,
       transfer_data: {
