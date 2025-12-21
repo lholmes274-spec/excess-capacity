@@ -10,6 +10,8 @@ export default function ProviderBookingsPage() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState(null);
+  const [finalizingId, setFinalizingId] = useState(null);
+  const [finalHours, setFinalHours] = useState({});
 
   useEffect(() => {
     async function load() {
@@ -24,8 +26,7 @@ export default function ProviderBookingsPage() {
 
       setUserId(user.id);
 
-      // 🔑 PROVIDER VIEW:
-      // Show bookings made on listings owned by this user
+      // 🔑 PROVIDER VIEW
       const { data, error } = await supabase
         .from("bookings")
         .select("*, listings(*)")
@@ -43,6 +44,51 @@ export default function ProviderBookingsPage() {
 
     load();
   }, []);
+
+  async function finalizeBooking(bookingId) {
+    const hours = Number(finalHours[bookingId]);
+
+    if (!hours || hours <= 0) {
+      alert("Please enter the final hours worked.");
+      return;
+    }
+
+    setFinalizingId(bookingId);
+
+    try {
+      const res = await fetch(`/api/bookings/${bookingId}/finalize`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ final_hours: hours }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to finalize booking");
+      }
+
+      alert(
+        data.charged
+          ? `Booking finalized. Additional $${data.charged} charged.`
+          : "Booking finalized. No additional charge required."
+      );
+
+      // Refresh bookings
+      const { data: refreshed } = await supabase
+        .from("bookings")
+        .select("*, listings(*)")
+        .eq("owner_id", userId)
+        .order("created_at", { ascending: false });
+
+      setBookings(refreshed || []);
+    } catch (err) {
+      console.error(err);
+      alert("Error finalizing booking. Please try again.");
+    } finally {
+      setFinalizingId(null);
+    }
+  }
 
   if (loading)
     return (
@@ -88,6 +134,8 @@ export default function ProviderBookingsPage() {
             const priceTypeDisplay = listing?.pricing_type
               ? listing.pricing_type.replace("_", " ")
               : "";
+
+            const isHourly = listing?.pricing_type === "per_hour";
 
             return (
               <div
@@ -136,6 +184,42 @@ export default function ProviderBookingsPage() {
                   >
                     View Conversation
                   </Link>
+
+                  {/* 🔒 FINALIZE HOURS (HOURLY ONLY) */}
+                  {isHourly && (
+                    <div className="mt-4 border-t pt-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Final hours worked
+                      </label>
+
+                      <input
+                        type="number"
+                        min="1"
+                        className="w-full border rounded-md px-3 py-2 text-sm mb-2"
+                        value={finalHours[b.id] || ""}
+                        onChange={(e) =>
+                          setFinalHours({
+                            ...finalHours,
+                            [b.id]: e.target.value,
+                          })
+                        }
+                      />
+
+                      <button
+                        onClick={() => finalizeBooking(b.id)}
+                        disabled={finalizingId === b.id}
+                        className={`w-full px-4 py-2 rounded-lg text-sm font-semibold text-white ${
+                          finalizingId === b.id
+                            ? "bg-gray-400 cursor-not-allowed"
+                            : "bg-blue-600 hover:bg-blue-700"
+                        }`}
+                      >
+                        {finalizingId === b.id
+                          ? "Finalizing…"
+                          : "Finalize & Charge"}
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             );
