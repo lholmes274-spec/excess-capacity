@@ -78,7 +78,7 @@ export async function POST(req: Request) {
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
 
-    // 🟡 SUBSCRIPTIONS: DO NOT ACTIVATE HERE
+    // 🟡 SUBSCRIPTIONS: STORE CUSTOMER + SUBSCRIPTION
     if (session.mode === "subscription") {
       const user_id = session.metadata?.user_id;
       const customer_id = session.customer as string;
@@ -94,10 +94,9 @@ export async function POST(req: Request) {
           })
           .eq("id", user_id);
 
-        console.log("🟡 Subscription checkout completed (awaiting payment)");
+        console.log("🟡 Subscription checkout completed");
       }
-
-      return NextResponse.json({ received: true }, { status: 200 });
+      // ⚠️ IMPORTANT: DO NOT RETURN — continue to booking creation
     }
 
     // -----------------------------------------------------
@@ -156,6 +155,10 @@ export async function POST(req: Request) {
         booker_email,
         amount_paid: amountPaid,
         stripe_session_id: session.id,
+        stripe_subscription_id:
+          session.mode === "subscription"
+            ? (session.subscription as string)
+            : null,
         status: "paid",
       },
     ]);
