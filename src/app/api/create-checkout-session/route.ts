@@ -51,7 +51,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 🔐 SERVICE ROLE CLIENT (bypasses RLS)
+    // 🔐 SERVICE ROLE CLIENT
     const supabase = createServerClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -78,7 +78,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Fetch lister profile (owner)
+    // Fetch lister profile
     const { data: listerProfile } = await supabase
       .from("profiles")
       .select("stripe_account_id")
@@ -115,18 +115,15 @@ export async function POST(req: Request) {
     const userEmail = user?.email ? String(user.email) : "unknown";
 
     const pricingLabel = formatPricingUnit(listing.pricing_type);
-    const amountInCents = Math.round(Number(listing.baseprice) * 100);
-
-    // 🟢 10% platform fee
-    const rawPlatformFee = Math.round(amountInCents * 0.1);
-    const platformFee = Math.min(rawPlatformFee, amountInCents - 1);
 
     /**
      * =========================================================
-     * STORAGE (MONTHLY) → SUBSCRIPTION
+     * STORAGE (MONTHLY) → SUBSCRIPTION (UNCHANGED)
      * =========================================================
      */
     if (listing.pricing_type === "per_month") {
+      const amountInCents = Math.round(Number(listing.baseprice) * 100);
+
       const stripeSession = await stripe.checkout.sessions.create({
         mode: "subscription",
         payment_method_types: ["card"],
@@ -154,9 +151,7 @@ export async function POST(req: Request) {
           {
             price_data: {
               currency: "usd",
-              recurring: {
-                interval: "month",
-              },
+              recurring: { interval: "month" },
               product_data: {
                 name: listing.title,
                 description: pricingLabel,
@@ -176,7 +171,25 @@ export async function POST(req: Request) {
 
     /**
      * =========================================================
-     * EVERYTHING ELSE → ONE-TIME PAYMENT (UNCHANGED)
+     * HOURLY SERVICES → ENFORCE MINIMUM HOURS
+     * =========================================================
+     */
+    let quantity = 1;
+
+    if (listing.pricing_type === "per_hour") {
+      quantity = Math.max(1, Number(listing.minimum_hours) || 1);
+    }
+
+    const unitAmountInCents = Math.round(Number(listing.baseprice) * 100);
+    const totalAmountInCents = unitAmountInCents * quantity;
+
+    // 10% platform fee
+    const rawPlatformFee = Math.round(totalAmountInCents * 0.1);
+    const platformFee = Math.min(rawPlatformFee, totalAmountInCents - 1);
+
+    /**
+     * =========================================================
+     * ONE-TIME PAYMENT (SERVICES, RENTALS, EQUIPMENT, CARS)
      * =========================================================
      */
     const stripeSession = await stripe.checkout.sessions.create({
@@ -193,6 +206,7 @@ export async function POST(req: Request) {
         user_id: String(userId),
         user_email: String(userEmail),
         pricing_type: String(listing.pricing_type),
+        minimum_hours: String(quantity),
       },
 
       payment_intent_data: {
@@ -208,11 +222,14 @@ export async function POST(req: Request) {
             currency: "usd",
             product_data: {
               name: listing.title,
-              description: pricingLabel,
+              description:
+                listing.pricing_type === "per_hour"
+                  ? `${pricingLabel} (minimum ${quantity} hours)`
+                  : pricingLabel,
             },
-            unit_amount: amountInCents,
+            unit_amount: unitAmountInCents,
           },
-          quantity: 1,
+          quantity,
         },
       ],
 
