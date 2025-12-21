@@ -76,6 +76,7 @@ export async function POST(
       })
       .eq("id", bookingId);
 
+    // No additional charge needed
     if (additionalAmount <= 0) {
       return NextResponse.json({
         success: true,
@@ -126,12 +127,14 @@ export async function POST(
       chargeAmountCents - 1
     );
 
+    // ✅ CRITICAL FIX: on_behalf_of added
     await stripe.paymentIntents.create({
       amount: chargeAmountCents,
       currency: "usd",
       customer: customerId,
       description: "Additional hourly service charge",
       application_fee_amount: platformFee,
+      on_behalf_of: ownerProfile.stripe_account_id,
       transfer_data: {
         destination: ownerProfile.stripe_account_id,
       },
