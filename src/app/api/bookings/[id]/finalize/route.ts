@@ -83,20 +83,21 @@ export async function POST(
       });
     }
 
-    // 🔑 Retrieve checkout session
+    // 🔑 Retrieve checkout session WITH EXPANSIONS
     const session = await stripe.checkout.sessions.retrieve(
-      booking.stripe_session_id
+      booking.stripe_session_id,
+      {
+        expand: [
+          "payment_intent",
+          "subscription.latest_invoice.payment_intent",
+        ],
+      }
     );
 
-    let customerId = session.customer as string | null;
-
-    // 🔁 Fallback: get customer from PaymentIntent
-    if (!customerId && session.payment_intent) {
-      const intent = await stripe.paymentIntents.retrieve(
-        session.payment_intent as string
-      );
-      customerId = intent.customer as string;
-    }
+    let customerId =
+      session.customer ||
+      session.payment_intent?.customer ||
+      session.subscription?.latest_invoice?.payment_intent?.customer;
 
     if (!customerId) {
       return NextResponse.json(
