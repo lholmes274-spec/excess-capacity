@@ -194,6 +194,10 @@ export async function POST(req: Request) {
      */
     const stripeSession = await stripe.checkout.sessions.create({
       mode: "payment",
+
+      // ✅ CRITICAL FIX
+      customer_creation: "always",
+
       payment_method_types: ["card"],
       billing_address_collection: "required",
 
