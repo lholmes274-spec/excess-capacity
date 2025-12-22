@@ -118,19 +118,24 @@ export async function POST(
       chargeAmountCents - 1
     );
 
-    // ✅ CREATE INVOICE ITEM (FINAL HOURS)
-    await stripe.invoiceItems.create({
-      customer: customerId,
-      amount: chargeAmountCents,
-      currency: "usd",
-      description: "Final hourly service charge",
-      metadata: {
-        booking_id: bookingId,
-        type: "hourly_adjustment",
+    // ✅ CREATE INVOICE ITEM ON CONNECTED ACCOUNT (CRITICAL FIX)
+    await stripe.invoiceItems.create(
+      {
+        customer: customerId,
+        amount: chargeAmountCents,
+        currency: "usd",
+        description: "Final hourly service charge",
+        metadata: {
+          booking_id: bookingId,
+          type: "hourly_adjustment",
+        },
       },
-    });
+      {
+        stripeAccount: ownerProfile.stripe_account_id,
+      }
+    );
 
-    // ✅ CREATE & FINALIZE INVOICE (CONNECT + PLATFORM FEE)
+    // ✅ CREATE & FINALIZE INVOICE
     const invoice = await stripe.invoices.create({
       customer: customerId,
       collection_method: "charge_automatically",
