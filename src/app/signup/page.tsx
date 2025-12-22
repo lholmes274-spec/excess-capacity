@@ -27,9 +27,10 @@ export default function SignupPage() {
     checkUser();
   }, [redirectTo, router]);
 
-  // Email validation
+  // ✅ EMAIL VALIDATION FUNCTION (UNCHANGED)
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
     if (!emailRegex.test(email)) {
       throw new Error("Please enter a valid email address.");
     }
@@ -46,6 +47,7 @@ export default function SignupPage() {
     ];
 
     const domain = email.split("@")[1]?.toLowerCase();
+
     if (blockedDomains.includes(domain)) {
       throw new Error(
         "It looks like there may be a typo in your email address. Please double-check it."
@@ -111,11 +113,17 @@ export default function SignupPage() {
             </h2>
 
             <p className="text-green-800">
-              Please check your email and confirm your account.
+              We’ve sent a confirmation email to <strong>{email}</strong>.
+              <br />
+              Please check your inbox and click the link to activate your account.
             </p>
 
             <p className="mt-4 text-sm text-gray-700">
-              After confirming, you’ll be redirected automatically.
+              You may safely close this tab.
+            </p>
+
+            <p className="mt-2 text-sm text-gray-600">
+              After confirming your email, return to Prosperity Hub and log in.
             </p>
           </div>
         )}
@@ -125,7 +133,7 @@ export default function SignupPage() {
             <input
               type="email"
               placeholder="Email address"
-              className="w-full p-3 border rounded-lg mb-3"
+              className="w-full p-3 border rounded-lg mb-3 focus:ring-2 focus:ring-blue-400"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
@@ -133,7 +141,7 @@ export default function SignupPage() {
             <input
               type="password"
               placeholder="Password"
-              className="w-full p-3 border rounded-lg mb-3"
+              className="w-full p-3 border rounded-lg mb-3 focus:ring-2 focus:ring-blue-400"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
@@ -141,7 +149,7 @@ export default function SignupPage() {
             <input
               type="password"
               placeholder="Confirm password"
-              className="w-full p-3 border rounded-lg mb-4"
+              className="w-full p-3 border rounded-lg mb-4 focus:ring-2 focus:ring-blue-400"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
@@ -149,7 +157,7 @@ export default function SignupPage() {
             <button
               onClick={handleSignup}
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold disabled:bg-blue-300"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition disabled:bg-blue-300"
             >
               {loading ? "Creating account..." : "Sign Up"}
             </button>
@@ -162,7 +170,7 @@ export default function SignupPage() {
 
             <button
               onClick={handleGoogleLogin}
-              className="w-full border py-3 rounded-lg flex items-center justify-center gap-3"
+              className="w-full border border-gray-300 py-3 rounded-lg flex items-center justify-center gap-3 text-gray-700 bg-white hover:bg-gray-100 transition"
             >
               <img src="/google-icon.png" className="w-5 h-5" />
               Continue with Google
