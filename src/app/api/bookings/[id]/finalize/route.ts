@@ -84,7 +84,7 @@ export async function POST(
       });
     }
 
-    // 🔑 Retrieve checkout session WITH EXPANSIONS
+    // Retrieve checkout session
     const session = await stripe.checkout.sessions.retrieve(
       booking.stripe_session_id,
       {
@@ -95,7 +95,7 @@ export async function POST(
       }
     );
 
-    let customerId =
+    const customerId =
       session.customer ||
       session.payment_intent?.customer ||
       session.subscription?.latest_invoice?.payment_intent?.customer;
@@ -127,13 +127,15 @@ export async function POST(
       chargeAmountCents - 1
     );
 
-    // ✅ CRITICAL FIX: on_behalf_of added
+    // ✅ FINAL FIX: confirm + off_session
     await stripe.paymentIntents.create({
       amount: chargeAmountCents,
       currency: "usd",
       customer: customerId,
       description: "Additional hourly service charge",
       application_fee_amount: platformFee,
+      confirm: true,
+      off_session: true,
       on_behalf_of: ownerProfile.stripe_account_id,
       transfer_data: {
         destination: ownerProfile.stripe_account_id,
