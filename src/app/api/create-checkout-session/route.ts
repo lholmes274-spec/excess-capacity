@@ -195,7 +195,7 @@ export async function POST(req: Request) {
     const stripeSession = await stripe.checkout.sessions.create({
       mode: "payment",
 
-      // ✅ CRITICAL FIX
+      // keep as-is
       customer_creation: "always",
 
       payment_method_types: ["card"],
@@ -213,11 +213,13 @@ export async function POST(req: Request) {
         minimum_hours: String(quantity),
       },
 
+      // 🔑 REQUIRED FOR FUTURE FINALIZE CHARGES
       payment_intent_data: {
         application_fee_amount: platformFee,
         transfer_data: {
           destination: listerProfile.stripe_account_id,
         },
+        setup_future_usage: "off_session",
       },
 
       line_items: [
