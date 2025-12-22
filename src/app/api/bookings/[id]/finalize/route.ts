@@ -84,21 +84,12 @@ export async function POST(
       });
     }
 
-    // 🔑 Retrieve checkout session WITH EXPANSIONS
+    // Retrieve checkout session to get customer
     const session = await stripe.checkout.sessions.retrieve(
-      booking.stripe_session_id,
-      {
-        expand: [
-          "payment_intent",
-          "subscription.latest_invoice.payment_intent",
-        ],
-      }
+      booking.stripe_session_id
     );
 
-    let customerId =
-      session.customer ||
-      session.payment_intent?.customer ||
-      session.subscription?.latest_invoice?.payment_intent?.customer;
+    const customerId = session.customer;
 
     if (!customerId) {
       return NextResponse.json(
@@ -127,12 +118,22 @@ export async function POST(
       chargeAmountCents - 1
     );
 
-    // ✅ CRITICAL FIX: on_behalf_of added
-    await stripe.paymentIntents.create({
+    // ✅ CREATE INVOICE ITEM (FINAL HOURS)
+    await stripe.invoiceItems.create({
+      customer: customerId,
       amount: chargeAmountCents,
       currency: "usd",
+      description: "Final hourly service charge",
+      metadata: {
+        booking_id: bookingId,
+        type: "hourly_adjustment",
+      },
+    });
+
+    // ✅ CREATE & FINALIZE INVOICE (CONNECT + PLATFORM FEE)
+    const invoice = await stripe.invoices.create({
       customer: customerId,
-      description: "Additional hourly service charge",
+      collection_method: "charge_automatically",
       application_fee_amount: platformFee,
       on_behalf_of: ownerProfile.stripe_account_id,
       transfer_data: {
@@ -140,13 +141,15 @@ export async function POST(
       },
       metadata: {
         booking_id: bookingId,
-        type: "hourly_adjustment",
       },
     });
+
+    await stripe.invoices.finalizeInvoice(invoice.id);
 
     return NextResponse.json({
       success: true,
       charged: additionalAmount,
+      invoice_id: invoice.id,
     });
   } catch (err) {
     console.error("Finalize booking error:", err);
@@ -156,4 +159,3 @@ export async function POST(
     );
   }
 }
-
