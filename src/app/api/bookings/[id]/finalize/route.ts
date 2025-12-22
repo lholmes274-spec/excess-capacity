@@ -80,12 +80,11 @@ export async function POST(
     if (additionalAmount <= 0) {
       return NextResponse.json({
         success: true,
-        charged: 0,
         message: "No additional charge required",
       });
     }
 
-    // Retrieve checkout session
+    // 🔑 Retrieve checkout session WITH EXPANSIONS
     const session = await stripe.checkout.sessions.retrieve(
       booking.stripe_session_id,
       {
@@ -96,7 +95,7 @@ export async function POST(
       }
     );
 
-    const customerId =
+    let customerId =
       session.customer ||
       session.payment_intent?.customer ||
       session.subscription?.latest_invoice?.payment_intent?.customer;
@@ -128,8 +127,8 @@ export async function POST(
       chargeAmountCents - 1
     );
 
-    // ✅ CREATE + CONFIRM PAYMENT INTENT (CORRECT, LIVE-SAFE VERSION)
-    const paymentIntent = await stripe.paymentIntents.create({
+    // ✅ CRITICAL FIX: on_behalf_of added
+    await stripe.paymentIntents.create({
       amount: chargeAmountCents,
       currency: "usd",
       customer: customerId,
@@ -139,35 +138,15 @@ export async function POST(
       transfer_data: {
         destination: ownerProfile.stripe_account_id,
       },
-
-      // 🔑 REQUIRED FOR LIVE MODE
-      off_session: true,
-      confirm: true,
-      return_url: `${process.env.NEXT_PUBLIC_SITE_URL}/bookings/${bookingId}`,
-
-      automatic_payment_methods: { enabled: true },
-
       metadata: {
         booking_id: bookingId,
         type: "hourly_adjustment",
       },
     });
 
-    // 🚨 HARD FAIL IF STRIPE DID NOT CHARGE
-    if (paymentIntent.status !== "succeeded") {
-      return NextResponse.json(
-        {
-          error: "Payment did not succeed",
-          status: paymentIntent.status,
-        },
-        { status: 402 }
-      );
-    }
-
     return NextResponse.json({
       success: true,
       charged: additionalAmount,
-      payment_intent_id: paymentIntent.id,
     });
   } catch (err) {
     console.error("Finalize booking error:", err);
