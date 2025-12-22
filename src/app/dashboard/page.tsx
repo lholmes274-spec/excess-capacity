@@ -13,7 +13,7 @@ export default function Dashboard() {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [connectingStripe, setConnectingStripe] = useState(false);
-  const [openingPortal, setOpeningPortal] = useState(false); // NEW
+  const [openingPortal, setOpeningPortal] = useState(false);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -72,7 +72,31 @@ export default function Dashboard() {
     }
   };
 
-  // NEW — manage subscription via Stripe portal
+  // ✅ NEW — open Stripe dashboard for verification / email confirmation
+  const handleOpenStripeDashboard = async () => {
+    try {
+      setOpeningPortal(true);
+
+      const res = await fetch("/api/stripe/login-link", {
+        method: "POST",
+      });
+
+      const data = await res.json();
+
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        alert("Unable to open Stripe dashboard.");
+      }
+    } catch (err) {
+      console.error("Stripe dashboard login error:", err);
+      alert("Unable to open Stripe dashboard.");
+    } finally {
+      setOpeningPortal(false);
+    }
+  };
+
+  // Manage subscription via Stripe portal
   const handleManageSubscription = async () => {
     try {
       setOpeningPortal(true);
@@ -185,12 +209,12 @@ export default function Dashboard() {
                 )}
 
                 <button
-                  onClick={handleConnectStripe}
-                  disabled={connectingStripe}
+                  onClick={handleOpenStripeDashboard}
+                  disabled={openingPortal}
                   className="mt-4 px-4 py-2 bg-black text-white rounded hover:opacity-90 disabled:opacity-50"
                 >
-                  {connectingStripe
-                    ? "Opening Stripe..."
+                  {openingPortal
+                    ? "Opening Stripe dashboard..."
                     : "Go to Stripe to complete verification"}
                 </button>
               </div>
@@ -240,7 +264,6 @@ export default function Dashboard() {
                     You have unlimited access.
                   </p>
 
-                  {/* NEW BUTTON */}
                   <button
                     onClick={handleManageSubscription}
                     disabled={openingPortal}
