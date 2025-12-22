@@ -108,6 +108,12 @@ export default function ListingDetailPage() {
     listing.pricing_type ? listing.pricing_type.replace("_", " ") : "per unit";
 
   const handleCheckout = () => {
+    // 🔒 FORCE ACCOUNT CREATION (OPTION A)
+    if (!userId) {
+      router.push(`/signup?redirect=/listings/${listing.id}`);
+      return;
+    }
+
     if (listing.demo_mode) {
       alert("Demo Only – Checkout disabled");
     } else {
@@ -117,7 +123,6 @@ export default function ListingDetailPage() {
 
   return (
     <div className="max-w-3xl mx-auto p-8 bg-white shadow-md rounded-2xl mt-6 border border-gray-100">
-
       {/* MAIN IMAGE */}
       <div className="mb-6">
         {selectedImage ? (
@@ -193,9 +198,6 @@ export default function ListingDetailPage() {
           </p>
         </div>
       )}
-
-      {/* CONTACT INFO REMOVED — PRIVACY LIKE AIRBNB */}
-      {/* Private contact details only shown after booking, not here */}
 
       {/* CHECKOUT BUTTON */}
       <button
