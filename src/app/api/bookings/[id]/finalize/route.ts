@@ -76,6 +76,7 @@ export async function POST(
       })
       .eq("id", bookingId);
 
+    // No additional charge needed
     if (additionalAmount <= 0) {
       return NextResponse.json({
         success: true,
@@ -83,7 +84,7 @@ export async function POST(
       });
     }
 
-    // Retrieve checkout session
+    // 🔑 Retrieve checkout session WITH EXPANSIONS
     const session = await stripe.checkout.sessions.retrieve(
       booking.stripe_session_id,
       {
@@ -94,18 +95,17 @@ export async function POST(
       }
     );
 
-    const originalPaymentIntent =
-      session.payment_intent ||
-      session.subscription?.latest_invoice?.payment_intent;
+    let customerId =
+      session.customer ||
+      session.payment_intent?.customer ||
+      session.subscription?.latest_invoice?.payment_intent?.customer;
 
-    if (!originalPaymentIntent?.payment_method) {
+    if (!customerId) {
       return NextResponse.json(
-        { error: "Original payment method not found" },
+        { error: "Stripe customer not found" },
         { status: 400 }
       );
     }
-
-    const customerId = originalPaymentIntent.customer;
 
     // Fetch lister Stripe account
     const { data: ownerProfile, error: ownerErr } = await supabase
@@ -127,14 +127,11 @@ export async function POST(
       chargeAmountCents - 1
     );
 
-    // ✅ FINAL, CORRECT CHARGE
+    // ✅ CRITICAL FIX: on_behalf_of added
     await stripe.paymentIntents.create({
       amount: chargeAmountCents,
       currency: "usd",
       customer: customerId,
-      payment_method: originalPaymentIntent.payment_method,
-      confirm: true,
-      off_session: true,
       description: "Additional hourly service charge",
       application_fee_amount: platformFee,
       on_behalf_of: ownerProfile.stripe_account_id,
@@ -159,3 +156,4 @@ export async function POST(
     );
   }
 }
+
