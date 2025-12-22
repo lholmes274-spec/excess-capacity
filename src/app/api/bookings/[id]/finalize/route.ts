@@ -128,7 +128,7 @@ export async function POST(
       chargeAmountCents - 1
     );
 
-    // ✅ CREATE + CONFIRM PAYMENT INTENT (THIS WAS MISSING)
+    // ✅ CREATE + CONFIRM PAYMENT INTENT (CORRECT, LIVE-SAFE VERSION)
     const paymentIntent = await stripe.paymentIntents.create({
       amount: chargeAmountCents,
       currency: "usd",
@@ -139,8 +139,14 @@ export async function POST(
       transfer_data: {
         destination: ownerProfile.stripe_account_id,
       },
-      automatic_payment_methods: { enabled: true },
+
+      // 🔑 REQUIRED FOR LIVE MODE
+      off_session: true,
       confirm: true,
+      return_url: `${process.env.NEXT_PUBLIC_SITE_URL}/bookings/${bookingId}`,
+
+      automatic_payment_methods: { enabled: true },
+
       metadata: {
         booking_id: bookingId,
         type: "hourly_adjustment",
