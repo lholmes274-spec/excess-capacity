@@ -15,6 +15,9 @@ export default function Dashboard() {
   const [connectingStripe, setConnectingStripe] = useState(false);
   const [openingPortal, setOpeningPortal] = useState(false);
 
+  // ✅ NEW — track verification start (ONLY ADDITION)
+  const [verificationStarted, setVerificationStarted] = useState(false);
+
   useEffect(() => {
     const loadUser = async () => {
       const { data } = await supabase.auth.getUser();
@@ -44,6 +47,14 @@ export default function Dashboard() {
 
       setProfile(profileData);
       setLoading(false);
+
+      // ✅ NEW — read verification state
+      if (typeof window !== "undefined") {
+        const started = localStorage.getItem("stripe_verification_started");
+        if (started === "true") {
+          setVerificationStarted(true);
+        }
+      }
     };
 
     loadUser();
@@ -72,10 +83,14 @@ export default function Dashboard() {
     }
   };
 
-  // ✅ NEW — open Stripe dashboard for verification / email confirmation
+  // ✅ UPDATED — mark verification started (NO OTHER CHANGE)
   const handleOpenStripeDashboard = async () => {
     try {
       setOpeningPortal(true);
+
+      // 👇 ONLY ADDITION HERE
+      localStorage.setItem("stripe_verification_started", "true");
+      setVerificationStarted(true);
 
       const res = await fetch("/api/stripe/login-link", {
         method: "POST",
@@ -184,39 +199,58 @@ export default function Dashboard() {
 
             {profile?.stripe_account_id && !stripeReady && (
               <div className="p-5 bg-white border-2 border-yellow-400 rounded-xl shadow">
-                <h3 className="font-semibold text-yellow-700">
-                  ⚠️ Stripe verification required
-                </h3>
-
-                {stripeRequirements.length > 0 ? (
+                {!verificationStarted ? (
                   <>
-                    <p className="text-sm text-gray-700 mt-2 font-medium">
-                      Action needed:
-                    </p>
-                    <ul className="list-disc list-inside text-sm text-gray-700 mt-1">
-                      {stripeRequirements.map((req: string) => (
-                        <li key={req}>
-                          {stripeRequirementLabels[req] || req}
-                        </li>
-                      ))}
-                    </ul>
+                    <h3 className="font-semibold text-yellow-700">
+                      ⚠️ Stripe verification required
+                    </h3>
+
+                    {stripeRequirements.length > 0 ? (
+                      <>
+                        <p className="text-sm text-gray-700 mt-2 font-medium">
+                          Action needed:
+                        </p>
+                        <ul className="list-disc list-inside text-sm text-gray-700 mt-1">
+                          {stripeRequirements.map((req: string) => (
+                            <li key={req}>
+                              {stripeRequirementLabels[req] || req}
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    ) : (
+                      <p className="text-sm text-gray-600 mt-2">
+                        Stripe is reviewing your account. Additional verification
+                        may be required.
+                      </p>
+                    )}
+
+                    <button
+                      onClick={handleOpenStripeDashboard}
+                      disabled={openingPortal}
+                      className="mt-4 px-4 py-2 bg-black text-white rounded hover:opacity-90 disabled:opacity-50"
+                    >
+                      {openingPortal
+                        ? "Opening Stripe dashboard..."
+                        : "Go to Stripe to complete verification"}
+                    </button>
                   </>
                 ) : (
-                  <p className="text-sm text-gray-600 mt-2">
-                    Stripe is reviewing your account. Additional verification
-                    may be required.
-                  </p>
+                  <>
+                    <h3 className="font-semibold text-yellow-700">
+                      ⏳ Verification submitted
+                    </h3>
+                    <p className="text-sm text-gray-700 mt-2">
+                      Stripe is reviewing your account. This process typically
+                      takes <strong>24–48 hours</strong>, depending on the
+                      information provided.
+                    </p>
+                    <p className="text-sm text-gray-600 mt-2">
+                      If additional information is required, it will appear in
+                      your Stripe dashboard and Stripe will notify you directly.
+                    </p>
+                  </>
                 )}
-
-                <button
-                  onClick={handleOpenStripeDashboard}
-                  disabled={openingPortal}
-                  className="mt-4 px-4 py-2 bg-black text-white rounded hover:opacity-90 disabled:opacity-50"
-                >
-                  {openingPortal
-                    ? "Opening Stripe dashboard..."
-                    : "Go to Stripe to complete verification"}
-                </button>
               </div>
             )}
           </div>
