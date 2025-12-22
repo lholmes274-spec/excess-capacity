@@ -32,32 +32,18 @@ export async function POST(
     }
 
     // Fetch booking
-    const { data: booking, error: bookingErr } = await supabase
+    const { data: booking } = await supabase
       .from("bookings")
       .select("*")
       .eq("id", bookingId)
       .single();
 
-    if (bookingErr || !booking) {
-      return NextResponse.json(
-        { error: "Booking not found" },
-        { status: 404 }
-      );
-    }
-
     // Fetch listing
-    const { data: listing, error: listingErr } = await supabase
+    const { data: listing } = await supabase
       .from("listings")
       .select("baseprice, minimum_hours")
       .eq("id", booking.listing_id)
       .single();
-
-    if (listingErr || !listing) {
-      return NextResponse.json(
-        { error: "Listing not found" },
-        { status: 404 }
-      );
-    }
 
     const hourlyRate = Number(listing.baseprice);
     const minimumHours = Number(listing.minimum_hours) || 1;
@@ -66,7 +52,6 @@ export async function POST(
     const finalAmount = hourlyRate * final_hours;
     const additionalAmount = finalAmount - upfrontAmount;
 
-    // Save final hours + amount
     await supabase
       .from("bookings")
       .update({
@@ -76,50 +61,38 @@ export async function POST(
       })
       .eq("id", bookingId);
 
-    // No additional charge needed
     if (additionalAmount <= 0) {
       return NextResponse.json({
         success: true,
-        message: "No additional charge required",
+        charged: 0,
       });
     }
 
-    // 🔑 Retrieve checkout session WITH EXPANSIONS
+    // Retrieve checkout session + original payment intent
     const session = await stripe.checkout.sessions.retrieve(
       booking.stripe_session_id,
-      {
-        expand: [
-          "payment_intent",
-          "subscription.latest_invoice.payment_intent",
-        ],
-      }
+      { expand: ["payment_intent"] }
     );
 
-    let customerId =
-      session.customer ||
-      session.payment_intent?.customer ||
-      session.subscription?.latest_invoice?.payment_intent?.customer;
+    const customerId = session.customer;
+    const paymentMethodId =
+      typeof session.payment_intent === "object"
+        ? session.payment_intent.payment_method
+        : null;
 
-    if (!customerId) {
+    if (!paymentMethodId) {
       return NextResponse.json(
-        { error: "Stripe customer not found" },
+        { error: "No saved payment method for this booking" },
         { status: 400 }
       );
     }
 
     // Fetch lister Stripe account
-    const { data: ownerProfile, error: ownerErr } = await supabase
+    const { data: ownerProfile } = await supabase
       .from("profiles")
       .select("stripe_account_id")
       .eq("id", booking.owner_id)
       .single();
-
-    if (ownerErr || !ownerProfile?.stripe_account_id) {
-      return NextResponse.json(
-        { error: "Lister Stripe account not found" },
-        { status: 400 }
-      );
-    }
 
     const chargeAmountCents = Math.round(additionalAmount * 100);
     const platformFee = Math.min(
@@ -127,17 +100,21 @@ export async function POST(
       chargeAmountCents - 1
     );
 
-    // ✅ CRITICAL FIX: on_behalf_of added
-    await stripe.paymentIntents.create({
+    // ✅ THIS WILL ACTUALLY CHARGE
+    const paymentIntent = await stripe.paymentIntents.create({
       amount: chargeAmountCents,
       currency: "usd",
       customer: customerId,
-      description: "Additional hourly service charge",
+      payment_method: paymentMethodId,
+      off_session: true,
+      confirm: true,
+
       application_fee_amount: platformFee,
       on_behalf_of: ownerProfile.stripe_account_id,
       transfer_data: {
         destination: ownerProfile.stripe_account_id,
       },
+
       metadata: {
         booking_id: bookingId,
         type: "hourly_adjustment",
@@ -147,11 +124,12 @@ export async function POST(
     return NextResponse.json({
       success: true,
       charged: additionalAmount,
+      payment_intent_id: paymentIntent.id,
     });
   } catch (err) {
     console.error("Finalize booking error:", err);
     return NextResponse.json(
-      { error: "Failed to finalize booking", details: String(err) },
+      { error: "Failed to finalize booking" },
       { status: 500 }
     );
   }
