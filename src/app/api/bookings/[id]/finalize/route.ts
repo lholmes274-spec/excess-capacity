@@ -32,13 +32,13 @@ export async function POST(
     }
 
     // Fetch booking
-    const { data: booking, error: bookingErr } = await supabase
+    const { data: booking } = await supabase
       .from("bookings")
       .select("*")
       .eq("id", bookingId)
       .single();
 
-    if (bookingErr || !booking) {
+    if (!booking) {
       return NextResponse.json(
         { error: "Booking not found" },
         { status: 404 }
@@ -46,13 +46,13 @@ export async function POST(
     }
 
     // Fetch listing
-    const { data: listing, error: listingErr } = await supabase
+    const { data: listing } = await supabase
       .from("listings")
       .select("baseprice, minimum_hours")
       .eq("id", booking.listing_id)
       .single();
 
-    if (listingErr || !listing) {
+    if (!listing) {
       return NextResponse.json(
         { error: "Listing not found" },
         { status: 404 }
@@ -66,7 +66,6 @@ export async function POST(
     const finalAmount = hourlyRate * final_hours;
     const additionalAmount = finalAmount - upfrontAmount;
 
-    // Save final hours + amount
     await supabase
       .from("bookings")
       .update({
@@ -76,36 +75,30 @@ export async function POST(
       })
       .eq("id", bookingId);
 
-    // No additional charge needed
     if (additionalAmount <= 0) {
-      return NextResponse.json({
-        success: true,
-        message: "No additional charge required",
-      });
+      return NextResponse.json({ success: true });
     }
 
-    // Retrieve checkout session to get customer
+    // Checkout session → customer
     const session = await stripe.checkout.sessions.retrieve(
       booking.stripe_session_id
     );
 
-    const customerId = session.customer;
-
-    if (!customerId) {
+    if (!session.customer) {
       return NextResponse.json(
         { error: "Stripe customer not found" },
         { status: 400 }
       );
     }
 
-    // Fetch lister Stripe account
-    const { data: ownerProfile, error: ownerErr } = await supabase
+    // Lister Stripe account
+    const { data: ownerProfile } = await supabase
       .from("profiles")
       .select("stripe_account_id")
       .eq("id", booking.owner_id)
       .single();
 
-    if (ownerErr || !ownerProfile?.stripe_account_id) {
+    if (!ownerProfile?.stripe_account_id) {
       return NextResponse.json(
         { error: "Lister Stripe account not found" },
         { status: 400 }
@@ -118,38 +111,37 @@ export async function POST(
       chargeAmountCents - 1
     );
 
-    // ✅ CREATE INVOICE ITEM ON CONNECTED ACCOUNT (CRITICAL FIX)
+    const stripeAccount = ownerProfile.stripe_account_id;
+
+    // 1️⃣ Invoice item (CONNECTED ACCOUNT)
     await stripe.invoiceItems.create(
       {
-        customer: customerId,
+        customer: session.customer,
         amount: chargeAmountCents,
         currency: "usd",
         description: "Final hourly service charge",
-        metadata: {
-          booking_id: bookingId,
-          type: "hourly_adjustment",
-        },
+        metadata: { booking_id: bookingId },
       },
-      {
-        stripeAccount: ownerProfile.stripe_account_id,
-      }
+      { stripeAccount }
     );
 
-    // ✅ CREATE & FINALIZE INVOICE
-    const invoice = await stripe.invoices.create({
-      customer: customerId,
-      collection_method: "charge_automatically",
-      application_fee_amount: platformFee,
-      on_behalf_of: ownerProfile.stripe_account_id,
-      transfer_data: {
-        destination: ownerProfile.stripe_account_id,
+    // 2️⃣ Create invoice (CONNECTED ACCOUNT)
+    const invoice = await stripe.invoices.create(
+      {
+        customer: session.customer,
+        collection_method: "charge_automatically",
+        application_fee_amount: platformFee,
+        transfer_data: { destination: stripeAccount },
+        metadata: { booking_id: bookingId },
       },
-      metadata: {
-        booking_id: bookingId,
-      },
-    });
+      { stripeAccount }
+    );
 
-    await stripe.invoices.finalizeInvoice(invoice.id);
+    // 3️⃣ Finalize invoice (CONNECTED ACCOUNT)
+    await stripe.invoices.finalizeInvoice(invoice.id, {}, { stripeAccount });
+
+    // 4️⃣ Pay invoice (CONNECTED ACCOUNT)
+    await stripe.invoices.pay(invoice.id, {}, { stripeAccount });
 
     return NextResponse.json({
       success: true,
