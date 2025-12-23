@@ -119,11 +119,11 @@ export default function SignupPage() {
             </p>
 
             <p className="mt-4 text-sm text-gray-700">
-              You may safely close this tab.
+              Once confirmed, you’ll be automatically signed in.
             </p>
 
             <p className="mt-2 text-sm text-gray-600">
-              After confirming your email, return to Prosperity Hub and log in.
+              You may safely close this tab.
             </p>
           </div>
         )}
