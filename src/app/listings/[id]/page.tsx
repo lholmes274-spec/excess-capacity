@@ -217,6 +217,8 @@ export default function ListingDetailPage() {
               <label className="block font-semibold text-gray-800 mb-1">
                 {listing.pricing_type === "per_month"
                   ? "Number of months"
+                  : listing.pricing_type === "per_night"
+                  ? "Number of nights"
                   : "Number of days"}
               </label>
               <input
