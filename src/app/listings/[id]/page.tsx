@@ -14,7 +14,7 @@ export default function ListingDetailPage() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
 
-  // 🔹 NEW: number of days selector
+  // 🔹 number of days selector (used only for per_day)
   const [days, setDays] = useState<number>(1);
 
   // Load logged-in user
@@ -110,8 +110,10 @@ export default function ListingDetailPage() {
   const formattedPricing =
     listing.pricing_type ? listing.pricing_type.replace("_", " ") : "per unit";
 
+  const isPerDay = listing.pricing_type === "per_day";
+
   const totalPrice =
-    listing.baseprice && days
+    listing.baseprice && isPerDay
       ? Number(listing.baseprice) * Number(days)
       : listing.baseprice;
 
@@ -125,7 +127,9 @@ export default function ListingDetailPage() {
       alert("Demo Only – Checkout disabled");
     } else {
       router.push(
-        `/checkout?listing_id=${listing.id}&days=${days}`
+        isPerDay
+          ? `/checkout?listing_id=${listing.id}&days=${days}`
+          : `/checkout?listing_id=${listing.id}`
       );
     }
   };
@@ -196,19 +200,21 @@ export default function ListingDetailPage() {
         </p>
       )}
 
-      {/* 🔹 NUMBER OF DAYS SELECTOR */}
-      <div className="mt-4">
-        <label className="block font-semibold text-gray-800 mb-1">
-          Number of days
-        </label>
-        <input
-          type="number"
-          min={1}
-          value={days}
-          onChange={(e) => setDays(Number(e.target.value))}
-          className="w-32 border rounded-lg px-3 py-2"
-        />
-      </div>
+      {/* 🔹 NUMBER OF DAYS SELECTOR (PER DAY ONLY) */}
+      {isPerDay && (
+        <div className="mt-4">
+          <label className="block font-semibold text-gray-800 mb-1">
+            Number of days
+          </label>
+          <input
+            type="number"
+            min={1}
+            value={days}
+            onChange={(e) => setDays(Number(e.target.value))}
+            className="w-32 border rounded-lg px-3 py-2"
+          />
+        </div>
+      )}
 
       {/* TOTAL */}
       <p className="mt-3 text-lg font-semibold text-gray-900">
