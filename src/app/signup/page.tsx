@@ -118,11 +118,11 @@ export default function SignupPage() {
               Please check your inbox and click the link to activate your account.
             </p>
 
-            <p className="mt-4 text-sm text-gray-700">
+            <p className="mt-4 text-sm text-green-800">
               Once confirmed, you’ll be automatically signed in.
             </p>
 
-            <p className="mt-2 text-sm text-gray-600">
+            <p className="mt-2 text-sm text-green-800">
               You may safely close this tab.
             </p>
           </div>
