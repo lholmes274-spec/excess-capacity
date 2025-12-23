@@ -14,7 +14,7 @@ export default function ListingDetailPage() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
 
-  // 🔹 NEW: number of days selector
+  // 🔹 quantity selector (days OR months depending on pricing type)
   const [days, setDays] = useState<number>(1);
 
   // Load logged-in user
@@ -110,6 +110,8 @@ export default function ListingDetailPage() {
   const formattedPricing =
     listing.pricing_type ? listing.pricing_type.replace("_", " ") : "per unit";
 
+  const isMonthly = listing.pricing_type === "per_month";
+
   const totalPrice =
     listing.baseprice && days
       ? Number(listing.baseprice) * Number(days)
@@ -196,10 +198,10 @@ export default function ListingDetailPage() {
         </p>
       )}
 
-      {/* 🔹 NUMBER OF DAYS SELECTOR */}
+      {/* 🔹 QUANTITY SELECTOR */}
       <div className="mt-4">
         <label className="block font-semibold text-gray-800 mb-1">
-          Number of days
+          {isMonthly ? "Number of months" : "Number of days"}
         </label>
         <input
           type="number"
