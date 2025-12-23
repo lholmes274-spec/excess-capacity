@@ -62,12 +62,20 @@ function CheckoutContent() {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center bg-gray-50 text-gray-600">
         <p className="text-red-500 text-lg mb-3">❌ {error}</p>
+
         <a
           href="/"
-          className="px-4 py-2 bg-amber-500 text-white rounded-lg shadow hover:bg-amber-600 transition"
+          className="px-4 py-2 bg-amber-500 text-white rounded-lg shadow hover:bg-amber-600 transition mb-4"
         >
           Go Back
         </a>
+
+        {/* SUPPORT CONTACT */}
+        <p className="text-sm text-gray-600 text-center max-w-md">
+          If you have any questions, please contact Prosperity Voyage LLC at{" "}
+          <span className="font-medium">(404) 913-6097</span> or email{" "}
+          <span className="font-medium">support@prosperityhub.app</span>.
+        </p>
       </main>
     );
 
@@ -76,7 +84,9 @@ function CheckoutContent() {
 
 export default function CheckoutPage() {
   return (
-    <Suspense fallback={<div className="text-center mt-20">Loading checkout...</div>}>
+    <Suspense
+      fallback={<div className="text-center mt-20">Loading checkout...</div>}
+    >
       <CheckoutContent />
     </Suspense>
   );
