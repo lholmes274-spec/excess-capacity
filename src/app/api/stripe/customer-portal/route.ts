@@ -11,7 +11,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 export async function POST() {
   const cookieStore = cookies();
 
-  // ✅ REQUIRED cookie handlers for @supabase/ssr
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -51,8 +50,10 @@ export async function POST() {
     );
   }
 
+  // ✅ PRO-ONLY billing portal (storage excluded entirely)
   const portalSession = await stripe.billingPortal.sessions.create({
     customer: profile.stripe_customer_id,
+    configuration: process.env.STRIPE_PRO_PORTAL_CONFIG_ID!,
     return_url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`,
   });
 
