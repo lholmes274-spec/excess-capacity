@@ -200,28 +200,30 @@ export default function ListingDetailPage() {
       )}
 
       {/* RENTAL ONLY: QUANTITY + TOTAL */}
-      {!isForSale && (
-        <>
-          <div className="mt-4">
-            <label className="block font-semibold text-gray-800 mb-1">
-              {listing.pricing_type === "per_month"
-                ? "Number of months"
-                : "Number of days"}
-            </label>
-            <input
-              type="number"
-              min={1}
-              value={days}
-              onChange={(e) => setDays(Number(e.target.value))}
-              className="w-32 border rounded-lg px-3 py-2"
-            />
-          </div>
+      {!isForSale &&
+        (listing.pricing_type === "per_day" ||
+          listing.pricing_type === "per_month") && (
+          <>
+            <div className="mt-4">
+              <label className="block font-semibold text-gray-800 mb-1">
+                {listing.pricing_type === "per_month"
+                  ? "Number of months"
+                  : "Number of days"}
+              </label>
+              <input
+                type="number"
+                min={1}
+                value={days}
+                onChange={(e) => setDays(Number(e.target.value))}
+                className="w-32 border rounded-lg px-3 py-2"
+              />
+            </div>
 
-          <p className="mt-3 text-lg font-semibold text-gray-900">
-            Total: ${totalPrice}
-          </p>
-        </>
-      )}
+            <p className="mt-3 text-lg font-semibold text-gray-900">
+              Total: ${totalPrice}
+            </p>
+          </>
+        )}
 
       {/* PUBLIC INSTRUCTIONS */}
       {listing.pickup_instructions && (
