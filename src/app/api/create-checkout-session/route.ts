@@ -42,7 +42,8 @@ function formatPricingUnit(type: string) {
 
 export async function POST(req: Request) {
   try {
-    const { listing_id } = await req.json();
+    // ✅ FIX: read days
+    const { listing_id, days } = await req.json();
 
     if (!listing_id) {
       return NextResponse.json(
@@ -50,6 +51,8 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+
+    const safeDays = Math.max(1, Number(days) || 1);
 
     // 🔐 SERVICE ROLE CLIENT
     const supabase = createServerClient<Database>(
@@ -92,7 +95,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Booker (optional auth)
+    // Booker auth
     const cookieStore = cookies();
     const authClient = createServerClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -128,9 +131,7 @@ export async function POST(req: Request) {
         mode: "subscription",
         payment_method_types: ["card"],
         billing_address_collection: "required",
-
-        customer_email:
-          userEmail !== "unknown" ? userEmail : undefined,
+        customer_email: userEmail !== "unknown" ? userEmail : undefined,
 
         metadata: {
           listing_id: String(listing_id),
@@ -171,11 +172,17 @@ export async function POST(req: Request) {
 
     /**
      * =========================================================
-     * HOURLY SERVICES → ENFORCE MINIMUM HOURS
+     * ONE-TIME PAYMENTS (RENTALS / SERVICES)
      * =========================================================
      */
     let quantity = 1;
 
+    // ✅ FIX: per-day uses days selector
+    if (listing.pricing_type === "per_day") {
+      quantity = safeDays;
+    }
+
+    // Hourly keeps existing logic
     if (listing.pricing_type === "per_hour") {
       quantity = Math.max(1, Number(listing.minimum_hours) || 1);
     }
@@ -183,26 +190,15 @@ export async function POST(req: Request) {
     const unitAmountInCents = Math.round(Number(listing.baseprice) * 100);
     const totalAmountInCents = unitAmountInCents * quantity;
 
-    // 10% platform fee
     const rawPlatformFee = Math.round(totalAmountInCents * 0.1);
     const platformFee = Math.min(rawPlatformFee, totalAmountInCents - 1);
 
-    /**
-     * =========================================================
-     * ONE-TIME PAYMENT (SERVICES, RENTALS, EQUIPMENT, CARS)
-     * =========================================================
-     */
     const stripeSession = await stripe.checkout.sessions.create({
       mode: "payment",
-
-      // keep as-is
       customer_creation: "always",
-
       payment_method_types: ["card"],
       billing_address_collection: "required",
-
-      customer_email:
-        userEmail !== "unknown" ? userEmail : undefined,
+      customer_email: userEmail !== "unknown" ? userEmail : undefined,
 
       metadata: {
         listing_id: String(listing_id),
@@ -210,10 +206,9 @@ export async function POST(req: Request) {
         user_id: String(userId),
         user_email: String(userEmail),
         pricing_type: String(listing.pricing_type),
-        minimum_hours: String(quantity),
+        days: String(quantity),
       },
 
-      // 🔑 REQUIRED FOR FUTURE FINALIZE CHARGES
       payment_intent_data: {
         application_fee_amount: platformFee,
         transfer_data: {
@@ -229,8 +224,8 @@ export async function POST(req: Request) {
             product_data: {
               name: listing.title,
               description:
-                listing.pricing_type === "per_hour"
-                  ? `${pricingLabel} (minimum ${quantity} hours)`
+                listing.pricing_type === "per_day"
+                  ? `${pricingLabel} (${quantity} days)`
                   : pricingLabel,
             },
             unit_amount: unitAmountInCents,
