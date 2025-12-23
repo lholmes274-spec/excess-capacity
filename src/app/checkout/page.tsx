@@ -7,6 +7,8 @@ import { useSearchParams } from "next/navigation";
 function CheckoutContent() {
   const searchParams = useSearchParams();
   const listing_id = searchParams.get("listing_id");
+  const days = searchParams.get("days"); // ✅ READ DAYS
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,8 +24,11 @@ function CheckoutContent() {
         const res = await fetch("/api/create-checkout-session", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          credentials: "include",  // ⭐ CRITICAL FIX — send Supabase auth cookies
-          body: JSON.stringify({ listing_id }),
+          credentials: "include", // keep auth cookies
+          body: JSON.stringify({
+            listing_id,
+            days: Number(days) || 1, // ✅ PASS DAYS
+          }),
         });
 
         if (!res.ok) {
@@ -32,7 +37,7 @@ function CheckoutContent() {
 
         const { url } = await res.json();
         if (url) {
-          window.location.href = url; // Redirect to Stripe Checkout
+          window.location.href = url;
         } else {
           throw new Error("No redirect URL returned from API");
         }
@@ -44,7 +49,7 @@ function CheckoutContent() {
     }
 
     createCheckoutSession();
-  }, [listing_id]);
+  }, [listing_id, days]);
 
   if (loading)
     return (
