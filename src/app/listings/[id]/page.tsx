@@ -211,6 +211,7 @@ export default function ListingDetailPage() {
       {/* RENTAL ONLY: QUANTITY + TOTAL */}
       {!isForSale &&
         (listing.pricing_type === "per_day" ||
+          listing.pricing_type === "per_night" ||
           listing.pricing_type === "per_month") && (
           <>
             <div className="mt-4">
