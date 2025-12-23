@@ -121,14 +121,16 @@ export async function POST(req: Request) {
 
     /**
      * =========================================================
-     * STORAGE (MONTHLY) → SUBSCRIPTION (UNCHANGED)
+     * STORAGE (MONTHLY) → ONE-TIME PAYMENT (FIXED)
      * =========================================================
      */
     if (listing.pricing_type === "per_month") {
       const amountInCents = Math.round(Number(listing.baseprice) * 100);
 
       const stripeSession = await stripe.checkout.sessions.create({
-        mode: "subscription",
+        // ✅ CHANGED: was "subscription"
+        mode: "payment",
+
         payment_method_types: ["card"],
         billing_address_collection: "required",
         customer_email: userEmail !== "unknown" ? userEmail : undefined,
@@ -139,10 +141,14 @@ export async function POST(req: Request) {
           user_id: String(userId),
           user_email: String(userEmail),
           pricing_type: String(listing.pricing_type),
+          months: String(safeDays),
         },
 
-        subscription_data: {
-          application_fee_percent: 10,
+        payment_intent_data: {
+          application_fee_amount: Math.min(
+            Math.round(amountInCents * safeDays * 0.1),
+            amountInCents * safeDays - 1
+          ),
           transfer_data: {
             destination: listerProfile.stripe_account_id,
           },
@@ -152,14 +158,13 @@ export async function POST(req: Request) {
           {
             price_data: {
               currency: "usd",
-              recurring: { interval: "month" },
               product_data: {
                 name: listing.title,
-                description: pricingLabel,
+                description: `${pricingLabel} (${safeDays} months)`,
               },
               unit_amount: amountInCents,
             },
-            quantity: 1,
+            quantity: safeDays,
           },
         ],
 
