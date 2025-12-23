@@ -190,13 +190,22 @@ export default function ListingDetailPage() {
 
       {/* PRICE */}
       {listing.baseprice !== null && (
-        <p className="text-2xl font-semibold text-green-700 mt-2">
-          ${listing.baseprice}
-          <span className="text-base font-normal text-gray-600">
-            {" "}
-            / {formattedPricing}
-          </span>
-        </p>
+        <>
+          <p className="text-2xl font-semibold text-green-700 mt-2">
+            ${listing.baseprice}
+            <span className="text-base font-normal text-gray-600">
+              {" "}
+              / {formattedPricing}
+            </span>
+          </p>
+
+          {/* SERVICE MINIMUM */}
+          {listing.pricing_type === "per_hour" && (
+            <p className="text-sm text-gray-600 mt-1">
+              Minimum booking: 2 hours
+            </p>
+          )}
+        </>
       )}
 
       {/* RENTAL ONLY: QUANTITY + TOTAL */}
