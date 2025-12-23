@@ -46,7 +46,11 @@ export async function POST(req: Request) {
   // -----------------------------------------------------
   // STRIPE CONNECT ACCOUNT UPDATED
   // -----------------------------------------------------
-  if (event.type === "account.updated") {
+  if (
+    event.type === "account.updated" ||
+    event.type === "account.application.authorized" ||
+    event.type === "account.capability.updated"
+  ) {
     const account = event.data.object as Stripe.Account;
 
     const stripe_account_id = account.id;
