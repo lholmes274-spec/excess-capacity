@@ -63,10 +63,9 @@ export default function AddListingPage() {
         .single();
 
       const ready =
-        profile?.stripe_account_id &&
-        profile?.stripe_charges_enabled &&
-        profile?.stripe_payouts_enabled;
-
+        !!profile?.stripe_account_id &&
+        profile?.stripe_charges_enabled === true;
+        
       setStripeReady(!!ready);
       setCheckingStripe(false);
     };
