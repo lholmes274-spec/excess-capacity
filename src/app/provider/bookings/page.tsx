@@ -216,7 +216,7 @@ export default function ProviderBookingsPage() {
                         }
                       />
 
-                      {isPaid ? (
+                      {isPaid && b.final_hours ? (
                         <p className="text-sm text-green-700 font-medium">
                           ✅ Payment completed — this booking is finalized and
                           can no longer be changed.
