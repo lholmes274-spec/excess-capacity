@@ -26,7 +26,6 @@ export default function ProviderBookingsPage() {
 
       setUserId(user.id);
 
-      // 🔑 PROVIDER VIEW
       const { data, error } = await supabase
         .from("bookings")
         .select("*, listings(*)")
@@ -46,6 +45,14 @@ export default function ProviderBookingsPage() {
   }, []);
 
   async function finalizeBooking(bookingId) {
+    const booking = bookings.find((b) => b.id === bookingId);
+
+    // 🔒 HARD STOP — NEVER finalize a paid booking
+    if (booking?.status === "paid") {
+      alert("This booking has already been completed and cannot be changed.");
+      return;
+    }
+
     const hours = Number(finalHours[bookingId]);
 
     if (!hours || hours <= 0) {
@@ -74,7 +81,6 @@ export default function ProviderBookingsPage() {
           : "Booking finalized. No additional charge required."
       );
 
-      // Refresh bookings
       const { data: refreshed } = await supabase
         .from("bookings")
         .select("*, listings(*)")
@@ -136,6 +142,7 @@ export default function ProviderBookingsPage() {
               : "";
 
             const isHourly = listing?.pricing_type === "per_hour";
+            const isPaid = b.status === "paid";
 
             return (
               <div
@@ -195,7 +202,11 @@ export default function ProviderBookingsPage() {
                       <input
                         type="number"
                         min="1"
-                        className="w-full border rounded-md px-3 py-2 text-sm mb-2"
+                        readOnly={isPaid}
+                        disabled={isPaid}
+                        className={`w-full border rounded-md px-3 py-2 text-sm mb-2 ${
+                          isPaid ? "bg-gray-100 cursor-not-allowed" : ""
+                        }`}
                         value={finalHours[b.id] || ""}
                         onChange={(e) =>
                           setFinalHours({
@@ -205,19 +216,26 @@ export default function ProviderBookingsPage() {
                         }
                       />
 
-                      <button
-                        onClick={() => finalizeBooking(b.id)}
-                        disabled={finalizingId === b.id}
-                        className={`w-full px-4 py-2 rounded-lg text-sm font-semibold text-white ${
-                          finalizingId === b.id
-                            ? "bg-gray-400 cursor-not-allowed"
-                            : "bg-blue-600 hover:bg-blue-700"
-                        }`}
-                      >
-                        {finalizingId === b.id
-                          ? "Finalizing…"
-                          : "Finalize & Charge"}
-                      </button>
+                      {isPaid ? (
+                        <p className="text-sm text-green-700 font-medium">
+                          ✅ Payment completed — this booking is finalized and
+                          can no longer be changed.
+                        </p>
+                      ) : (
+                        <button
+                          onClick={() => finalizeBooking(b.id)}
+                          disabled={finalizingId === b.id}
+                          className={`w-full px-4 py-2 rounded-lg text-sm font-semibold text-white ${
+                            finalizingId === b.id
+                              ? "bg-gray-400 cursor-not-allowed"
+                              : "bg-blue-600 hover:bg-blue-700"
+                          }`}
+                        >
+                          {finalizingId === b.id
+                            ? "Finalizing…"
+                            : "Finalize & Charge"}
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
