@@ -14,6 +14,9 @@ export default function ListingDetailPage() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
 
+  // 🔹 NEW: number of days selector
+  const [days, setDays] = useState<number>(1);
+
   // Load logged-in user
   useEffect(() => {
     async function loadUser() {
@@ -107,8 +110,12 @@ export default function ListingDetailPage() {
   const formattedPricing =
     listing.pricing_type ? listing.pricing_type.replace("_", " ") : "per unit";
 
+  const totalPrice =
+    listing.baseprice && days
+      ? Number(listing.baseprice) * Number(days)
+      : listing.baseprice;
+
   const handleCheckout = () => {
-    // 🔒 FORCE ACCOUNT CREATION (OPTION A)
     if (!userId) {
       router.push(`/signup?redirect=/listings/${listing.id}`);
       return;
@@ -117,7 +124,9 @@ export default function ListingDetailPage() {
     if (listing.demo_mode) {
       alert("Demo Only – Checkout disabled");
     } else {
-      router.push(`/checkout?listing_id=${listing.id}`);
+      router.push(
+        `/checkout?listing_id=${listing.id}&days=${days}`
+      );
     }
   };
 
@@ -186,6 +195,25 @@ export default function ListingDetailPage() {
           </span>
         </p>
       )}
+
+      {/* 🔹 NUMBER OF DAYS SELECTOR */}
+      <div className="mt-4">
+        <label className="block font-semibold text-gray-800 mb-1">
+          Number of days
+        </label>
+        <input
+          type="number"
+          min={1}
+          value={days}
+          onChange={(e) => setDays(Number(e.target.value))}
+          className="w-32 border rounded-lg px-3 py-2"
+        />
+      </div>
+
+      {/* TOTAL */}
+      <p className="mt-3 text-lg font-semibold text-gray-900">
+        Total: ${totalPrice}
+      </p>
 
       {/* PUBLIC INSTRUCTIONS */}
       {listing.pickup_instructions && (
