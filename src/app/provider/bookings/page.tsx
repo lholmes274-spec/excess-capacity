@@ -47,9 +47,9 @@ export default function ProviderBookingsPage() {
   async function finalizeBooking(bookingId) {
     const booking = bookings.find((b) => b.id === bookingId);
 
-    // 🔒 HARD STOP — NEVER finalize a paid booking
-    if (booking?.status === "paid") {
-      alert("This booking has already been completed and cannot be changed.");
+    // 🔒 HARD STOP — already finalized
+    if (booking?.final_hours != null) {
+      alert("This booking has already been finalized.");
       return;
     }
 
@@ -75,11 +75,7 @@ export default function ProviderBookingsPage() {
         throw new Error(data.error || "Failed to finalize booking");
       }
 
-      alert(
-        data.charged
-          ? `Booking finalized. Additional $${data.charged} charged.`
-          : "Booking finalized. No additional charge required."
-      );
+      alert("Booking finalized and payment completed.");
 
       const { data: refreshed } = await supabase
         .from("bookings")
@@ -142,7 +138,7 @@ export default function ProviderBookingsPage() {
               : "";
 
             const isHourly = listing?.pricing_type === "per_hour";
-            const isPaid = b.status === "paid";
+            const isFinalized = b.final_hours != null;
 
             return (
               <div
@@ -202,12 +198,15 @@ export default function ProviderBookingsPage() {
                       <input
                         type="number"
                         min="1"
-                        readOnly={isPaid}
-                        disabled={isPaid}
+                        disabled={isFinalized}
                         className={`w-full border rounded-md px-3 py-2 text-sm mb-2 ${
-                          isPaid ? "bg-gray-100 cursor-not-allowed" : ""
+                          isFinalized ? "bg-gray-100 cursor-not-allowed" : ""
                         }`}
-                        value={finalHours[b.id] || ""}
+                        value={
+                          isFinalized
+                            ? b.final_hours
+                            : finalHours[b.id] || ""
+                        }
                         onChange={(e) =>
                           setFinalHours({
                             ...finalHours,
@@ -216,7 +215,7 @@ export default function ProviderBookingsPage() {
                         }
                       />
 
-                      {isPaid && b.final_hours ? (
+                      {isFinalized ? (
                         <p className="text-sm text-green-700 font-medium">
                           ✅ Payment completed — this booking is finalized and
                           can no longer be changed.
