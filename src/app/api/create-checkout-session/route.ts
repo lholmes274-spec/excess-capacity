@@ -19,6 +19,8 @@ function formatPricingUnit(type: string) {
       return "per hour";
     case "per_day":
       return "per day";
+      case "per_night":
+      return "per night";
     case "per_week":
       return "per week";
     case "per_month":
@@ -183,7 +185,10 @@ export async function POST(req: Request) {
     let quantity = 1;
 
     // ✅ FIX: per-day uses days selector
-    if (listing.pricing_type === "per_day") {
+    if (
+      listing.pricing_type === "per_day" ||
+      listing.pricing_type === "per_night"
+    ) {
       quantity = safeDays;
     }
 
@@ -231,6 +236,8 @@ export async function POST(req: Request) {
               description:
                 listing.pricing_type === "per_day"
                   ? `${pricingLabel} (${quantity} days)`
+                  : listing.pricing_type === "per_night"
+                  ? `${pricingLabel} (${quantity} nights)`
                   : pricingLabel,
             },
             unit_amount: unitAmountInCents,
