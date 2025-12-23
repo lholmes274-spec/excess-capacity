@@ -88,6 +88,7 @@ export default function Dashboard() {
     try {
       setOpeningPortal(true);
 
+      // 👇 ONLY ADDITION HERE
       localStorage.setItem("stripe_verification_started", "true");
       setVerificationStarted(true);
 
@@ -110,6 +111,7 @@ export default function Dashboard() {
     }
   };
 
+  // Manage subscription via Stripe portal
   const handleManageSubscription = async () => {
     try {
       setOpeningPortal(true);
@@ -142,16 +144,11 @@ export default function Dashboard() {
   }
 
   const isSubscribed = profile?.is_subscribed === true;
-
-  // ⚠️ ORIGINAL (kept)
   const stripeReady =
     profile?.stripe_charges_enabled && profile?.stripe_payouts_enabled;
 
-  // ✅ NEW — Stripe truth flags (NON-DESTRUCTIVE)
-  const stripeChargesEnabled = profile?.stripe_charges_enabled === true;
   const stripeRequirements: string[] =
     profile?.stripe_requirements_currently_due || [];
-  const hasStripeRequirements = stripeRequirements.length > 0;
 
   const stripeRequirementLabels: Record<string, string> = {
     email: "Confirm your email address",
@@ -162,76 +159,102 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Banner */}
       <div className="w-full bg-gradient-to-r from-yellow-300 to-yellow-500 text-black py-3 text-center font-semibold">
         Prosperity Hub™ — Dynamic Excess Capacity Sharing Platform
       </div>
 
+      {/* Dashboard */}
       <div className="flex justify-center px-4 mt-10">
         <div className="w-full max-w-2xl">
           <h1 className="text-2xl font-bold mb-2">
             Welcome, {user?.email} {isSubscribed && "💎"}
           </h1>
 
-          {/* 🟢 GREEN — active */}
-          {stripeChargesEnabled && !hasStripeRequirements && (
+          {stripeReady && (
             <p className="text-sm text-green-700 mb-6">
               ✅ Stripe payouts are active
             </p>
           )}
 
+          {/* Stripe Payout Status */}
           <div className="mb-6">
-            {/* 🔴 RED — only when truly blocked */}
-            {(!profile?.stripe_account_id ||
-              hasStripeRequirements ||
-              !stripeChargesEnabled) && (
+            {!profile?.stripe_account_id && (
               <div className="p-5 bg-white border-2 border-red-400 rounded-xl shadow">
                 <h3 className="font-semibold text-red-700">
-                  ❌ Payout setup required
+                  ❌ Stripe account not connected
                 </h3>
                 <p className="text-sm text-gray-600 mt-1">
-                  Stripe needs additional information before you can publish
-                  listings or receive payouts.
+                  Connect Stripe to receive payouts.
                 </p>
                 <button
-                  onClick={
-                    profile?.stripe_account_id
-                      ? handleOpenStripeDashboard
-                      : handleConnectStripe
-                  }
-                  className="mt-3 px-4 py-2 bg-black text-white rounded hover:opacity-90"
+                  onClick={handleConnectStripe}
+                  disabled={connectingStripe}
+                  className="mt-3 px-4 py-2 bg-black text-white rounded hover:opacity-90 disabled:opacity-50"
                 >
-                  {profile?.stripe_account_id
-                    ? "Go to Stripe Dashboard"
-                    : "Connect Stripe"}
+                  {connectingStripe ? "Connecting..." : "Connect Stripe"}
                 </button>
               </div>
             )}
 
-            {/* 🟡 YELLOW — under review, no action required */}
-            {profile?.stripe_account_id &&
-              stripeChargesEnabled &&
-              !hasStripeRequirements &&
-              !profile?.stripe_payouts_enabled && (
-                <div className="p-5 bg-white border-2 border-yellow-400 rounded-xl shadow">
-                  <h3 className="font-semibold text-yellow-700">
-                    ⚠️ Stripe account under review
-                  </h3>
-                  <p className="text-sm text-gray-700 mt-2">
-                    Your account is active and can accept payments. Stripe may
-                    request additional information in the future to avoid payout
-                    delays.
-                  </p>
-                  <button
-                    onClick={handleOpenStripeDashboard}
-                    className="mt-4 px-4 py-2 border border-gray-400 rounded"
-                  >
-                    View Stripe account
-                  </button>
-                </div>
-              )}
+            {profile?.stripe_account_id && !stripeReady && (
+              <div className="p-5 bg-white border-2 border-yellow-400 rounded-xl shadow">
+                {!verificationStarted ? (
+                  <>
+                    <h3 className="font-semibold text-yellow-700">
+                      ⚠️ Stripe verification required
+                    </h3>
+
+                    {stripeRequirements.length > 0 ? (
+                      <>
+                        <p className="text-sm text-gray-700 mt-2 font-medium">
+                          Action needed:
+                        </p>
+                        <ul className="list-disc list-inside text-sm text-gray-700 mt-1">
+                          {stripeRequirements.map((req: string) => (
+                            <li key={req}>
+                              {stripeRequirementLabels[req] || req}
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    ) : (
+                      <p className="text-sm text-gray-600 mt-2">
+                        Stripe is reviewing your account. Additional verification
+                        may be required.
+                      </p>
+                    )}
+
+                    <button
+                      onClick={handleOpenStripeDashboard}
+                      disabled={openingPortal}
+                      className="mt-4 px-4 py-2 bg-black text-white rounded hover:opacity-90 disabled:opacity-50"
+                    >
+                      {openingPortal
+                        ? "Opening Stripe dashboard..."
+                        : "Go to Stripe to complete verification"}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="font-semibold text-yellow-700">
+                      ⏳ Verification submitted
+                    </h3>
+                    <p className="text-sm text-gray-700 mt-2">
+                      Stripe is reviewing your account. This process typically
+                      takes <strong>24–48 hours</strong>, depending on the
+                      information provided.
+                    </p>
+                    <p className="text-sm text-gray-600 mt-2">
+                      If additional information is required, it will appear in
+                      your Stripe dashboard and Stripe will notify you directly.
+                    </p>
+                  </>
+                )}
+              </div>
+            )}
           </div>
 
-          {/* EVERYTHING BELOW IS UNCHANGED */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 place-items-center">
             <Link href="/add-listing" className="w-full">
               <div className="p-6 bg-white rounded-xl shadow hover:shadow-lg transition cursor-pointer text-center">
