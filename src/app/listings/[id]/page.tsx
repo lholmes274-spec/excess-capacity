@@ -199,12 +199,14 @@ export default function ListingDetailPage() {
         </p>
       )}
 
-      {/* RENTAL ONLY: DAYS + TOTAL */}
+      {/* RENTAL ONLY: QUANTITY + TOTAL */}
       {!isForSale && (
         <>
           <div className="mt-4">
             <label className="block font-semibold text-gray-800 mb-1">
-              Number of days
+              {listing.pricing_type === "per_month"
+                ? "Number of months"
+                : "Number of days"}
             </label>
             <input
               type="number"
