@@ -59,11 +59,14 @@ export async function POST(req: Request) {
     const requirements_due =
       account.requirements?.currently_due ?? [];
 
+    const isFullyActive = charges_enabled && payouts_enabled;
+
     const { error } = await supabase
       .from("profiles")
       .update({
         stripe_charges_enabled: charges_enabled,
         stripe_payouts_enabled: payouts_enabled,
+        stripe_account_status: isFullyActive ? "active" : "pending",
         stripe_requirements_currently_due: requirements_due,
         updated_at: new Date().toISOString(),
       })
