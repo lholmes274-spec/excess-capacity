@@ -109,7 +109,7 @@ export default function ListingDetailPage() {
   const formattedPricing =
     listing.pricing_type ? listing.pricing_type.replace("_", " ") : "per unit";
 
-  const isForSale = listing.pricing_type === "for_sale";
+  const isForSale = listing.transaction_type === "sale";
 
   const totalPrice =
     !isForSale && listing.baseprice && days
@@ -127,8 +127,8 @@ export default function ListingDetailPage() {
     } else {
       router.push(
         isForSale
-          ? `/checkout?listing_id=${listing.id}`
-          : `/checkout?listing_id=${listing.id}&days=${days}`
+          ? `/checkout?listing_id=${listing.id}&transaction_type=sale`
+          : `/checkout?listing_id=${listing.id}&transaction_type=booking&days=${days}`
       );
     }
   };

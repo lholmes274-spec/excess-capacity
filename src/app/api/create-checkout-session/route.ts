@@ -19,7 +19,7 @@ function formatPricingUnit(type: string) {
       return "per hour";
     case "per_day":
       return "per day";
-      case "per_night":
+    case "per_night":
       return "per night";
     case "per_week":
       return "per week";
@@ -44,12 +44,19 @@ function formatPricingUnit(type: string) {
 
 export async function POST(req: Request) {
   try {
-    // ✅ FIX: read days
-    const { listing_id, days } = await req.json();
+    // ✅ READ INTENT EXPLICITLY
+    const { listing_id, days, transaction_type } = await req.json();
 
-    if (!listing_id) {
+    if (!listing_id || !transaction_type) {
       return NextResponse.json(
-        { error: "Missing listing_id" },
+        { error: "Missing listing_id or transaction_type" },
+        { status: 400 }
+      );
+    }
+
+    if (!["booking", "sale"].includes(transaction_type)) {
+      return NextResponse.json(
+        { error: "Invalid transaction_type" },
         { status: 400 }
       );
     }
@@ -123,34 +130,32 @@ export async function POST(req: Request) {
 
     /**
      * =========================================================
-     * STORAGE (MONTHLY) → ONE-TIME PAYMENT (FIXED)
+     * SALE — ONE TIME PURCHASE (ARCHIVE LATER)
      * =========================================================
      */
-    if (listing.pricing_type === "per_month") {
+    if (transaction_type === "sale") {
       const amountInCents = Math.round(Number(listing.baseprice) * 100);
+      const platformFee = Math.min(
+        Math.round(amountInCents * 0.1),
+        amountInCents - 1
+      );
 
       const stripeSession = await stripe.checkout.sessions.create({
-        // ✅ CHANGED: was "subscription"
         mode: "payment",
-
         payment_method_types: ["card"],
         billing_address_collection: "required",
         customer_email: userEmail !== "unknown" ? userEmail : undefined,
 
         metadata: {
           listing_id: String(listing_id),
+          transaction_type: "sale",
           lister_id: String(listing.owner_id),
           user_id: String(userId),
           user_email: String(userEmail),
-          pricing_type: String(listing.pricing_type),
-          months: String(safeDays),
         },
 
         payment_intent_data: {
-          application_fee_amount: Math.min(
-            Math.round(amountInCents * safeDays * 0.1),
-            amountInCents * safeDays - 1
-          ),
+          application_fee_amount: platformFee,
           transfer_data: {
             destination: listerProfile.stripe_account_id,
           },
@@ -162,15 +167,15 @@ export async function POST(req: Request) {
               currency: "usd",
               product_data: {
                 name: listing.title,
-                description: `${pricingLabel} (${safeDays} months)`,
+                description: pricingLabel,
               },
               unit_amount: amountInCents,
             },
-            quantity: safeDays,
+            quantity: 1,
           },
         ],
 
-        success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success-booking?session_id={CHECKOUT_SESSION_ID}`,
+        success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success-purchase?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/canceled`,
       });
 
@@ -179,20 +184,19 @@ export async function POST(req: Request) {
 
     /**
      * =========================================================
-     * ONE-TIME PAYMENTS (RENTALS / SERVICES)
+     * BOOKINGS — TIME BASED
      * =========================================================
      */
     let quantity = 1;
 
-    // ✅ FIX: per-day uses days selector
     if (
       listing.pricing_type === "per_day" ||
-      listing.pricing_type === "per_night"
+      listing.pricing_type === "per_night" ||
+      listing.pricing_type === "per_month"
     ) {
       quantity = safeDays;
     }
 
-    // Hourly keeps existing logic
     if (listing.pricing_type === "per_hour") {
       quantity = Math.max(1, Number(listing.minimum_hours) || 1);
     }
@@ -200,23 +204,24 @@ export async function POST(req: Request) {
     const unitAmountInCents = Math.round(Number(listing.baseprice) * 100);
     const totalAmountInCents = unitAmountInCents * quantity;
 
-    const rawPlatformFee = Math.round(totalAmountInCents * 0.1);
-    const platformFee = Math.min(rawPlatformFee, totalAmountInCents - 1);
+    const platformFee = Math.min(
+      Math.round(totalAmountInCents * 0.1),
+      totalAmountInCents - 1
+    );
 
     const stripeSession = await stripe.checkout.sessions.create({
       mode: "payment",
-      customer_creation: "always",
       payment_method_types: ["card"],
       billing_address_collection: "required",
       customer_email: userEmail !== "unknown" ? userEmail : undefined,
 
       metadata: {
         listing_id: String(listing_id),
+        transaction_type: "booking",
         lister_id: String(listing.owner_id),
         user_id: String(userId),
         user_email: String(userEmail),
-        pricing_type: String(listing.pricing_type),
-        days: String(quantity),
+        quantity: String(quantity),
       },
 
       payment_intent_data: {
@@ -238,6 +243,8 @@ export async function POST(req: Request) {
                   ? `${pricingLabel} (${quantity} days)`
                   : listing.pricing_type === "per_night"
                   ? `${pricingLabel} (${quantity} nights)`
+                  : listing.pricing_type === "per_month"
+                  ? `${pricingLabel} (${quantity} months)`
                   : pricingLabel,
             },
             unit_amount: unitAmountInCents,
