@@ -6,6 +6,29 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 
+/* 🔒 PRICING INTENT RULES (LOCKED)
+   Time-based → duration
+   Usage-based → quantity
+*/
+const PRICING_INTENT: Record<
+  string,
+  { model: "duration" | "quantity"; label: string }
+> = {
+  per_hour: { model: "duration", label: "Billed by number of hours" },
+  per_day: { model: "duration", label: "Billed by number of days" },
+  per_night: { model: "duration", label: "Billed by number of nights" },
+  per_week: { model: "duration", label: "Billed by number of weeks" },
+  per_month: { model: "duration", label: "Billed by number of months" },
+
+  per_use: { model: "quantity", label: "Billed per use" },
+  per_item: { model: "quantity", label: "Billed per item" },
+  per_service: { model: "quantity", label: "Billed per service" },
+  per_trip: { model: "quantity", label: "Billed per trip" },
+
+  for_sale: { model: "quantity", label: "Sold per item" },
+  flat_rate: { model: "duration", label: "One-time flat rate" },
+};
+
 export default function AddListingPage() {
   const router = useRouter();
 
@@ -65,7 +88,7 @@ export default function AddListingPage() {
       const ready =
         !!profile?.stripe_account_id &&
         profile?.stripe_charges_enabled === true;
-        
+
       setStripeReady(!!ready);
       setCheckingStripe(false);
     };
@@ -218,7 +241,6 @@ export default function AddListingPage() {
 
   return (
     <div className="max-w-2xl mx-auto p-6">
-
       {!stripeReady && (
         <div className="mb-6 p-5 bg-white border-2 border-red-400 rounded-xl shadow">
           <h3 className="font-semibold text-red-700">
@@ -242,7 +264,6 @@ export default function AddListingPage() {
       </h1>
 
       <form onSubmit={handleSubmit} className="space-y-5">
-
         {/* Listing Type */}
         <div>
           <label className="block font-semibold mb-1">Listing Type</label>
@@ -341,6 +362,11 @@ export default function AddListingPage() {
               <option value="flat_rate">Flat Rate</option>
             </optgroup>
           </select>
+          {form.pricing_type && PRICING_INTENT[form.pricing_type] && (
+            <p className="text-sm text-gray-500 mt-1">
+              {PRICING_INTENT[form.pricing_type].label}
+            </p>
+          )}
         </div>
 
         {/* Location */}
