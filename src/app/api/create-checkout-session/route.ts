@@ -44,7 +44,6 @@ function formatPricingUnit(type: string) {
 
 export async function POST(req: Request) {
   try {
-    // ✅ READ INTENT EXPLICITLY
     const { listing_id, days, transaction_type } = await req.json();
 
     if (!listing_id || !transaction_type) {
@@ -90,6 +89,14 @@ export async function POST(req: Request) {
       );
     }
 
+    // 🔒 SOFT AVAILABILITY ENFORCEMENT
+    if (listing.listing_status !== "active") {
+      return NextResponse.json(
+        { error: "This listing is currently unavailable" },
+        { status: 400 }
+      );
+    }
+
     // Fetch lister profile
     const { data: listerProfile } = await supabase
       .from("profiles")
@@ -130,7 +137,7 @@ export async function POST(req: Request) {
 
     /**
      * =========================================================
-     * SALE — ONE TIME PURCHASE (ARCHIVE LATER)
+     * SALE — ONE TIME PURCHASE
      * =========================================================
      */
     if (transaction_type === "sale") {
