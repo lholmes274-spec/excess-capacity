@@ -11,6 +11,7 @@ export default function EditListingPage() {
   const { id } = useParams();
 
   const [loading, setLoading] = useState(true);
+  const [listingStatus, setListingStatus] = useState("active");
   const [saving, setSaving] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -110,6 +111,7 @@ export default function EditListingPage() {
         demo_mode: data.demo_mode,
       });
 
+      setListingStatus(data.listing_status || "active");
       setExistingImages(data.image_urls || []);
       setLoading(false);
     }
@@ -133,6 +135,32 @@ export default function EditListingPage() {
   const handleRemoveImage = (url) => {
     setExistingImages(existingImages.filter((img) => img !== url));
     setHasUnsavedChanges(true);
+  };
+
+  // ✅ STAGE 3 — PAUSE / RESUME LOGIC
+  const handleToggleStatus = async () => {
+    const nextStatus =
+      listingStatus === "active" ? "paused" : "active";
+
+    const confirmed = window.confirm(
+      nextStatus === "paused"
+        ? "Pause this listing? It will not be bookable."
+        : "Resume this listing so it can be booked again?"
+    );
+
+    if (!confirmed) return;
+
+    const { error } = await supabase
+      .from("listings")
+      .update({ listing_status: nextStatus })
+      .eq("id", id);
+
+    if (error) {
+      alert("Failed to update listing status.");
+      return;
+    }
+
+    setListingStatus(nextStatus);
   };
 
   // 🔒 ACTUAL SAVE LOGIC
@@ -189,7 +217,6 @@ export default function EditListingPage() {
     setShowSuccessModal(true);
   };
 
-  // 🧠 Save button now only asks for confirmation
   const handleSubmit = (e) => {
     e.preventDefault();
     setShowConfirmModal(true);
@@ -260,6 +287,31 @@ export default function EditListingPage() {
       <h1 className="text-3xl font-bold mb-6 text-center text-orange-800">
         Edit Listing
       </h1>
+
+      {/* ✅ STAGE 4 — STATUS + PAUSE / RESUME */}
+      <div className="mb-6 flex items-center justify-between">
+        <span
+          className={`px-3 py-1 rounded-full text-sm font-semibold ${
+            listingStatus === "active"
+              ? "bg-green-100 text-green-700"
+              : "bg-yellow-100 text-yellow-700"
+          }`}
+        >
+          Status: {listingStatus}
+        </span>
+
+        <button
+          type="button"
+          onClick={handleToggleStatus}
+          className={`px-4 py-2 rounded-lg font-semibold ${
+            listingStatus === "active"
+              ? "bg-yellow-600 text-white hover:bg-yellow-700"
+              : "bg-green-600 text-white hover:bg-green-700"
+          }`}
+        >
+          {listingStatus === "active" ? "Pause Listing" : "Resume Listing"}
+        </button>
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
 
