@@ -22,6 +22,7 @@ export default function HomePage() {
         .from("listings")
         .select("*")
         .eq("demo_mode", false)
+        .eq("listing_status", "active") 
         .limit(6);
 
       setRealListings(realData || []);

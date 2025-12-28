@@ -88,6 +88,15 @@ export default function ListingDetailPage() {
   // Ownership check
   const isOwner = userId && userId === listing.owner_id;
 
+  // 🚫 Block public access to paused listings
+  if (listing.listing_status === "paused" && !isOwner) {
+    return (
+      <div className="p-8 text-center text-gray-600">
+        This listing is currently unavailable.
+      </div>
+    );
+  }
+
   if (isOwner) {
     return (
       <div className="p-8 text-center">
