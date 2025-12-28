@@ -7,15 +7,16 @@ import { useSearchParams } from "next/navigation";
 function CheckoutContent() {
   const searchParams = useSearchParams();
   const listing_id = searchParams.get("listing_id");
-  const days = searchParams.get("days"); // ✅ READ DAYS
+  const days = searchParams.get("days"); // optional
+  const transaction_type = searchParams.get("transaction_type"); // ✅ READ INTENT
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function createCheckoutSession() {
-      if (!listing_id) {
-        setError("Missing listing ID");
+      if (!listing_id || !transaction_type) {
+        setError("Missing listing or transaction type");
         setLoading(false);
         return;
       }
@@ -24,10 +25,11 @@ function CheckoutContent() {
         const res = await fetch("/api/create-checkout-session", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          credentials: "include", // keep auth cookies
+          credentials: "include",
           body: JSON.stringify({
             listing_id,
-            days: Number(days) || 1, // ✅ PASS DAYS
+            transaction_type, // ✅ PASS INTENT
+            days: Number(days) || 1,
           }),
         });
 
@@ -49,7 +51,7 @@ function CheckoutContent() {
     }
 
     createCheckoutSession();
-  }, [listing_id, days]);
+  }, [listing_id, days, transaction_type]);
 
   if (loading)
     return (
@@ -70,7 +72,6 @@ function CheckoutContent() {
           Go Back
         </a>
 
-        {/* SUPPORT CONTACT */}
         <p className="text-sm text-gray-600 text-center max-w-md">
           If you have any questions, please contact Prosperity Voyage LLC at{" "}
           <span className="font-medium">(404) 913-6097</span> or email{" "}
