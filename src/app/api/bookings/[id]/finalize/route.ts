@@ -80,9 +80,13 @@ export async function POST(
         ? session.payment_intent.payment_method
         : null;
 
-    if (!paymentMethodId) {
+    // 🔒 SAFETY GUARD — DO NOT AUTO-CHARGE IF STRIPE DID NOT SAVE A METHOD
+    if (!customerId || !paymentMethodId) {
       return NextResponse.json(
-        { error: "No saved payment method for this booking" },
+        {
+          error:
+            "Unable to charge additional hours automatically. Please coordinate payment through messaging.",
+        },
         { status: 400 }
       );
     }
