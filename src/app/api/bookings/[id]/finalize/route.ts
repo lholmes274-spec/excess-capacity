@@ -52,21 +52,34 @@ export async function POST(
     const finalAmount = hourlyRate * final_hours;
     const additionalAmount = finalAmount - upfrontAmount;
 
-    await supabase
-      .from("bookings")
-      .update({
-        final_hours,
-        final_amount: finalAmount,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", bookingId);
-
+    /**
+     * =========================================================
+     * CASE 1 — NO ADDITIONAL CHARGE NEEDED
+     * Safe to finalize immediately
+     * =========================================================
+     */
     if (additionalAmount <= 0) {
+      await supabase
+        .from("bookings")
+        .update({
+          final_hours,
+          final_amount: finalAmount,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", bookingId);
+
       return NextResponse.json({
         success: true,
         charged: 0,
       });
     }
+
+    /**
+     * =========================================================
+     * CASE 2 — ADDITIONAL CHARGE REQUIRED
+     * Attempt Stripe off-session charge BEFORE finalizing
+     * =========================================================
+     */
 
     // Retrieve checkout session + original payment intent
     const session = await stripe.checkout.sessions.retrieve(
@@ -80,7 +93,7 @@ export async function POST(
         ? session.payment_intent.payment_method
         : null;
 
-    // 🔒 SAFETY GUARD — DO NOT AUTO-CHARGE IF STRIPE DID NOT SAVE A METHOD
+    // 🔒 SAFETY GUARD — DO NOT FINALIZE IF STRIPE CANNOT AUTO-CHARGE
     if (!customerId || !paymentMethodId) {
       return NextResponse.json(
         {
@@ -104,7 +117,7 @@ export async function POST(
       chargeAmountCents - 1
     );
 
-    // ✅ THIS WILL ACTUALLY CHARGE
+    // ✅ STRIPE OFF-SESSION CHARGE
     const paymentIntent = await stripe.paymentIntents.create({
       amount: chargeAmountCents,
       currency: "usd",
@@ -124,6 +137,20 @@ export async function POST(
         type: "hourly_adjustment",
       },
     });
+
+    /**
+     * =========================================================
+     * FINALIZE ONLY AFTER SUCCESSFUL CHARGE
+     * =========================================================
+     */
+    await supabase
+      .from("bookings")
+      .update({
+        final_hours,
+        final_amount: finalAmount,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", bookingId);
 
     return NextResponse.json({
       success: true,
