@@ -264,6 +264,8 @@ export async function POST(req: Request) {
                   ? "nights"
                   : listing.pricing_type === "per_month"
                   ? "months"
+                  : listing.pricing_type === "per_hour"
+                  ? "hours"
                   : "units"
               }`,
             },
