@@ -216,6 +216,18 @@ export async function POST(req: Request) {
       totalAmountInCents - 1
     );
 
+    // 🔹 ADD HUMAN UNIT CONTEXT (THIS IS THE ONLY NEW LOGIC)
+    const unitLabel =
+      listing.pricing_type === "per_day"
+        ? "per day"
+        : listing.pricing_type === "per_night"
+        ? "per night"
+        : listing.pricing_type === "per_month"
+        ? "per month"
+        : listing.pricing_type === "per_hour"
+        ? "per hour"
+        : pricingLabel;
+
     const stripeSession = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
@@ -244,15 +256,16 @@ export async function POST(req: Request) {
           price_data: {
             currency: "usd",
             product_data: {
-              name: listing.title,
-              description:
+              name: `${listing.title} (${unitLabel})`,
+              description: `Duration: ${quantity} ${
                 listing.pricing_type === "per_day"
-                  ? `${pricingLabel} (${quantity} days)`
+                  ? "days"
                   : listing.pricing_type === "per_night"
-                  ? `${pricingLabel} (${quantity} nights)`
+                  ? "nights"
                   : listing.pricing_type === "per_month"
-                  ? `${pricingLabel} (${quantity} months)`
-                  : pricingLabel,
+                  ? "months"
+                  : "units"
+              }`,
             },
             unit_amount: unitAmountInCents,
           },
