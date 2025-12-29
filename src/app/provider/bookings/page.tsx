@@ -71,19 +71,23 @@ export default function ProviderBookingsPage() {
 
       const data = await res.json();
 
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to finalize booking");
+      // ✅ SUCCESS PATH (even if Stripe adjustment was skipped)
+      if (data?.success) {
+        const { data: refreshed } = await supabase
+          .from("bookings")
+          .select("*, listings(*)")
+          .eq("owner_id", userId)
+          .order("created_at", { ascending: false });
+
+        setBookings(refreshed || []);
+        return;
       }
 
-      alert("Booking finalized and payment completed.");
-
-      const { data: refreshed } = await supabase
-        .from("bookings")
-        .select("*, listings(*)")
-        .eq("owner_id", userId)
-        .order("created_at", { ascending: false });
-
-      setBookings(refreshed || []);
+      // ❌ REAL ERROR FROM BACKEND
+      if (!res.ok) {
+        alert(data?.error || "Unable to finalize booking.");
+        return;
+      }
     } catch (err) {
       console.error(err);
       alert("Error finalizing booking. Please try again.");
