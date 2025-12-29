@@ -55,7 +55,6 @@ export async function POST(
     /**
      * =========================================================
      * CASE 1 — NO ADDITIONAL CHARGE NEEDED
-     * Safe to finalize immediately
      * =========================================================
      */
     if (additionalAmount <= 0) {
@@ -77,24 +76,48 @@ export async function POST(
     /**
      * =========================================================
      * CASE 2 — ADDITIONAL CHARGE REQUIRED
-     * Attempt Stripe off-session charge BEFORE finalizing
      * =========================================================
      */
 
-    // Retrieve checkout session + original payment intent
+    // Retrieve checkout session
     const session = await stripe.checkout.sessions.retrieve(
-      booking.stripe_session_id,
-      { expand: ["payment_intent"] }
+      booking.stripe_session_id
     );
 
     const customerId = session.customer;
-    const paymentMethodId =
-      typeof session.payment_intent === "object"
-        ? session.payment_intent.payment_method
+
+    if (!customerId) {
+      return NextResponse.json(
+        {
+          error:
+            "Unable to charge additional hours automatically. Please coordinate payment through messaging.",
+        },
+        { status: 400 }
+      );
+    }
+
+    /**
+     * ✅ FIX: Retrieve customer's default / latest payment method
+     */
+    const customer =
+      typeof customerId === "string"
+        ? await stripe.customers.retrieve(customerId)
         : null;
 
-    // 🔒 SAFETY GUARD — DO NOT FINALIZE IF STRIPE CANNOT AUTO-CHARGE
-    if (!customerId || !paymentMethodId) {
+    let paymentMethodId =
+      customer?.invoice_settings?.default_payment_method || null;
+
+    if (!paymentMethodId) {
+      const methods = await stripe.paymentMethods.list({
+        customer: customerId as string,
+        type: "card",
+        limit: 1,
+      });
+
+      paymentMethodId = methods.data[0]?.id || null;
+    }
+
+    if (!paymentMethodId) {
       return NextResponse.json(
         {
           error:
@@ -117,12 +140,12 @@ export async function POST(
       chargeAmountCents - 1
     );
 
-    // ✅ STRIPE OFF-SESSION CHARGE
+    // ✅ OFF-SESSION STRIPE CHARGE (RESTORED)
     const paymentIntent = await stripe.paymentIntents.create({
       amount: chargeAmountCents,
       currency: "usd",
-      customer: customerId,
-      payment_method: paymentMethodId,
+      customer: customerId as string,
+      payment_method: paymentMethodId as string,
       off_session: true,
       confirm: true,
 
@@ -140,7 +163,7 @@ export async function POST(
 
     /**
      * =========================================================
-     * FINALIZE ONLY AFTER SUCCESSFUL CHARGE
+     * FINALIZE AFTER SUCCESSFUL CHARGE
      * =========================================================
      */
     await supabase
