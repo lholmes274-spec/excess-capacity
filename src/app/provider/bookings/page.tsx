@@ -49,7 +49,6 @@ export default function ProviderBookingsPage() {
 
     // 🔒 HARD STOP — already finalized
     if (booking?.final_hours != null) {
-      alert("This booking has already been finalized.");
       return;
     }
 
@@ -71,22 +70,28 @@ export default function ProviderBookingsPage() {
 
       const data = await res.json();
 
-      // ✅ SUCCESS PATH (even if Stripe adjustment was skipped)
-      if (data?.success) {
-        const { data: refreshed } = await supabase
-          .from("bookings")
-          .select("*, listings(*)")
-          .eq("owner_id", userId)
-          .order("created_at", { ascending: false });
+      // 🔑 Always refresh bookings after finalize attempt
+      const { data: refreshed } = await supabase
+        .from("bookings")
+        .select("*, listings(*)")
+        .eq("owner_id", userId)
+        .order("created_at", { ascending: false });
 
-        setBookings(refreshed || []);
+      setBookings(refreshed || []);
+
+      const updated = refreshed?.find((b) => b.id === bookingId);
+
+      // ✅ If booking is now finalized, trust DB and suppress errors
+      if (updated?.final_hours != null) {
         return;
       }
 
-      // ❌ REAL ERROR FROM BACKEND
+      // ❌ Only show error if NOT finalized
       if (!res.ok) {
-        alert(data?.error || "Unable to finalize booking.");
-        return;
+        alert(
+          data?.error ||
+            "Unable to finalize booking. Please coordinate through messaging."
+        );
       }
     } catch (err) {
       console.error(err);
