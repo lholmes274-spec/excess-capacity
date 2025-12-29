@@ -286,14 +286,14 @@ export async function POST(req: Request) {
               name: `${listing.title} (${unitLabel})`,
               description: `Duration: ${quantity} ${
                 listing.pricing_type === "per_day"
-                  ? "days"
+                  ? quantity === 1 ? "day" : "days"
                   : listing.pricing_type === "per_night"
-                  ? "nights"
+                  ? quantity === 1 ? "night" : "nights"
                   : listing.pricing_type === "per_month"
-                  ? "months"
+                  ? quantity === 1 ? "month" : "months"
                   : listing.pricing_type === "per_hour"
-                  ? "hours"
-                  : "units"
+                  ? quantity === 1 ? "hour" : "hours"
+                  : quantity === 1 ? "session" : "sessions"
               }`,
             },
             unit_amount: unitAmountInCents,
