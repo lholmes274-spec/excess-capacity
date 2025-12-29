@@ -250,16 +250,23 @@ export default function Dashboard() {
                 ) : (
                   <>
                     <h3 className="font-semibold text-yellow-700">
-                      ⏳ Verification submitted
+                      ⏳ Verification in progress
                     </h3>
                     <p className="text-sm text-gray-700 mt-2">
-                      Stripe is reviewing your account. This process typically
-                      takes <strong>24–48 hours</strong>, depending on the
-                      information provided.
+                      Your Stripe account has been created and linked to Prosperity Hub. 
+                      Stripe is completing a standard background review, which typically takes{" "}
+                      <strong>24–48 hours</strong>.
+                    </p>
+                    <p className="text-sm text-gray-600 mt-2">
+                      During this time, payouts may be temporarily unavailable. No action is
+                      required from you unless Stripe requests additional information.
                     </p>
                     <p className="text-sm text-gray-600 mt-2">
                       If additional information is required, it will appear in
                       your Stripe dashboard and Stripe will notify you directly.
+                    </p>
+                    <p className="text-xs text-gray-400 mt-3">
+                      Last updated from Stripe: moments ago
                     </p>
                   </>
                 )}
