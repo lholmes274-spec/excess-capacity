@@ -133,6 +133,32 @@ export async function POST(req: Request) {
     const userId = user?.id ? String(user.id) : "0";
     const userEmail = user?.email ? String(user.email) : "unknown";
 
+    /**
+     * =========================================================
+     * STEP 1 — ENSURE REUSABLE STRIPE CUSTOMER
+     * =========================================================
+     */
+    let stripeCustomerId: string | undefined = undefined;
+
+    if (userEmail !== "unknown") {
+      const existingCustomers = await stripe.customers.list({
+        email: userEmail,
+        limit: 1,
+      });
+
+      if (existingCustomers.data.length > 0) {
+        stripeCustomerId = existingCustomers.data[0].id;
+      } else {
+        const customer = await stripe.customers.create({
+          email: userEmail,
+          metadata: {
+            user_id: userId,
+          },
+        });
+        stripeCustomerId = customer.id;
+      }
+    }
+
     const pricingLabel = formatPricingUnit(listing.pricing_type);
 
     /**
@@ -151,7 +177,8 @@ export async function POST(req: Request) {
         mode: "payment",
         payment_method_types: ["card"],
         billing_address_collection: "required",
-        customer_email: userEmail !== "unknown" ? userEmail : undefined,
+        customer: stripeCustomerId,
+        customer_email: stripeCustomerId ? undefined : userEmail,
 
         metadata: {
           listing_id: String(listing_id),
@@ -216,7 +243,6 @@ export async function POST(req: Request) {
       totalAmountInCents - 1
     );
 
-    // 🔹 ADD HUMAN UNIT CONTEXT (THIS IS THE ONLY NEW LOGIC)
     const unitLabel =
       listing.pricing_type === "per_day"
         ? "per day"
@@ -232,7 +258,8 @@ export async function POST(req: Request) {
       mode: "payment",
       payment_method_types: ["card"],
       billing_address_collection: "required",
-      customer_email: userEmail !== "unknown" ? userEmail : undefined,
+      customer: stripeCustomerId,
+      customer_email: stripeCustomerId ? undefined : userEmail,
 
       metadata: {
         listing_id: String(listing_id),
