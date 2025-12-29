@@ -265,9 +265,6 @@ export default function Dashboard() {
                       If additional information is required, it will appear in
                       your Stripe dashboard and Stripe will notify you directly.
                     </p>
-                    <p className="text-xs text-gray-400 mt-3">
-                      Last updated from Stripe: moments ago
-                    </p>
                   </>
                 )}
               </div>
