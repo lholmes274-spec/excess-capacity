@@ -227,6 +227,11 @@ export default function AddListingPage() {
       return;
     }
 
+    // ✅ GA4 — Listing Created (fires ONLY on success)
+    if (typeof window !== "undefined" && typeof gtag === "function") {
+      gtag("event", "listing_created");
+    }
+
     alert("Listing added successfully!");
     router.push("/");
   };
