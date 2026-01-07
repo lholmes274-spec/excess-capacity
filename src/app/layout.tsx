@@ -48,18 +48,26 @@ export default function RootLayout({
         {/* Facebook App ID */}
         <meta property="fb:app_id" content="2963411410513274" />
 
-        {/* ✅ Google Ads Global Site Tag */}
+        {/* ✅ Google Tag (Ads + GA4 shared loader) */}
         <script
           async
           src="https://www.googletagmanager.com/gtag/js?id=AW-17728116849"
         ></script>
+
         <script
           dangerouslySetInnerHTML={{
             __html: `
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
               gtag('js', new Date());
+
+              // Google Ads
               gtag('config', 'AW-17728116849');
+
+              // Google Analytics 4
+              gtag('config', 'G-9BJEGLTDSK', {
+                page_path: window.location.pathname,
+              });
             `,
           }}
         />
