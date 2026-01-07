@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
 import { LanguageProvider } from "./components/LanguageProvider";
@@ -19,10 +19,16 @@ export default function ClientLayout({
   const [authLoading, setAuthLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // 🔑 Track previous auth state to detect first signup
+  const wasAuthenticated = useRef(false);
+
   useEffect(() => {
     const fetchSession = async () => {
       const { data } = await supabase.auth.getSession();
-      setUser(data?.session?.user ?? null);
+      const currentUser = data?.session?.user ?? null;
+
+      setUser(currentUser);
+      wasAuthenticated.current = !!currentUser;
       setAuthLoading(false);
     };
 
@@ -31,7 +37,19 @@ export default function ClientLayout({
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+      const newUser = session?.user ?? null;
+
+      // ✅ Fire signup event ONLY on first authentication
+      if (!wasAuthenticated.current && newUser) {
+        if (typeof window !== "undefined" && (window as any).gtag) {
+          (window as any).gtag("event", "provider_signup", {
+            method: "email",
+          });
+        }
+      }
+
+      wasAuthenticated.current = !!newUser;
+      setUser(newUser);
     });
 
     return () => subscription.unsubscribe();
