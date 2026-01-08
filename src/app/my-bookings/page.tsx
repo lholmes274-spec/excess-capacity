@@ -30,7 +30,7 @@ export default function MyBookingsPage() {
       const { data, error } = await supabase
         .from("bookings")
         .select("*, listings(*)")
-        .or(`user_id.eq.${user.id},user_email.eq.${user.email}`)
+        .eq("user_id", user.id) // ✅ STRICT ownership match
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -73,7 +73,7 @@ export default function MyBookingsPage() {
       </div>
     );
 
-  if (!userId && !userEmail)
+  if (!userId)
     return (
       <div className="min-h-screen flex flex-col items-center justify-center text-center p-6">
         <p className="text-xl font-semibold text-red-600 mb-4">
@@ -150,7 +150,6 @@ export default function MyBookingsPage() {
                     </span>
                   </p>
 
-                  {/* ✅ NEW: View Conversation */}
                   <Link
                     href={`/booking/${b.id}/messages`}
                     className="inline-block mt-4 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium shadow hover:bg-green-700 transition"
