@@ -49,16 +49,6 @@ export default function Dashboard() {
     loadUser();
   }, [router]);
 
-  // 🔄 AUTO-SYNC STRIPE STATUS (SAFE)
-  useEffect(() => {
-    if (profile?.stripe_account_id) {
-      fetch("/api/stripe/sync-account", {
-        method: "POST",
-        credentials: "include",
-      }).catch(() => {});
-    }
-  }, [profile?.stripe_account_id]);
-
   const handleConnectStripe = async () => {
     try {
       setConnectingStripe(true);
