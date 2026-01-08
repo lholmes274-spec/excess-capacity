@@ -15,9 +15,6 @@ export default function Dashboard() {
   const [connectingStripe, setConnectingStripe] = useState(false);
   const [openingPortal, setOpeningPortal] = useState(false);
 
-  // ✅ NEW — track verification start (ONLY ADDITION)
-  const [verificationStarted, setVerificationStarted] = useState(false);
-
   useEffect(() => {
     const loadUser = async () => {
       const { data } = await supabase.auth.getUser();
@@ -47,28 +44,18 @@ export default function Dashboard() {
 
       setProfile(profileData);
       setLoading(false);
-
-      // ✅ NEW — read verification state
-      if (typeof window !== "undefined") {
-        const started = localStorage.getItem("stripe_verification_started");
-        if (started === "true") {
-          setVerificationStarted(true);
-        }
-      }
     };
 
     loadUser();
   }, [router]);
-     
-      // 🔄 AUTO-SYNC STRIPE STATUS (NEW — SAFE)
+
+  // 🔄 AUTO-SYNC STRIPE STATUS (SAFE)
   useEffect(() => {
     if (profile?.stripe_account_id) {
       fetch("/api/stripe/sync-account", {
         method: "POST",
         credentials: "include",
-      }).catch(() => {
-        // silent fail — webhook will still handle async updates
-      });
+      }).catch(() => {});
     }
   }, [profile?.stripe_account_id]);
 
@@ -95,14 +82,9 @@ export default function Dashboard() {
     }
   };
 
-  // ✅ UPDATED — mark verification started (NO OTHER CHANGE)
   const handleOpenStripeDashboard = async () => {
     try {
       setOpeningPortal(true);
-
-      // 👇 ONLY ADDITION HERE
-      localStorage.setItem("stripe_verification_started", "true");
-      setVerificationStarted(true);
 
       const res = await fetch("/api/stripe/login-link", {
         method: "POST",
@@ -123,7 +105,6 @@ export default function Dashboard() {
     }
   };
 
-  // Manage subscription via Stripe portal
   const handleManageSubscription = async () => {
     try {
       setOpeningPortal(true);
@@ -156,9 +137,7 @@ export default function Dashboard() {
   }
 
   const isSubscribed = profile?.is_subscribed === true;
-  const stripeReady =
-    profile?.stripe_payouts_enabled === true &&
-    verificationStarted !== true;
+  const stripeReady = profile?.stripe_payouts_enabled === true;
 
   const stripeRequirements: string[] =
     profile?.stripe_requirements_currently_due || [];
@@ -212,62 +191,50 @@ export default function Dashboard() {
 
             {profile?.stripe_account_id && !stripeReady && (
               <div className="p-5 bg-white border-2 border-yellow-400 rounded-xl shadow">
-                {!verificationStarted ? (
+                <h3 className="font-semibold text-yellow-700">
+                  ⏳ Verification in progress
+                </h3>
+
+                {stripeRequirements.length > 0 ? (
                   <>
-                    <h3 className="font-semibold text-yellow-700">
-                      ⚠️ Stripe verification required
-                    </h3>
-
-                    {stripeRequirements.length > 0 ? (
-                      <>
-                        <p className="text-sm text-gray-700 mt-2 font-medium">
-                          Action needed:
-                        </p>
-                        <ul className="list-disc list-inside text-sm text-gray-700 mt-1">
-                          {stripeRequirements.map((req: string) => (
-                            <li key={req}>
-                              {stripeRequirementLabels[req] || req}
-                            </li>
-                          ))}
-                        </ul>
-                      </>
-                    ) : (
-                      <p className="text-sm text-gray-600 mt-2">
-                        Stripe is reviewing your account. Additional verification
-                        may be required.
-                      </p>
-                    )}
-
-                    <button
-                      onClick={handleOpenStripeDashboard}
-                      disabled={openingPortal}
-                      className="mt-4 px-4 py-2 bg-black text-white rounded hover:opacity-90 disabled:opacity-50"
-                    >
-                      {openingPortal
-                        ? "Opening Stripe dashboard..."
-                        : "Go to Stripe to complete verification"}
-                    </button>
+                    <p className="text-sm text-gray-700 mt-2 font-medium">
+                      Action needed:
+                    </p>
+                    <ul className="list-disc list-inside text-sm text-gray-700 mt-1">
+                      {stripeRequirements.map((req: string) => (
+                        <li key={req}>
+                          {stripeRequirementLabels[req] || req}
+                        </li>
+                      ))}
+                    </ul>
                   </>
                 ) : (
                   <>
-                    <h3 className="font-semibold text-yellow-700">
-                      ⏳ Verification in progress
-                    </h3>
                     <p className="text-sm text-gray-700 mt-2">
-                      Your Stripe account has been created and linked to Prosperity Hub. 
-                      Stripe is completing a standard background review, which typically takes{" "}
-                      <strong>24–48 hours</strong>.
+                      Your Stripe account has been created and linked to Prosperity Hub.
+                      Stripe is completing a standard background review, which typically
+                      takes <strong>24–48 hours</strong>.
                     </p>
                     <p className="text-sm text-gray-600 mt-2">
-                      During this time, payouts may be temporarily unavailable. No action is
-                      required from you unless Stripe requests additional information.
+                      During this time, payouts may be temporarily unavailable. No action
+                      is required from you unless Stripe requests additional information.
                     </p>
                     <p className="text-sm text-gray-600 mt-2">
-                      If additional information is required, it will appear in
-                      your Stripe dashboard and Stripe will notify you directly.
+                      If additional information is required, it will appear in your
+                      Stripe dashboard and Stripe will notify you directly.
                     </p>
                   </>
                 )}
+
+                <button
+                  onClick={handleOpenStripeDashboard}
+                  disabled={openingPortal}
+                  className="mt-4 px-4 py-2 bg-black text-white rounded hover:opacity-90 disabled:opacity-50"
+                >
+                  {openingPortal
+                    ? "Opening Stripe dashboard..."
+                    : "View Stripe dashboard"}
+                </button>
               </div>
             )}
           </div>
