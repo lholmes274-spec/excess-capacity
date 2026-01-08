@@ -59,7 +59,9 @@ export async function POST(req: Request) {
     const requirements_due =
       account.requirements?.currently_due ?? [];
 
-    const isFullyActive = charges_enabled && payouts_enabled;
+    // ✅ FIX — Express accounts are active when charges are enabled
+    // and Stripe has no outstanding requirements
+    const isFullyActive = charges_enabled && requirements_due.length === 0;
 
     const { error } = await supabase
       .from("profiles")
