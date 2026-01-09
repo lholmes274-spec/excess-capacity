@@ -7,7 +7,7 @@ import { createClient } from "@supabase/supabase-js";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-// Stripe client
+// Stripe client (PLATFORM SECRET KEY ONLY)
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-04-10",
 });
@@ -37,14 +37,14 @@ export async function POST(req: Request) {
       process.env.STRIPE_WEBHOOK_SECRET!
     );
   } catch (err) {
-    console.error("❌ Invalid signature:", err);
+    console.error("❌ Invalid Stripe signature:", err);
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
-  console.log("🔔 Webhook received:", event.type);
+  console.log("🔔 Stripe webhook received:", event.type);
 
   // -----------------------------------------------------
-  // STRIPE CONNECT ACCOUNT UPDATED
+  // STRIPE CONNECT — ACCOUNT STATUS SYNC (SOURCE OF TRUTH)
   // -----------------------------------------------------
   if (
     event.type === "account.updated" ||
@@ -56,12 +56,16 @@ export async function POST(req: Request) {
     const stripe_account_id = account.id;
     const charges_enabled = account.charges_enabled === true;
     const payouts_enabled = account.payouts_enabled === true;
-    const requirements_due =
-      account.requirements?.currently_due ?? [];
 
-    // ✅ FIX — Express accounts are active when charges are enabled
-    // and Stripe has no outstanding requirements
-    const isFullyActive = charges_enabled && requirements_due.length === 0;
+    // ✅ ONLY TRUE FINAL STATE
+    const isFullyActive = charges_enabled && payouts_enabled;
+
+    console.log("🔄 Stripe account update", {
+      stripe_account_id,
+      charges_enabled,
+      payouts_enabled,
+      status: isFullyActive ? "active" : "pending",
+    });
 
     const { error } = await supabase
       .from("profiles")
@@ -69,13 +73,12 @@ export async function POST(req: Request) {
         stripe_charges_enabled: charges_enabled,
         stripe_payouts_enabled: payouts_enabled,
         stripe_account_status: isFullyActive ? "active" : "pending",
-        stripe_requirements_currently_due: requirements_due,
         updated_at: new Date().toISOString(),
       })
       .eq("stripe_account_id", stripe_account_id);
 
     if (error) {
-      console.error("❌ Failed to update Stripe account status:", error);
+      console.error("❌ Failed to sync Stripe account:", error);
     } else {
       console.log("✅ Stripe account synced:", stripe_account_id);
     }
@@ -88,7 +91,7 @@ export async function POST(req: Request) {
     const session = event.data.object as Stripe.Checkout.Session;
 
     // -------------------------------------------------
-    // ✅ SUBSCRIPTIONS — ACTIVATE PRO IMMEDIATELY
+    // SUBSCRIPTIONS — ACTIVATE PRO
     // -------------------------------------------------
     if (session.mode === "subscription") {
       const user_id = session.metadata?.user_id;
@@ -112,17 +115,16 @@ export async function POST(req: Request) {
         .eq("id", user_id);
 
       if (error) {
-        console.error("❌ Failed to activate Pro at checkout:", error);
+        console.error("❌ Failed to activate Pro:", error);
       } else {
-        console.log("✅ Pro activated immediately for user:", user_id);
+        console.log("✅ Pro activated for user:", user_id);
       }
 
-      // 🚫 IMPORTANT: subscriptions should NOT continue to booking logic
       return NextResponse.json({ received: true }, { status: 200 });
     }
 
     // -----------------------------------------------------
-    // BOOKINGS (UNCHANGED)
+    // BOOKINGS
     // -----------------------------------------------------
     const listing_id = session.metadata?.listing_id;
     const rawUserId = session.metadata?.user_id;
@@ -148,9 +150,7 @@ export async function POST(req: Request) {
         : session.customer_details?.email || null;
 
     const booker_email =
-      session.customer_details?.email ||
-      user_email ||
-      null;
+      session.customer_details?.email || user_email || null;
 
     const { data: listingData, error: listingErr } = await supabase
       .from("listings")
@@ -186,22 +186,21 @@ export async function POST(req: Request) {
     ]);
 
     if (insertErr) {
-      console.error("❌ SUPABASE INSERT FAILED:", insertErr);
+      console.error("❌ Booking insert failed:", insertErr);
       return NextResponse.json(
         { error: "Insert failed", details: insertErr },
         { status: 500 }
       );
     }
 
-    console.log("✅ Booking inserted successfully!");
+    console.log("✅ Booking inserted successfully");
   }
 
   // -----------------------------------------------------
   // INVOICE PAID — BACKUP ONLY
   // -----------------------------------------------------
   if (event.type === "invoice.paid") {
-    console.log("ℹ️ invoice.paid received (backup only)");
-    return NextResponse.json({ received: true }, { status: 200 });
+    console.log("ℹ️ invoice.paid received (backup)");
   }
 
   return NextResponse.json({ received: true }, { status: 200 });
