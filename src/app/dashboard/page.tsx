@@ -152,7 +152,8 @@ export default function Dashboard() {
   }
 
   const isSubscribed = profile?.is_subscribed === true;
-  const stripeReady = profile?.stripe_payouts_enabled === true;
+  const stripeReady = profile?.stripe_charges_enabled === true;
+  //                    🔑 CHANGED FROM payouts → charges
 
   const stripeRequirements: string[] =
     profile?.stripe_requirements_currently_due || [];
