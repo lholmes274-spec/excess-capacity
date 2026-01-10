@@ -62,22 +62,30 @@ export async function POST() {
     const charges_enabled = account.charges_enabled === true;
     const payouts_enabled = account.payouts_enabled === true;
 
-    const requirements_due =
-      account.requirements?.currently_due ?? [];
+    const requirements = account.requirements || {};
 
-    const pending_verification =
-      account.requirements?.pending_verification ?? [];
+    const requirements_due = requirements.currently_due ?? [];
+    const requirements_eventually_due = requirements.eventually_due ?? [];
+    const requirements_past_due = requirements.past_due ?? [];
 
-    const details_submitted =
-      account.details_submitted === true;
+    const hasRequirements =
+      requirements_due.length > 0 ||
+      requirements_eventually_due.length > 0 ||
+      requirements_past_due.length > 0;
 
-    // ✅ FINAL, CORRECT RULE (matches cron)
+    const hasRestriction =
+      requirements.disabled_reason != null ||
+      account.restrictions?.disabled_reason != null;
+
+    const details_submitted = account.details_submitted === true;
+
+    // ✅ FINAL, CORRECT STRIPE RULE
     const isFullyActive =
       charges_enabled &&
       payouts_enabled &&
-      requirements_due.length === 0 &&
-      pending_verification.length === 0 &&
-      details_submitted;
+      details_submitted &&
+      !hasRequirements &&
+      !hasRestriction;
 
     // 4️⃣ Sync Supabase with Stripe truth
     const { error: updateError } = await supabase
