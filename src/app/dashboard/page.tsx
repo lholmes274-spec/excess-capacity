@@ -26,7 +26,8 @@ export default function Dashboard() {
 
       setUser(data.user);
 
-      const { data: profileData } = await supabase
+      // 🔑 FIRST FETCH — may be stale
+      const { data: initialProfile } = await supabase
         .from("profiles")
         .select(
           `
@@ -42,7 +43,31 @@ export default function Dashboard() {
         .eq("id", data.user.id)
         .single();
 
-      setProfile(profileData);
+      // 🔑 FORCE STRIPE → SUPABASE SYNC
+      if (initialProfile?.stripe_account_id) {
+        await fetch("/api/stripe/sync-account", {
+          method: "POST",
+        });
+      }
+
+      // 🔑 SECOND FETCH — guaranteed fresh
+      const { data: syncedProfile } = await supabase
+        .from("profiles")
+        .select(
+          `
+          is_subscribed,
+          membership_tier,
+          stripe_account_id,
+          stripe_account_status,
+          stripe_charges_enabled,
+          stripe_payouts_enabled,
+          stripe_requirements_currently_due
+        `
+        )
+        .eq("id", data.user.id)
+        .single();
+
+      setProfile(syncedProfile);
       setLoading(false);
     };
 
