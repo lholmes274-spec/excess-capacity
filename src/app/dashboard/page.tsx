@@ -274,6 +274,10 @@ export default function Dashboard() {
                       your Stripe dashboard and Stripe will notify you directly.
                       No action is needed unless prompted.
                     </p>
+                    <p className="text-xs text-gray-500 mt-4 italic">
+                      Account status may briefly change while Stripe completes processing.
+                      This page will automatically reflect the final status once finished.
+                    </p>
                   </>
                 )}
               </div>
