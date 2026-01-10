@@ -181,7 +181,7 @@ export default function Dashboard() {
 
           {stripeReady && (
             <p className="text-sm text-green-700 mb-6">
-              ✅ Stripe payouts are active
+              ✅ Stripe payments are active
             </p>
           )}
 
