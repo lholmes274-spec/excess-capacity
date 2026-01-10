@@ -256,10 +256,13 @@ export default function Dashboard() {
                 ) : (
                   <>
                     <p className="text-sm text-gray-700 mt-2">
-                      Your Stripe account has been created and linked to
-                      Prosperity Hub. Stripe is completing a standard background
-                      review, which typically takes{" "}
-                      <strong>24–48 hours</strong>.
+                      Your Stripe account has been created and linked to Prosperity Hub.
+                      Stripe is completing a standard background review.                                        
+                    </p>
+                    <p className="text-sm text-gray-600 mt-2">
+                      Most accounts are approved instantly and can accept payments right away.
+                      If additional review is required, verification typically takes
+                      <strong> 1–5 business days</strong>.
                     </p>
                     <p className="text-sm text-gray-600 mt-2">
                       During this time, payments may be temporarily unavailable.
@@ -269,6 +272,7 @@ export default function Dashboard() {
                     <p className="text-sm text-gray-600 mt-2">
                       If additional information is required, it will appear in
                       your Stripe dashboard and Stripe will notify you directly.
+                      No action is needed unless prompted.
                     </p>
                   </>
                 )}
