@@ -12,6 +12,10 @@ export default function Dashboard() {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
+  // 🔑 NEW — gate Stripe UI until sync completes
+  const [stripeSynced, setStripeSynced] = useState(false);
+
   const [connectingStripe, setConnectingStripe] = useState(false);
   const [openingPortal, setOpeningPortal] = useState(false);
 
@@ -68,6 +72,9 @@ export default function Dashboard() {
         .single();
 
       setProfile(syncedProfile);
+      // 🔑 Stripe → Supabase reconciliation complete
+      setStripeSynced(true);
+
       setLoading(false);
     };
 
@@ -178,14 +185,14 @@ export default function Dashboard() {
             Welcome, {user?.email} {isSubscribed && "💎"}
           </h1>
 
-          {stripeStatus === "active" && (
+          {stripeSynced && stripeStatus === "active" && (
             <p className="text-sm text-green-700 mb-4">
               ✅ Stripe payments are active
             </p>
           )}
 
           {/* 🔑 ALWAYS AVAILABLE WHEN STRIPE IS CONNECTED */}
-          {profile?.stripe_account_id && (
+          {stripeSynced && profile?.stripe_account_id && (
             <div className="mb-6">
               <button
                 onClick={handleOpenStripeDashboard}
@@ -219,7 +226,7 @@ export default function Dashboard() {
               </div>
             )}
 
-            {profile?.stripe_account_id && stripeStatus === "pending" && (
+            {stripeSynced && profile?.stripe_account_id && stripeStatus === "pending" && (
               <div className="p-5 bg-white border-2 border-yellow-400 rounded-xl shadow">
                 <h3 className="font-semibold text-yellow-700">
                   ⏳ Verification in progress
