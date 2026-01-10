@@ -79,6 +79,22 @@ export async function POST() {
 
     const details_submitted = account.details_submitted === true;
 
+    // 🔍 DEBUG — STRIPE TRUTH SNAPSHOT
+    console.log("🔍 STRIPE ACCOUNT STATE", {
+      stripe_account_id: profile.stripe_account_id,
+      charges_enabled,
+      payouts_enabled,
+      details_submitted,
+      requirements_due,
+      requirements_eventually_due,
+      requirements_past_due,
+      hasRequirements,
+      hasRestriction,
+      disabled_reason: requirements.disabled_reason,
+      restrictions_disabled_reason:
+        account.restrictions?.disabled_reason ?? null,
+    });
+
     // ✅ FINAL, CORRECT STRIPE RULE
     const isFullyActive =
       charges_enabled &&
