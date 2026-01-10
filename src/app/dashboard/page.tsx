@@ -50,13 +50,16 @@ export default function Dashboard() {
         .eq("id", data.user.id)
         .single();
 
-      // 🔑 FORCE STRIPE → SUPABASE SYNC (only after returning from Stripe)
-      if (fromStripe && initialProfile?.stripe_account_id) {
+      // ⭐ ALWAYS reconcile Stripe → Supabase when Stripe is connected
+      if (initialProfile?.stripe_account_id) {
         await fetch("/api/stripe/sync-account", {
           method: "POST",
         });
 
+        // Clean URL if returning from Stripe
+        if (fromStripe) {
         window.history.replaceState({}, "", window.location.pathname); 
+        }
       }
 
       // 🔑 SECOND FETCH — guaranteed fresh
