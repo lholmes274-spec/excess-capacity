@@ -54,20 +54,31 @@ export async function POST() {
       );
     }
 
-    // 3️⃣ Retrieve Stripe account directly
+    // 3️⃣ Retrieve Stripe account
     const account = await stripe.accounts.retrieve(
       profile.stripe_account_id
     );
 
     const charges_enabled = account.charges_enabled === true;
     const payouts_enabled = account.payouts_enabled === true;
+
     const requirements_due =
       account.requirements?.currently_due ?? [];
 
-    // ✅ Match webhook logic:
-    // Active = payments enabled AND Stripe has no requirements currently due
-    const isFullyActive = charges_enabled && requirements_due.length === 0;
-        
+    const pending_verification =
+      account.requirements?.pending_verification ?? [];
+
+    const details_submitted =
+      account.details_submitted === true;
+
+    // ✅ FINAL, CORRECT RULE (matches cron)
+    const isFullyActive =
+      charges_enabled &&
+      payouts_enabled &&
+      requirements_due.length === 0 &&
+      pending_verification.length === 0 &&
+      details_submitted;
+
     // 4️⃣ Sync Supabase with Stripe truth
     const { error: updateError } = await supabase
       .from("profiles")
