@@ -64,8 +64,10 @@ export async function POST() {
     const requirements_due =
       account.requirements?.currently_due ?? [];
 
-    const isFullyActive = charges_enabled && payouts_enabled;
-
+    // ✅ Match webhook logic:
+    // Active = payments enabled AND Stripe has no requirements currently due
+    const isFullyActive = charges_enabled && requirements_due.length === 0;
+        
     // 4️⃣ Sync Supabase with Stripe truth
     const { error: updateError } = await supabase
       .from("profiles")
