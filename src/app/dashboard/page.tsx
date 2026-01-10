@@ -193,7 +193,7 @@ export default function Dashboard() {
                   ❌ Stripe account not connected
                 </h3>
                 <p className="text-sm text-gray-600 mt-1">
-                  Connect Stripe to receive payouts.
+                  Connect Stripe to receive payments.
                 </p>
                 <button
                   onClick={handleConnectStripe}
