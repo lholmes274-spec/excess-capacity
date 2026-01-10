@@ -247,7 +247,7 @@ export default function Dashboard() {
                       <strong>24–48 hours</strong>.
                     </p>
                     <p className="text-sm text-gray-600 mt-2">
-                      During this time, payouts may be temporarily unavailable.
+                      During this time, payments may be temporarily unavailable.
                       No action is required from you unless Stripe requests
                       additional information.
                     </p>
@@ -301,7 +301,7 @@ export default function Dashboard() {
                     💎 Pro Membership — Active
                   </h3>
                   <p className="text-sm mt-1 text-gray-600">
-                    You have unlimited access.
+                    You can create unlimited listings.
                   </p>
 
                   <button
@@ -325,7 +325,7 @@ export default function Dashboard() {
                       ⭐ Pro Membership
                     </h3>
                     <p className="text-sm mt-1 text-gray-600">
-                      Unlock premium features
+                      Upgrade to create unlimited listings.
                     </p>
                   </div>
                 </Link>
