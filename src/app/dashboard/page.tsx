@@ -21,6 +21,9 @@ export default function Dashboard() {
 
   useEffect(() => {
     const loadUser = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const fromStripe = params.get("from") === "stripe";
+
       const { data } = await supabase.auth.getUser();
 
       if (!data?.user) {
@@ -47,11 +50,13 @@ export default function Dashboard() {
         .eq("id", data.user.id)
         .single();
 
-      // 🔑 FORCE STRIPE → SUPABASE SYNC
-      if (initialProfile?.stripe_account_id) {
+      // 🔑 FORCE STRIPE → SUPABASE SYNC (only after returning from Stripe)
+      if (fromStripe && initialProfile?.stripe_account_id) {
         await fetch("/api/stripe/sync-account", {
           method: "POST",
         });
+
+        window.history.replaceState({}, "", window.location.pathname); 
       }
 
       // 🔑 SECOND FETCH — guaranteed fresh
@@ -92,7 +97,7 @@ export default function Dashboard() {
       const data = await res.json();
 
       if (data?.url) {
-        window.location.href = data.url;
+         window.location.href = `${data.url}?from=stripe`;
       } else {
         alert("Unable to open Stripe.");
       }
@@ -115,7 +120,7 @@ export default function Dashboard() {
       const data = await res.json();
 
       if (data?.url) {
-        window.location.href = data.url;
+        window.location.href = `${data.url}?from=stripe`;
       } else {
         alert("Unable to open Stripe dashboard.");
       }
