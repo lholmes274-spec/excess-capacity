@@ -152,9 +152,8 @@ export default function Dashboard() {
   }
 
   const isSubscribed = profile?.is_subscribed === true;
-  const stripeReady = profile?.stripe_charges_enabled === true;
-  //                    🔑 CHANGED FROM payouts → charges
-
+  const stripeStatus = profile?.stripe_account_status; // 🔴 CHANGED
+  
   const stripeRequirements: string[] =
     profile?.stripe_requirements_currently_due || [];
 
@@ -179,13 +178,13 @@ export default function Dashboard() {
             Welcome, {user?.email} {isSubscribed && "💎"}
           </h1>
 
-          {stripeReady && (
+          {stripeStatus === "active" && ( // 🔴 CHANGED
             <p className="text-sm text-green-700 mb-6">
               ✅ Stripe payments are active
             </p>
           )}
 
-          {/* Stripe Payout Status */}
+          {/* Stripe Payments & Verification Status */}
           <div className="mb-6">
             {!profile?.stripe_account_id && (
               <div className="p-5 bg-white border-2 border-red-400 rounded-xl shadow">
@@ -205,7 +204,7 @@ export default function Dashboard() {
               </div>
             )}
 
-            {profile?.stripe_account_id && !stripeReady && (
+            {profile?.stripe_account_id && stripeStatus === "pending" && ( // 🔴 CHANGED
               <div className="p-5 bg-white border-2 border-yellow-400 rounded-xl shadow">
                 <h3 className="font-semibold text-yellow-700">
                   ⏳ Verification in progress

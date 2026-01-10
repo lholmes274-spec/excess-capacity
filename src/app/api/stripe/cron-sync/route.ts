@@ -25,11 +25,10 @@ export async function GET(req: Request) {
   const { data: profiles } = await supabase
     .from("profiles")
     .select("id, stripe_account_id")
-    .eq("stripe_account_status", "pending")
     .not("stripe_account_id", "is", null);
 
   if (!profiles || profiles.length === 0) {
-    return NextResponse.json({ message: "No pending accounts" });
+    return NextResponse.json({ message: "No Stripe accounts found" });
   }
 
   for (const profile of profiles) {
@@ -39,10 +38,22 @@ export async function GET(req: Request) {
 
     const charges_enabled = account.charges_enabled === true;
     const payouts_enabled = account.payouts_enabled === true;
+
     const requirements_due =
       account.requirements?.currently_due ?? [];
 
-    const isFullyActive = charges_enabled && payouts_enabled;
+    const pending_verification =
+      account.requirements?.pending_verification ?? [];
+
+    const details_submitted =
+      account.details_submitted === true;
+
+    const isFullyActive =
+      charges_enabled &&
+      payouts_enabled &&
+      requirements_due.length === 0 &&
+      pending_verification.length === 0 &&
+      details_submitted;
 
     await supabase
       .from("profiles")
