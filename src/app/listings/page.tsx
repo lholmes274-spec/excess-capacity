@@ -13,10 +13,10 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 type Listing = {
-  id: number;
+  id: string;
   title: string;
   description: string;
-  basePrice: number;
+  baseprice: number;
   type?: string | null;
   city?: string | null;
   state?: string | null;
@@ -24,6 +24,7 @@ type Listing = {
   image_urls?: string[] | null;
   pricing_type?: string | null;
   demo_mode?: boolean;
+  listing_status?: string | null;
 };
 
 function ListingsContent() {
@@ -35,16 +36,16 @@ function ListingsContent() {
   const searchParams = useSearchParams();
   const selectedType = searchParams.get("type");
 
-  // Fetch listings (REAL + ACTIVE LISTINGS ONLY)
+  // Fetch listings (PUBLIC: ACTIVE + NON-DEMO ONLY)
   useEffect(() => {
     async function fetchListings() {
       try {
         const { data, error } = await supabase
           .from("listings")
           .select("*")
-          .eq("demo_mode", false)     // ⭐ HIDE DEMO LISTINGS
-          .eq("status", "active")    // ✅ HIDE PAUSED LISTINGS
-          .order("id", { ascending: false });
+          .eq("demo_mode", false)              // hide demo listings
+          .eq("listing_status", "active")     // ✅ hide paused listings
+          .order("created_at", { ascending: false });
 
         if (error) throw error;
         setListings(data || []);
@@ -151,7 +152,7 @@ function ListingsContent() {
                 </p>
 
                 <p className="text-blue-700 font-medium mb-2">
-                  ${listing.basePrice}
+                  ${listing.baseprice}
                   {displayPricing ? ` / ${displayPricing}` : ""}
                 </p>
 
