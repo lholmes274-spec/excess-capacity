@@ -44,7 +44,7 @@ export async function POST(req: Request) {
   console.log("🔔 Stripe webhook received:", event.type);
 
   // -----------------------------------------------------
-  // STRIPE CONNECT — ACCOUNT STATUS SYNC (SOURCE OF TRUTH)
+  // STRIPE CONNECT — ACCOUNT STATUS SYNC
   // -----------------------------------------------------
   if (
     event.type === "account.updated" ||
@@ -57,17 +57,9 @@ export async function POST(req: Request) {
     const charges_enabled = account.charges_enabled === true;
     const payouts_enabled = account.payouts_enabled === true;
 
-    // ✅ ONLY TRUE FINAL STATE
     const isFullyActive = charges_enabled && payouts_enabled;
 
-    console.log("🔄 Stripe account update", {
-      stripe_account_id,
-      charges_enabled,
-      payouts_enabled,
-      status: isFullyActive ? "active" : "pending",
-    });
-
-    const { error } = await supabase
+    await supabase
       .from("profiles")
       .update({
         stripe_charges_enabled: charges_enabled,
@@ -76,12 +68,6 @@ export async function POST(req: Request) {
         updated_at: new Date().toISOString(),
       })
       .eq("stripe_account_id", stripe_account_id);
-
-    if (error) {
-      console.error("❌ Failed to sync Stripe account:", error);
-    } else {
-      console.log("✅ Stripe account synced:", stripe_account_id);
-    }
   }
 
   // -----------------------------------------------------
@@ -90,117 +76,134 @@ export async function POST(req: Request) {
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
 
-    // -------------------------------------------------
-    // SUBSCRIPTIONS — ACTIVATE PRO
-    // -------------------------------------------------
+    // -------------------------
+    // SUBSCRIPTIONS — PRO
+    // -------------------------
     if (session.mode === "subscription") {
       const user_id = session.metadata?.user_id;
-      const customer_id = session.customer as string;
-      const subscription_id = session.subscription as string;
+      if (!user_id) return NextResponse.json({ received: true });
 
-      if (!user_id) {
-        console.error("❌ Missing user_id in subscription checkout");
-        return NextResponse.json({ received: true }, { status: 200 });
-      }
-
-      const { error } = await supabase
+      await supabase
         .from("profiles")
         .update({
           is_subscribed: true,
           membership_tier: "pro",
-          stripe_customer_id: customer_id,
-          stripe_subscription_id: subscription_id,
+          stripe_customer_id: session.customer,
+          stripe_subscription_id: session.subscription,
           updated_at: new Date().toISOString(),
         })
         .eq("id", user_id);
 
-      if (error) {
-        console.error("❌ Failed to activate Pro:", error);
-      } else {
-        console.log("✅ Pro activated for user:", user_id);
-      }
-
-      return NextResponse.json({ received: true }, { status: 200 });
+      return NextResponse.json({ received: true });
     }
 
-    // -----------------------------------------------------
-    // BOOKINGS
-    // -----------------------------------------------------
+    // -------------------------
+    // COMMON METADATA
+    // -------------------------
     const listing_id = session.metadata?.listing_id;
     const rawUserId = session.metadata?.user_id;
     const rawEmail = session.metadata?.user_email;
+
+    if (!listing_id) {
+      return NextResponse.json({ error: "Missing listing_id" }, { status: 400 });
+    }
+
+    const buyer_id = rawUserId === "0" ? null : rawUserId;
+    const buyer_email =
+      rawEmail && rawEmail !== "unknown"
+        ? rawEmail
+        : session.customer_details?.email || null;
 
     const amountPaid = session.amount_total
       ? session.amount_total / 100
       : null;
 
-    if (!listing_id) {
-      console.error("❌ Missing listing_id");
-      return NextResponse.json(
-        { error: "Missing listing_id in metadata" },
-        { status: 400 }
-      );
-    }
-
-    const user_id = rawUserId === "0" ? null : rawUserId;
-
-    const user_email =
-      rawEmail && rawEmail !== "unknown"
-        ? rawEmail
-        : session.customer_details?.email || null;
-
-    const booker_email =
-      session.customer_details?.email || user_email || null;
-
-    const { data: listingData, error: listingErr } = await supabase
+    // -------------------------
+    // LOOK UP LISTING
+    // -------------------------
+    const { data: listing, error: listingErr } = await supabase
       .from("listings")
-      .select("owner_id")
+      .select("owner_id, transaction_type, title")
       .eq("id", listing_id)
       .single();
 
-    if (listingErr || !listingData) {
-      console.error("❌ Owner lookup failed:", listingErr);
+    if (listingErr || !listing) {
       return NextResponse.json(
-        { error: "Listing owner lookup failed" },
+        { error: "Listing lookup failed" },
         { status: 400 }
       );
     }
 
-    const owner_id = listingData.owner_id;
+    const seller_id = listing.owner_id;
 
-    const { error: insertErr } = await supabase.from("bookings").insert([
-      {
-        listing_id,
-        owner_id,
-        user_id,
-        user_email,
-        booker_email,
-        amount_paid: amountPaid,
-        stripe_session_id: session.id,
-        stripe_subscription_id:
-          session.mode === "subscription"
-            ? (session.subscription as string)
-            : null,
-        status: "paid",
-      },
-    ]);
+    // =====================================================
+    // SALE FLOW — CREATE CONVERSATION
+    // =====================================================
+    if (listing.transaction_type === "sale") {
+      // Prevent duplicate conversations
+      const { data: existingConversation } = await supabase
+        .from("conversations")
+        .select("id")
+        .eq("listing_id", listing_id)
+        .eq("transaction_type", "sale")
+        .single();
 
-    if (insertErr) {
-      console.error("❌ Booking insert failed:", insertErr);
-      return NextResponse.json(
-        { error: "Insert failed", details: insertErr },
-        { status: 500 }
-      );
+      let conversation_id = existingConversation?.id;
+
+      if (!conversation_id) {
+        const { data: convo } = await supabase
+          .from("conversations")
+          .insert([
+            {
+              listing_id,
+              transaction_type: "sale",
+              buyer_id,
+              seller_id,
+            },
+          ])
+          .select()
+          .single();
+
+        conversation_id = convo.id;
+
+        await supabase.from("messages").insert([
+          {
+            conversation_id,
+            sender_id: null,
+            is_system: true,
+            message: `🛒 Purchase completed. A buyer has purchased "${listing.title}". Use this chat to coordinate next steps.`,
+          },
+        ]);
+      }
+
+      console.log("✅ Sale conversation created");
+      return NextResponse.json({ received: true });
     }
 
-    console.log("✅ Booking inserted successfully");
-  }
+    // =====================================================
+    // BOOKING FLOW — UNCHANGED
+    // =====================================================
+    if (listing.transaction_type === "booking") {
+      const { error } = await supabase.from("bookings").insert([
+        {
+          listing_id,
+          owner_id: seller_id,
+          user_id: buyer_id,
+          user_email: buyer_email,
+          booker_email: buyer_email,
+          amount_paid: amountPaid,
+          stripe_session_id: session.id,
+          status: "paid",
+        },
+      ]);
 
-  // -----------------------------------------------------
-  // INVOICE PAID — BACKUP ONLY
-  // -----------------------------------------------------
-  if (event.type === "invoice.paid") {
-    console.log("ℹ️ invoice.paid received (backup)");
+      if (error) {
+        console.error("❌ Booking insert failed:", error);
+        return NextResponse.json({ error }, { status: 500 });
+      }
+
+      console.log("✅ Booking inserted successfully");
+    }
   }
 
   return NextResponse.json({ received: true }, { status: 200 });
