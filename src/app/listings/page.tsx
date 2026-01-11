@@ -22,7 +22,7 @@ type Listing = {
   state?: string | null;
   image_url?: string | null;
   image_urls?: string[] | null;
-  pricing_type?: string | null;   // ⭐ NEW FIELD
+  pricing_type?: string | null;
   demo_mode?: boolean;
 };
 
@@ -35,14 +35,15 @@ function ListingsContent() {
   const searchParams = useSearchParams();
   const selectedType = searchParams.get("type");
 
-  // Fetch listings (REAL LISTINGS ONLY)
+  // Fetch listings (REAL + ACTIVE LISTINGS ONLY)
   useEffect(() => {
     async function fetchListings() {
       try {
         const { data, error } = await supabase
           .from("listings")
           .select("*")
-          .eq("demo_mode", false)   // ⭐ HIDE DEMO LISTINGS
+          .eq("demo_mode", false)     // ⭐ HIDE DEMO LISTINGS
+          .eq("status", "active")    // ✅ HIDE PAUSED LISTINGS
           .order("id", { ascending: false });
 
         if (error) throw error;
@@ -121,7 +122,6 @@ function ListingsContent() {
               listing.image_url ||
               null;
 
-            // ⭐ FORMAT PRICING TYPE
             const displayPricing =
               listing.pricing_type
                 ? listing.pricing_type.replace("_", " ")
@@ -130,7 +130,7 @@ function ListingsContent() {
             return (
               <Link
                 key={listing.id}
-                href={`/listings/${listing.id}`}  // ⭐ CORRECT ROUTE
+                href={`/listings/${listing.id}`}
                 className="block bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition p-4"
               >
                 {thumbnail ? (
@@ -150,10 +150,9 @@ function ListingsContent() {
                   {listing.description}
                 </p>
 
-                {/* ⭐ UPDATED PRICE LINE */}
                 <p className="text-blue-700 font-medium mb-2">
-                  ${listing.basePrice}{" "}
-                  {displayPricing ? `/ ${displayPricing}` : ""}
+                  ${listing.basePrice}
+                  {displayPricing ? ` / ${displayPricing}` : ""}
                 </p>
 
                 {listing.city && listing.state && (
