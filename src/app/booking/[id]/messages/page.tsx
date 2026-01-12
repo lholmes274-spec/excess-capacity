@@ -68,7 +68,7 @@ export default function BookingMessagesPage() {
             .single();
 
           if (profile?.first_name) {
-            setOtherUserName(profile.first_name);
+            setOtherUserName(profile.name);
           }
         }
 
