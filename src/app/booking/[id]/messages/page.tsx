@@ -65,9 +65,11 @@ export default function BookingMessagesPage() {
         if (otherUserId) {
           const { data: profile } = await supabase
             .from("profiles")
-            .select("display_name, full_name, first_name")
+            .select("display_name")
             .eq("id", otherUserId)
             .single();
+
+          setOtherUserName(profile?.display_name || "");
 
           const displayName =
             profile?.display_name ||
