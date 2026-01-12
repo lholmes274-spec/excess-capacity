@@ -70,9 +70,8 @@ export default function BookingMessagesPage() {
             profile?.display_name ||
             profile?.full_name ||
             profile?.first_name ||
-            profile?.email ||
-            authData.user.email; // final fallback
-
+            "User";
+            
           setOtherUserName(displayName);
         }
 
