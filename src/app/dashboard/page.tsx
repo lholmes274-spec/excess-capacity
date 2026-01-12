@@ -284,38 +284,48 @@ export default function Dashboard() {
             )}
           </div>
 
+          <div className="sm:col-span-2 text-sm font-semibold text-gray-500 mt-2">
+            Create / Manage
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 place-items-center">
             <Link href="/add-listing" className="w-full">
               <div className="p-6 bg-white rounded-xl shadow hover:shadow-lg transition cursor-pointer text-center">
                 <h3 className="text-lg font-semibold">Add Listing</h3>
               </div>
             </Link>
-
+                    
             <Link href="/my-listings" className="w-full">
               <div className="p-6 bg-white rounded-xl shadow hover:shadow-lg transition cursor-pointer text-center">
                 <h3 className="text-lg font-semibold">My Listings</h3>
               </div>
             </Link>
 
-            <Link href="/my-purchases" className="w-full">
-              <div className="p-6 bg-white rounded-xl shadow hover:shadow-lg transition cursor-pointer text-center">
-                <h3 className="text-lg font-semibold">My Purchases</h3>
-              </div>
-            </Link>
-
+            <div className="sm:col-span-2 text-sm font-semibold text-gray-500 mt-4">
+              I Paid
+            </div>
+                          
             <Link href="/my-bookings" className="w-full">
               <div className="p-6 bg-white rounded-xl shadow hover:shadow-lg transition cursor-pointer text-center">
-                <h3 className="text-lg font-semibold">My Bookings</h3>
+                <h3 className="text-lg font-semibold">My Orders</h3>
               </div>
             </Link>
 
+            <div className="sm:col-span-2 text-sm font-semibold text-gray-500 mt-4">
+              I Earn
+            </div>
+            
             <Link href="/provider/bookings" className="w-full">
               <div className="p-6 bg-white rounded-xl shadow hover:shadow-lg transition cursor-pointer text-center border border-green-200">
                 <h3 className="text-lg font-semibold">
-                  Bookings on My Listings
+                  Orders on My Listings
                 </h3>
               </div>
             </Link>
+
+            <div className="sm:col-span-2 text-sm font-semibold text-gray-500 mt-4">
+              Explore
+            </div>
 
             <Link href="/listings" className="w-full">
               <div className="p-6 bg-white rounded-xl shadow hover:shadow-lg transition cursor-pointer text-center">
