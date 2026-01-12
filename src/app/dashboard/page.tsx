@@ -284,7 +284,7 @@ export default function Dashboard() {
             )}
           </div>
 
-          <div className="sm:col-span-2 text-sm font-semibold text-gray-500 mt-2">
+          <div className="sm:col-span-2 text-sm font-semibold text-gray-500 mt-2 text-center">
             Create / Manage
           </div>
 
