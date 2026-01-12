@@ -27,13 +27,14 @@ export default function MyOrdersPage() {
 
       const { data, error } = await supabase
         .from("bookings")
-        .select("*, listings(*)")
+        .select("*, listings!left(*)")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
       if (error) {
         console.error("Error loading orders:", error);
       } else {
+        console.log("MY ORDERS RAW DATA:", data);
         setOrders(data || []);
       }
 
