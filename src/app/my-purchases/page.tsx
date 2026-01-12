@@ -29,7 +29,7 @@ export default function MyPurchasesPage() {
       const { data, error } = await supabase
         .from("bookings")
         .select("*, listings(*)")
-        .eq("user_id", user.id)
+        .eq("user_id", user.id)    // ⭐ buyer = purchaser
         .order("created_at", { ascending: false });
 
       if (error) {
