@@ -150,6 +150,7 @@ export default function AddListingPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return; // 🔒 HARD STOP
 
     if (!stripeReady) {
       alert("You must connect Stripe before publishing a listing.");
