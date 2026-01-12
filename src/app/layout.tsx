@@ -73,7 +73,7 @@ export default function RootLayout({
         />
       </head>
 
-      <body className={`${inter.className} bg-gray-50 text-gray-900`}>
+      <body className={`${inter.className} bg-gray-50 text-gray-900 overflow-x-hidden`}>
         {/* Wrap all pages in ClientLayout */}
         <ClientLayout>{children}</ClientLayout>
       </body>
