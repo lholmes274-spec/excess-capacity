@@ -176,7 +176,7 @@ export default function AddListingPage() {
 
       const { error: uploadError } = await supabase.storage
         .from("listing-images")
-        .upload(filePath, image);
+        .upload(filePath, image, { upsert: true });
 
       if (uploadError) {
         alert("Image upload failed.");
