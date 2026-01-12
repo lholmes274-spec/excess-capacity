@@ -10,8 +10,8 @@ export default function MyBookingsPage() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState(null);
-  const [userEmail, setUserEmail] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+  const [finalizingId, setFinalizingId] = useState(null);
 
   useEffect(() => {
     async function load() {
@@ -25,12 +25,11 @@ export default function MyBookingsPage() {
       }
 
       setUserId(user.id);
-      setUserEmail(user.email);
 
       const { data, error } = await supabase
         .from("bookings")
         .select("*, listings(*)")
-        .eq("user_id", user.id) // ✅ STRICT ownership match
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -65,6 +64,8 @@ export default function MyBookingsPage() {
     setBookings((prev) => prev.filter((b) => b.id !== bookingId));
     setDeletingId(null);
   }
+
+  
 
   if (loading)
     return (
@@ -103,9 +104,14 @@ export default function MyBookingsPage() {
               listing?.image_url ||
               "/no-image.png";
 
-            const priceTypeDisplay = listing?.pricing_type
-              ? listing.pricing_type.replace("_", " ")
-              : "";
+            const isService =
+              listing?.pricing_type === "per_hour" ||
+              listing?.pricing_type === "hourly";
+
+            const needsFinalize =
+              isService &&
+              b.status === "paid" &&
+              !b.finalized_at;
 
             return (
               <div
@@ -130,8 +136,7 @@ export default function MyBookingsPage() {
                   </p>
 
                   <p className="text-green-700 font-medium text-sm">
-                    ${listing?.baseprice}{" "}
-                    {priceTypeDisplay ? `/ ${priceTypeDisplay}` : ""}
+                    ${listing?.baseprice} / hour
                   </p>
 
                   <p className="text-gray-700 font-semibold mt-1">
@@ -149,6 +154,12 @@ export default function MyBookingsPage() {
                       {b.status}
                     </span>
                   </p>
+
+                  {needsFinalize && (
+                    <p className="mt-2 text-sm text-yellow-700 font-medium">
+                      Awaiting service finalization
+                    </p>
+                  )}
 
                   <Link
                     href={`/booking/${b.id}/messages`}
