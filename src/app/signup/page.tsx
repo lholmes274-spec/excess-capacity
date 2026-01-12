@@ -12,8 +12,8 @@ export default function SignupPage() {
 
   const redirectTo = searchParams.get("redirect") || "/dashboard";
 
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
+  // ✅ Optional display name
+  const [displayName, setDisplayName] = useState("");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -59,13 +59,8 @@ export default function SignupPage() {
   };
 
   const handleSignup = async () => {
-    if (!firstName.trim()) {
-      alert("Please enter your first name.");
-      return;
-    }
-
     if (!email || !password || !confirmPassword) {
-      alert("Please fill out all fields.");
+      alert("Please fill out all required fields.");
       return;
     }
 
@@ -94,15 +89,20 @@ export default function SignupPage() {
       return;
     }
 
-    // ✅ Create profile immediately with name
+    // ✅ Create profile (display name OPTIONAL)
     if (data?.user) {
       await supabase.from("profiles").insert({
         id: data.user.id,
-        first_name: firstName.trim(),
-        last_name: lastName.trim() || null,
-        full_name: `${firstName.trim()} ${lastName.trim()}`.trim(),
+        display_name: displayName.trim() || null,
         email: email,
       });
+
+      // ✅ Optional: populate auth metadata for admin / emails
+      if (displayName.trim()) {
+        await supabase.auth.updateUser({
+          data: { display_name: displayName.trim() },
+        });
+      }
     }
 
     setLoading(false);
@@ -152,19 +152,10 @@ export default function SignupPage() {
           <>
             <input
               type="text"
-              placeholder="First name"
+              placeholder="Display name (optional)"
               className="w-full p-3 border rounded-lg mb-3 focus:ring-2 focus:ring-blue-400"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              required
-            />
-
-            <input
-              type="text"
-              placeholder="Last name (optional)"
-              className="w-full p-3 border rounded-lg mb-3 focus:ring-2 focus:ring-blue-400"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
             />
 
             <input
