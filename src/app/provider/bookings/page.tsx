@@ -124,7 +124,7 @@ export default function ProviderBookingsPage() {
     );
 
   return (
-    <div className="container mx-auto px-6 py-10">
+    <div className="container mx-auto px-6 py-10 pt-6 sm:pt-8">
       <h1 className="text-3xl font-bold mb-6 text-center">
         Bookings on My Listings
       </h1>
