@@ -67,7 +67,7 @@ export default function BookingMessagesPage() {
             .eq("id", otherUserId)
             .single();
 
-          if (profile?.first_name) {
+          if (profile?.name) {
             setOtherUserName(profile.name);
           }
         }
