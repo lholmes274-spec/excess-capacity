@@ -2,13 +2,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -28,7 +23,7 @@ export default function ProfilePage() {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        router.push("/login");
+        router.replace("/login");
         return;
       }
 
