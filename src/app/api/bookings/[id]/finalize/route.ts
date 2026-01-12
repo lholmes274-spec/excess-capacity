@@ -38,6 +38,13 @@ export async function POST(
       .eq("id", bookingId)
       .single();
 
+    if (!booking) {
+      return NextResponse.json(
+        { error: "Booking not found" },
+        { status: 404 }
+      );
+    }
+
     // Fetch listing
     const { data: listing } = await supabase
       .from("listings")
@@ -63,6 +70,7 @@ export async function POST(
         .update({
           final_hours,
           final_amount: finalAmount,
+          status: "completed", // ✅ FIX
           updated_at: new Date().toISOString(),
         })
         .eq("id", bookingId);
@@ -97,7 +105,7 @@ export async function POST(
     }
 
     /**
-     * ✅ FIX: Retrieve customer's default / latest payment method
+     * Retrieve customer's default / latest payment method
      */
     const customer =
       typeof customerId === "string"
@@ -140,7 +148,7 @@ export async function POST(
       chargeAmountCents - 1
     );
 
-    // ✅ OFF-SESSION STRIPE CHARGE (RESTORED)
+    // OFF-SESSION STRIPE CHARGE
     const paymentIntent = await stripe.paymentIntents.create({
       amount: chargeAmountCents,
       currency: "usd",
@@ -171,6 +179,7 @@ export async function POST(
       .update({
         final_hours,
         final_amount: finalAmount,
+        status: "completed", // ✅ FIX
         updated_at: new Date().toISOString(),
       })
       .eq("id", bookingId);
