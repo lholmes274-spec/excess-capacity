@@ -97,7 +97,7 @@ export default function MyOrdersPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {orders.map((o) => {
-            const listing = o.listings;
+            const listing = o.listings || {};
             const thumbnail =
               listing?.image_urls?.[0] ||
               listing?.image_url ||
@@ -146,7 +146,9 @@ export default function MyOrdersPage() {
 
                   <p className="text-sm text-gray-500 mt-2">
                     Ordered on:{" "}
-                    {new Date(o.created_at).toLocaleDateString()}
+                    {o.created_at
+                    ? new Date(o.created_at).toLocaleDateString()
+                    : "—"}
                   </p>
 
                   <p className="text-sm text-gray-600 mt-1">
