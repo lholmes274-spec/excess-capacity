@@ -23,6 +23,9 @@ export default function BookingMessagesPage() {
 
   const [otherUserName, setOtherUserName] = useState<string>("");
 
+  // 🔔 Banner state (soft prompt)
+  const [showNameBanner, setShowNameBanner] = useState(false);
+
   /* -----------------------------
      Load booking + messages
   ------------------------------*/
@@ -52,17 +55,17 @@ export default function BookingMessagesPage() {
         setBooking(bookingData);
 
         // ---------------------------------
-        // Resolve other participant name (STANDARDIZED)
+        // Resolve other participant (CORRECT ROLES)
         // ---------------------------------
         const otherUserId =
-          authData.user.id === bookingData.owner_id
-            ? bookingData.user_id
-            : bookingData.owner_id;
+          authData.user.id === bookingData.user_id
+            ? bookingData.owner_id
+            : bookingData.user_id;
 
         if (otherUserId) {
           const { data: profile } = await supabase
             .from("profiles")
-            .select("display_name, full_name, first_name, email")
+            .select("display_name, full_name, first_name")
             .eq("id", otherUserId)
             .single();
 
@@ -71,8 +74,13 @@ export default function BookingMessagesPage() {
             profile?.full_name ||
             profile?.first_name ||
             "";
-            
+
           setOtherUserName(displayName);
+
+          // 🔔 Show banner if NO display name exists
+          if (!displayName) {
+            setShowNameBanner(true);
+          }
         }
 
         const { data: messageData, error: messageError } = await supabase
@@ -167,6 +175,29 @@ export default function BookingMessagesPage() {
         <h1 className="text-2xl font-bold text-gray-800 mb-1">
           Conversation{otherUserName ? ` with ${otherUserName}` : ""}
         </h1>
+
+        {/* 🔔 Soft display-name banner */}
+        {showNameBanner && (
+          <div className="mt-3 mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-900 flex justify-between items-center gap-4">
+            <span>
+              👋 Add a display name so others can see your name in conversations.
+            </span>
+            <div className="flex gap-3 shrink-0">
+              <Link
+                href="/profile"
+                className="text-blue-700 font-semibold underline"
+              >
+                Add display name
+              </Link>
+              <button
+                onClick={() => setShowNameBanner(false)}
+                className="text-blue-700 underline"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        )}
 
         {booking?.title && (
           <p className="text-sm text-gray-600 mb-6">
