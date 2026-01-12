@@ -297,6 +297,12 @@ export default function Dashboard() {
               </div>
             </Link>
 
+            <Link href="/my-purchases" className="w-full">
+              <div className="p-6 bg-white rounded-xl shadow hover:shadow-lg transition cursor-pointer text-center">
+                <h3 className="text-lg font-semibold">My Purchases</h3>
+              </div>
+            </Link>
+
             <Link href="/my-bookings" className="w-full">
               <div className="p-6 bg-white rounded-xl shadow hover:shadow-lg transition cursor-pointer text-center">
                 <h3 className="text-lg font-semibold">My Bookings</h3>
