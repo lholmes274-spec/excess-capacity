@@ -70,7 +70,7 @@ export default function BookingMessagesPage() {
             profile?.display_name ||
             profile?.full_name ||
             profile?.first_name ||
-            "User";
+            "";
             
           setOtherUserName(displayName);
         }
