@@ -13,35 +13,53 @@ const supabase = createClient(
 export default function ProfilePage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
-  const [name, setName] = useState("");
+
+  // 🔑 Display name used everywhere in UI
+  const [displayName, setDisplayName] = useState("");
+
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    async function getUser() {
+    async function getUserAndProfile() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
+
       if (!user) {
         router.push("/login");
-      } else {
-        setUser(user);
+        return;
+      }
+
+      setUser(user);
+
+      // Load existing profile
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("display_name, city, state")
+        .eq("id", user.id)
+        .single();
+
+      if (profile) {
+        setDisplayName(profile.display_name || "");
+        setCity(profile.city || "");
+        setState(profile.state || "");
       }
     }
-    getUser();
+
+    getUserAndProfile();
   }, [router]);
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
-
     if (!user) return;
 
     const { error } = await supabase
       .from("profiles")
       .upsert({
         id: user.id,
-        name,
+        display_name: displayName.trim() || null,
         city,
         state,
         updated_at: new Date().toISOString(),
@@ -50,19 +68,28 @@ export default function ProfilePage() {
 
     if (error) {
       setMessage(`❌ ${error.message}`);
-    } else {
-      setMessage("✅ Profile updated successfully!");
-      setTimeout(() => {
-        router.push("/dashboard"); // Optional next page
-      }, 1500);
+      return;
     }
+
+    // Optional: sync to auth metadata (admin / emails)
+    if (displayName.trim()) {
+      await supabase.auth.updateUser({
+        data: { display_name: displayName.trim() },
+      });
+    }
+
+    setMessage("✅ Profile updated successfully!");
+
+    setTimeout(() => {
+      router.push("/dashboard");
+    }, 1500);
   }
 
   return (
     <main className="min-h-screen bg-gray-50 flex flex-col items-center justify-center text-center p-6">
-      <h1 className="text-3xl font-bold mb-4">Complete Your Profile</h1>
+      <h1 className="text-3xl font-bold mb-4">Profile</h1>
       <p className="text-gray-600 max-w-md mb-8">
-        Add your personal details to enhance your Prosperity Hub experience.
+        This name is shown to other users in conversations and bookings.
       </p>
 
       <form
@@ -71,11 +98,12 @@ export default function ProfilePage() {
       >
         <input
           type="text"
-          placeholder="Full Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          placeholder="Display name (e.g. Lamar, Lester)"
+          value={displayName}
+          onChange={(e) => setDisplayName(e.target.value)}
           className="w-full border border-gray-300 rounded-lg px-4 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
+
         <input
           type="text"
           placeholder="City"
@@ -83,6 +111,7 @@ export default function ProfilePage() {
           onChange={(e) => setCity(e.target.value)}
           className="w-full border border-gray-300 rounded-lg px-4 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
+
         <input
           type="text"
           placeholder="State"
