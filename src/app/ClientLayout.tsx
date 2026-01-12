@@ -62,7 +62,31 @@ export default function ClientLayout({
     setMenuOpen(false);
   }
 
-  if (authLoading) return null;
+  if (authLoading) {
+  return (
+    <LanguageProvider>
+      <>
+        <header className="bg-[#0f172a] text-white shadow-sm">
+          <nav className="container mx-auto flex justify-between items-center px-6 py-4">
+            <Link href="/" className="flex items-center">
+              <img
+                src="/prosperity-logo.png"
+                alt="Prosperity Hub Logo"
+                className="w-10 h-10 rounded-lg object-cover"
+              />
+            </Link>
+          </nav>
+        </header>
+
+        <main className="container mx-auto px-6 py-8 text-center text-gray-500">
+          Loading…
+        </main>
+
+        <Footer />
+      </>
+    </LanguageProvider>
+  );
+}
 
   return (
     <LanguageProvider>
