@@ -63,7 +63,7 @@ export default function BookingMessagesPage() {
         if (otherUserId) {
           const { data: profile } = await supabase
             .from("profiles")
-            .select("first_name")
+            .select("name")
             .eq("id", otherUserId)
             .single();
 
