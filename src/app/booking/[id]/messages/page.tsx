@@ -21,6 +21,9 @@ export default function BookingMessagesPage() {
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
 
+  // NEW
+  const [otherUserName, setOtherUserName] = useState<string>("");
+
   /* -----------------------------
      Load booking + messages
   ------------------------------*/
@@ -48,6 +51,26 @@ export default function BookingMessagesPage() {
         }
 
         setBooking(bookingData);
+
+        // ---------------------------------
+        // Resolve other participant name
+        // ---------------------------------
+        const otherUserId =
+          authData.user.id === bookingData.owner_id
+            ? bookingData.user_id
+            : bookingData.owner_id;
+
+        if (otherUserId) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("first_name")
+            .eq("id", otherUserId)
+            .single();
+
+          if (profile?.first_name) {
+            setOtherUserName(profile.first_name);
+          }
+        }
 
         const { data: messageData, error: messageError } = await supabase
           .from("booking_messages")
@@ -97,7 +120,6 @@ export default function BookingMessagesPage() {
 
       setMessageText("");
 
-      // Reload messages
       const { data } = await supabase
         .from("booking_messages")
         .select("*")
@@ -135,22 +157,21 @@ export default function BookingMessagesPage() {
     );
   }
 
-  const isProvider = currentUserId === booking.owner_id;
-
   /* -----------------------------
      UI
   ------------------------------*/
   return (
     <div className="min-h-screen bg-gray-50 p-6 flex flex-col">
       <div className="max-w-2xl mx-auto w-full bg-white rounded-2xl shadow p-6 flex flex-col">
-        <h1 className="text-2xl font-bold text-gray-800 mb-4">
-          Booking Conversation
+        <h1 className="text-2xl font-bold text-gray-800 mb-1">
+          Conversation{otherUserName ? ` with ${otherUserName}` : ""}
         </h1>
 
-        <p className="text-sm text-gray-600 mb-6">
-          You are communicating with the{" "}
-          <strong>{isProvider ? "Booker" : "Provider"}</strong> for this booking.
-        </p>
+        {booking?.title && (
+          <p className="text-sm text-gray-600 mb-6">
+            Regarding: <strong>{booking.title}</strong>
+          </p>
+        )}
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto border rounded-lg p-4 mb-4 space-y-3">
