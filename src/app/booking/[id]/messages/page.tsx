@@ -52,7 +52,7 @@ export default function BookingMessagesPage() {
         setBooking(bookingData);
 
         // ---------------------------------
-        // Resolve other participant name
+        // Resolve other participant name (STANDARDIZED)
         // ---------------------------------
         const otherUserId =
           authData.user.id === bookingData.owner_id
@@ -62,13 +62,17 @@ export default function BookingMessagesPage() {
         if (otherUserId) {
           const { data: profile } = await supabase
             .from("profiles")
-            .select("name")
+            .select("full_name, first_name, email")
             .eq("id", otherUserId)
             .single();
 
-          if (profile?.name) {
-            setOtherUserName(profile.name);
-          }
+          const displayName =
+            profile?.full_name ||
+            profile?.first_name ||
+            profile?.email ||
+            "";
+
+          setOtherUserName(displayName);
         }
 
         const { data: messageData, error: messageError } = await supabase
@@ -96,7 +100,7 @@ export default function BookingMessagesPage() {
   }, [bookingId, router]);
 
   /* -----------------------------
-     Send Message (SERVER API)
+     Send Message
   ------------------------------*/
   async function sendMessage() {
     if (!messageText.trim() || sending) return;
@@ -113,9 +117,7 @@ export default function BookingMessagesPage() {
         }),
       });
 
-      if (!res.ok) {
-        throw new Error("Message send failed");
-      }
+      if (!res.ok) throw new Error("Message send failed");
 
       setMessageText("");
 
