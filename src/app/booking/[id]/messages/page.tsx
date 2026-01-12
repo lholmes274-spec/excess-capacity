@@ -21,7 +21,6 @@ export default function BookingMessagesPage() {
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
 
-  // NEW
   const [otherUserName, setOtherUserName] = useState<string>("");
 
   /* -----------------------------
@@ -52,6 +51,14 @@ export default function BookingMessagesPage() {
 
         setBooking(bookingData);
 
+        // 🔍 DEBUG: booking + user context
+        console.log("🔍 BOOKING DEBUG", {
+          bookingId,
+          currentUserId: authData.user.id,
+          owner_id: bookingData.owner_id,
+          user_id: bookingData.user_id,
+        });
+
         // ---------------------------------
         // Resolve other participant name
         // ---------------------------------
@@ -61,11 +68,18 @@ export default function BookingMessagesPage() {
             : bookingData.owner_id;
 
         if (otherUserId) {
-          const { data: profile } = await supabase
+          const { data: profile, error: profileError } = await supabase
             .from("profiles")
             .select("name")
             .eq("id", otherUserId)
             .single();
+
+          // 🔍 DEBUG: profile lookup result
+          console.log("👤 PROFILE DEBUG", {
+            otherUserId,
+            profile,
+            profileError,
+          });
 
           if (profile?.name) {
             setOtherUserName(profile.name);
@@ -173,7 +187,6 @@ export default function BookingMessagesPage() {
           </p>
         )}
 
-        {/* Messages */}
         <div className="flex-1 overflow-y-auto border rounded-lg p-4 mb-4 space-y-3">
           {messages.length === 0 && (
             <p className="text-gray-500 text-sm">
@@ -198,7 +211,6 @@ export default function BookingMessagesPage() {
           ))}
         </div>
 
-        {/* Message Input */}
         <div className="flex gap-2">
           <input
             type="text"
