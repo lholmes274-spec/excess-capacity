@@ -12,6 +12,9 @@ export default function SignupPage() {
 
   const redirectTo = searchParams.get("redirect") || "/dashboard";
 
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -56,6 +59,11 @@ export default function SignupPage() {
   };
 
   const handleSignup = async () => {
+    if (!firstName.trim()) {
+      alert("Please enter your first name.");
+      return;
+    }
+
     if (!email || !password || !confirmPassword) {
       alert("Please fill out all fields.");
       return;
@@ -75,18 +83,30 @@ export default function SignupPage() {
 
     setLoading(true);
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
     });
 
-    setLoading(false);
-
     if (error) {
+      setLoading(false);
       alert(error.message);
-    } else {
-      setSignupSuccess(true);
+      return;
     }
+
+    // ✅ Create profile immediately with name
+    if (data?.user) {
+      await supabase.from("profiles").insert({
+        id: data.user.id,
+        first_name: firstName.trim(),
+        last_name: lastName.trim() || null,
+        full_name: `${firstName.trim()} ${lastName.trim()}`.trim(),
+        email: email,
+      });
+    }
+
+    setLoading(false);
+    setSignupSuccess(true);
   };
 
   const handleGoogleLogin = async () => {
@@ -130,6 +150,23 @@ export default function SignupPage() {
 
         {!signupSuccess && (
           <>
+            <input
+              type="text"
+              placeholder="First name"
+              className="w-full p-3 border rounded-lg mb-3 focus:ring-2 focus:ring-blue-400"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              required
+            />
+
+            <input
+              type="text"
+              placeholder="Last name (optional)"
+              className="w-full p-3 border rounded-lg mb-3 focus:ring-2 focus:ring-blue-400"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+            />
+
             <input
               type="email"
               placeholder="Email address"
