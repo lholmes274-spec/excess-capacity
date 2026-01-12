@@ -109,10 +109,8 @@ export default function MyBookingsPage() {
               listing?.pricing_type === "hourly";
 
             const needsFinalize =
-              isService &&
-              b.status === "paid" &&
-              !b.finalized_at;
-
+              isService && b.status === "paid";
+                           
             return (
               <div
                 key={b.id}
