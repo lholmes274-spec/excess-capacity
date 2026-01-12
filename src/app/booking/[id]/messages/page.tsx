@@ -51,14 +51,6 @@ export default function BookingMessagesPage() {
 
         setBooking(bookingData);
 
-        // 🔍 DEBUG: booking + user context
-        console.log("🔍 BOOKING DEBUG", {
-          bookingId,
-          currentUserId: authData.user.id,
-          owner_id: bookingData.owner_id,
-          user_id: bookingData.user_id,
-        });
-
         // ---------------------------------
         // Resolve other participant name
         // ---------------------------------
@@ -68,18 +60,11 @@ export default function BookingMessagesPage() {
             : bookingData.owner_id;
 
         if (otherUserId) {
-          const { data: profile, error: profileError } = await supabase
+          const { data: profile } = await supabase
             .from("profiles")
             .select("name")
             .eq("id", otherUserId)
             .single();
-
-          // 🔍 DEBUG: profile lookup result
-          console.log("👤 PROFILE DEBUG", {
-            otherUserId,
-            profile,
-            profileError,
-          });
 
           if (profile?.name) {
             setOtherUserName(profile.name);
