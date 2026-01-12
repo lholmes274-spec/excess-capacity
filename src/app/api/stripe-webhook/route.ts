@@ -140,6 +140,20 @@ export async function POST(req: Request) {
     // SALE FLOW — CREATE CONVERSATION
     // =====================================================
     if (listing.transaction_type === "sale") {
+
+      // 🔑 INSERT SALE INTO BOOKINGS (THIS IS THE FIX) 
+      await supabase.from("bookings").insert([ 
+        { 
+          listing_id,  
+          owner_id: seller_id, 
+          user_id: buyer_id, 
+          user_email: buyer_email, 
+          amount_paid: amountPaid, 
+          stripe_session_id: session.id,
+          status: "completed",
+          }, 
+      ]);
+      
       // Prevent duplicate conversations
       const { data: existingConversation } = await supabase
         .from("conversations")
