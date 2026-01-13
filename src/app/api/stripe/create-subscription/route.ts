@@ -57,7 +57,7 @@ export async function POST(req: Request) {
       }/dashboard?subscribed=true`,
       cancel_url: `${
         process.env.NEXT_PUBLIC_SITE_URL || "https://prosperityhub.app"
-      }/subscribe`,
+      }/dashboard`,
     });
 
     return NextResponse.json({ url: stripeSession.url });
