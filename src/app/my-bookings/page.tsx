@@ -148,7 +148,12 @@ export default function MyOrdersPage() {
                   <p className="text-sm text-gray-500 mt-2">
                    Ordered on:{" "}
                    {o.created_at
-                     ? new Date(o.created_at).toLocaleDateString("en-US")
+                     ? new Intl.DateTimeFormat("en-US", {
+                         year: "numeric",
+                         month: "numeric",
+                         day: "numeric",
+                        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                       }).format(new Date(o.created_at))
                      : "—"}
                   </p>
 
