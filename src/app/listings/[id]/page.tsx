@@ -208,6 +208,12 @@ export default function ListingDetailPage() {
             </span>
           </p>
 
+          {listing.pricing_type === "per_service" && (
+            <p className="text-sm text-gray-600 mt-1">
+              Service length: 2 hours
+            </p>
+          )}
+
           {/* SERVICE MINIMUM */}
           {listing.pricing_type === "per_hour" && (
             <p className="text-sm text-gray-600 mt-1">
