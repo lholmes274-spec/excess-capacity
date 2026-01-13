@@ -224,7 +224,15 @@ export default function AddListingPage() {
 
     if (error) {
       console.error("Error adding listing:", error);
-      alert("Error adding listing. Check console for details.");
+      
+      // RLS violation = free listing limit reached
+      if (error.code === "42501") {
+        alert(
+          "You’ve reached the maximum of 3 listings for a free account.\n\nUpgrade to Pro for unlimited listings."
+        );
+        } else {  
+          alert("Something went wrong while creating your listing. Please try again.");
+          }
       return;
     }
 
