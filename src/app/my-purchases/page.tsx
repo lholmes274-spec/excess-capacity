@@ -141,7 +141,14 @@ export default function MyPurchasesPage() {
 
                   <p className="text-sm text-gray-500 mt-2">
                     Purchased on:{" "}
-                    {new Date(b.booking_date).toLocaleDateString()}
+                   {b.created_at
+                      ? new Intl.DateTimeFormat("en-US", {
+                          year: "numeric",
+                          month: "numeric",
+                          day: "numeric",
+                          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                        }).format(new Date(b.created_at))
+                      : "—"}
                   </p>
 
                   <p className="text-sm text-gray-600 mt-1">
