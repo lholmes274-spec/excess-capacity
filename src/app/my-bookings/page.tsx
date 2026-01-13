@@ -146,12 +146,10 @@ export default function MyOrdersPage() {
                   </p>
 
                   <p className="text-sm text-gray-500 mt-2">
-                    Ordered on:{" "}
-                    {o.created_at
-                    ? new Date(o.created_at).toLocaleDateString("en-US", {
-                       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                      })
-                    : "—"}
+                   Ordered on:{" "}
+                   {o.created_at
+                     ? new Date(o.created_at).toLocaleDateString("en-US")
+                     : "—"}
                   </p>
 
                   <p className="text-sm text-gray-600 mt-1">
