@@ -29,12 +29,12 @@ export default function MyOrdersPage() {
         .from("bookings")
         .select("*, listings!left(*)")
         .eq("user_id", user.id)
+        .eq("hidden_by_booker", false) // ✅ ONLY SHOW NON-HIDDEN
         .order("created_at", { ascending: false });
 
       if (error) {
         console.error("Error loading orders:", error);
       } else {
-        console.log("MY ORDERS RAW DATA:", data);
         setOrders(data || []);
       }
 
@@ -45,22 +45,26 @@ export default function MyOrdersPage() {
   }, []);
 
   async function deleteOrder(orderId) {
-    const confirmed = confirm("Are you sure you want to delete this order?");
+    const confirmed = confirm(
+      "This will remove the order from your view only. Continue?"
+    );
     if (!confirmed) return;
 
     setDeletingId(orderId);
 
-    const res = await fetch("/api/delete-booking", {
-      method: "POST",
-      body: JSON.stringify({ booking_id: orderId }),
-    });
+    const { error } = await supabase
+      .from("bookings")
+      .update({ hidden_by_booker: true })
+      .eq("id", orderId)
+      .eq("user_id", userId);
 
-    if (!res.ok) {
-      alert("Failed to delete order.");
+    if (error) {
+      alert("Failed to remove order.");
       setDeletingId(null);
       return;
     }
 
+    // Remove from UI only
     setOrders((prev) => prev.filter((o) => o.id !== orderId));
     setDeletingId(null);
   }
@@ -105,9 +109,6 @@ export default function MyOrdersPage() {
               "/no-image.png";
 
             const isPurchase = listing?.pricing_type === "for_sale";
-            const isService =
-              listing?.pricing_type === "per_hour" ||
-              listing?.pricing_type === "hourly";
 
             return (
               <div
@@ -146,15 +147,16 @@ export default function MyOrdersPage() {
                   </p>
 
                   <p className="text-sm text-gray-500 mt-2">
-                   Ordered on:{" "}
-                   {o.created_at
-                     ? new Intl.DateTimeFormat("en-US", {
-                         year: "numeric",
-                         month: "numeric",
-                         day: "numeric",
-                        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                       }).format(new Date(o.created_at))
-                     : "—"}
+                    Ordered on:{" "}
+                    {o.created_at
+                      ? new Intl.DateTimeFormat("en-US", {
+                          year: "numeric",
+                          month: "numeric",
+                          day: "numeric",
+                          timeZone:
+                            Intl.DateTimeFormat().resolvedOptions().timeZone,
+                        }).format(new Date(o.created_at))
+                      : "—"}
                   </p>
 
                   <p className="text-sm text-gray-600 mt-1">
@@ -177,7 +179,7 @@ export default function MyOrdersPage() {
                   disabled={deletingId === o.id}
                   className="absolute top-2 right-2 bg-red-600 text-white px-3 py-1 rounded-lg text-sm shadow hover:bg-red-700 transition"
                 >
-                  {deletingId === o.id ? "Deleting..." : "Delete"}
+                  {deletingId === o.id ? "Removing..." : "Remove"}
                 </button>
               </div>
             );
