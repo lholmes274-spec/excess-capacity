@@ -58,6 +58,8 @@ export default function MyOrdersPage() {
       .eq("id", orderId)
       .eq("user_id", userId);
 
+    console.log("HIDE ERROR:", error);
+    
     if (error) {
       alert("Failed to remove order.");
       setDeletingId(null);
