@@ -40,6 +40,22 @@ export default function BookingMessagesPage() {
 
         setCurrentUserId(authData.user.id);
 
+        // ✅ CHECK DISPLAY NAME OF LOGGED-IN USER ONLY
+        const { data: myProfile } = await supabase
+          .from("profiles")
+          .select("display_name, full_name")
+          .eq("id", authData.user.id)
+          .single();
+
+        const myDisplayName =
+          myProfile?.display_name ||
+          myProfile?.full_name ||
+          "";
+
+        if (!myDisplayName) {
+          setShowNameBanner(true);
+        }
+
         const { data: bookingData, error: bookingError } = await supabase
           .from("bookings")
           .select("*")
@@ -65,11 +81,9 @@ export default function BookingMessagesPage() {
         if (otherUserId) {
           const { data: profile } = await supabase
             .from("profiles")
-            .select("display_name")
+            .select("display_name, full_name, first_name")
             .eq("id", otherUserId)
             .single();
-
-          setOtherUserName(profile?.display_name || "");
 
           const displayName =
             profile?.display_name ||
@@ -78,11 +92,6 @@ export default function BookingMessagesPage() {
             "";
 
           setOtherUserName(displayName);
-
-          // 🔔 Show banner if NO display name exists
-          if (!displayName) {
-            setShowNameBanner(true);
-          }
         }
 
         const { data: messageData, error: messageError } = await supabase
@@ -199,12 +208,6 @@ export default function BookingMessagesPage() {
               </button>
             </div>
           </div>
-        )}
-
-        {booking?.title && (
-          <p className="text-sm text-gray-600 mb-6">
-            Regarding: <strong>{booking.title}</strong>
-          </p>
         )}
 
         <div className="flex-1 overflow-y-auto border rounded-lg p-4 mb-4 space-y-3">
