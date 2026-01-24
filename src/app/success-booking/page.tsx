@@ -89,6 +89,7 @@ function SuccessBookingContent() {
         }
 
         setBooking(bookingData);
+        setLoading(false);
 
         const { data: listingData } = await supabase
           .from("listings")
@@ -110,7 +111,6 @@ function SuccessBookingContent() {
         }
 
         setProvider(providerData);
-        setLoading(false);
       } catch (err) {
         console.error(err);
         setLoading(false);
