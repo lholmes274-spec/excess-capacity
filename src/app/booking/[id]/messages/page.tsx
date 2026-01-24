@@ -52,9 +52,7 @@ export default function BookingMessagesPage() {
           myProfile?.full_name ||
           "";
 
-        if (!myDisplayName) {
-          setShowNameBanner(true);
-        }
+        setShowNameBanner(!myDisplayName);
 
         const { data: bookingData, error: bookingError } = await supabase
           .from("bookings")
