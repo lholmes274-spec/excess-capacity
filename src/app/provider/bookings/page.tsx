@@ -47,7 +47,6 @@ export default function ProviderBookingsPage() {
   async function finalizeBooking(bookingId) {
     const booking = bookings.find((b) => b.id === bookingId);
 
-    // 🔒 HARD STOP — already finalized
     if (booking?.final_hours != null) {
       return;
     }
@@ -70,7 +69,6 @@ export default function ProviderBookingsPage() {
 
       const data = await res.json();
 
-      // 🔑 Always refresh bookings after finalize attempt
       const { data: refreshed } = await supabase
         .from("bookings")
         .select("*, listings(*)")
@@ -81,12 +79,10 @@ export default function ProviderBookingsPage() {
 
       const updated = refreshed?.find((b) => b.id === bookingId);
 
-      // ✅ If booking is now finalized, trust DB and suppress errors
       if (updated?.final_hours != null) {
         return;
       }
 
-      // ❌ Only show error if NOT finalized
       if (!res.ok) {
         alert(
           data?.error ||
@@ -190,12 +186,22 @@ export default function ProviderBookingsPage() {
                     </span>
                   </p>
 
-                  <Link
-                    href={`/booking/${b.id}/messages`}
-                    className="inline-block mt-4 px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 transition"
-                  >
-                    View Conversation
-                  </Link>
+                  {/* ✅ ONLY CHANGE IS HERE */}
+                  <div className="mt-4 flex gap-2">
+                    <Link
+                      href={`/booking/${b.id}`}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition"
+                    >
+                      View Booking Details
+                    </Link>
+
+                    <Link
+                      href={`/booking/${b.id}/messages`}
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 transition"
+                    >
+                      View Conversation
+                    </Link>
+                  </div>
 
                   {/* 🔒 FINALIZE HOURS (HOURLY ONLY) */}
                   {isHourly && (
