@@ -125,20 +125,6 @@ export default function BookingMessagesPage() {
   }, [bookingId, router]);
 
   /* -----------------------------
-     Re-check name when page regains focus
-  ------------------------------*/
-  useEffect(() => {
-    if (!currentUserId) return;
-
-    function onFocus() {
-      checkMyDisplayName(currentUserId);
-    }
-
-    window.addEventListener("focus", onFocus);
-    return () => window.removeEventListener("focus", onFocus);
-  }, [currentUserId]);
-
-  /* -----------------------------
      Send Message
   ------------------------------*/
   async function sendMessage() {
