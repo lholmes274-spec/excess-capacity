@@ -84,7 +84,7 @@ function SuccessBookingContent() {
         // ⏳ Subscription-safe behavior:
         // Keep showing processing instead of erroring
         if (!bookingData) {
-          setLoading(true);
+          setLoading(false);
           return;
         }
 
@@ -98,11 +98,16 @@ function SuccessBookingContent() {
 
         setListing(listingData);
 
-        const { data: providerData } = await supabase
-          .from("profiles")
-          .select("id, full_name")
-          .eq("id", listingData.user_id)
-          .single();
+        let providerData = null;
+
+        if (listingData?.user_id) {
+          const { data } = await supabase
+           .from("profiles")
+           .select("id, full_name")
+           .eq("id", listingData.user_id)
+           .single();
+          providerData = data;
+        }
 
         setProvider(providerData);
         setLoading(false);
