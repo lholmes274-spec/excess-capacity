@@ -265,6 +265,7 @@ export default function ListingDetailPage() {
             </label>
             <input
               type="date"
+              min={new Date().toISOString().split("T")[0]}
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
               className="border rounded-lg px-3 py-2 w-full"
