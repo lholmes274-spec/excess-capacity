@@ -182,7 +182,7 @@ function SuccessBookingContent() {
           </div>
         )}
 
-          {listing.private_instructions && (
+          {listing && listing.private_instructions && (
             <div>
               <h2 className="text-lg font-semibold text-green-700 mb-2">
                 🔒 Private Access Instructions
