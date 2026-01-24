@@ -65,11 +65,9 @@ export default function BookingMessagesPage() {
         if (otherUserId) {
           const { data: profile } = await supabase
             .from("profiles")
-            .select("display_name")
+            .select("display_name, full_name, first_name")
             .eq("id", otherUserId)
             .single();
-
-          setOtherUserName(profile?.display_name || "");
 
           const displayName =
             profile?.display_name ||
@@ -168,6 +166,8 @@ export default function BookingMessagesPage() {
     );
   }
 
+  const isLister = currentUserId && booking?.owner_id === currentUserId;
+
   /* -----------------------------
      UI
   ------------------------------*/
@@ -178,9 +178,26 @@ export default function BookingMessagesPage() {
           Conversation{otherUserName ? ` with ${otherUserName}` : ""}
         </h1>
 
+        {/* 🔔 LISTING AVAILABILITY REMINDER — LISTER ONLY */}
+        {isLister && (
+          <div className="mt-3 mb-4 p-4 bg-yellow-50 border border-yellow-300 rounded-lg text-sm text-yellow-900">
+            <strong>Listing Availability Reminder</strong>
+            <p className="mt-1">
+              Your listing is still visible to other users.  
+              If this item is unavailable during this booking, please pause the listing.
+            </p>
+            <Link
+              href="/my-listings"
+              className="inline-block mt-2 font-semibold text-orange-700 underline"
+            >
+              Go to My Listings
+            </Link>
+          </div>
+        )}
+
         {/* 🔔 Soft display-name banner */}
         {showNameBanner && (
-          <div className="mt-3 mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-900 flex justify-between items-center gap-4">
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-900 flex justify-between items-center gap-4">
             <span>
               👋 Add a display name so others can see your name in conversations.
             </span>
