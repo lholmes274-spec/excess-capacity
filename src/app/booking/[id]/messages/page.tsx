@@ -43,7 +43,7 @@ export default function BookingMessagesPage() {
         // ✅ CHECK DISPLAY NAME OF LOGGED-IN USER ONLY
         const { data: myProfile } = await supabase
           .from("profiles")
-          .select("display_name, full_name")
+          .select("display_name,full_name")
           .eq("id", authData.user.id)
           .single();
 
