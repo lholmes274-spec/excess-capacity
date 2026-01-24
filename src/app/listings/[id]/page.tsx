@@ -22,6 +22,23 @@ export default function ListingDetailPage() {
   const [endDate, setEndDate] = useState<string>("");
   const [estimatedTimeWindow, setEstimatedTimeWindow] = useState<string>("");
 
+  // ➕ START — auto-calculate days from selected dates
+  useEffect(() => {
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+
+      // Inclusive day count
+      const diffTime = end.getTime() - start.getTime();
+      const diffDays =
+        Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+      if (diffDays > 0) {
+        setDays(diffDays);
+      }
+    }
+  }, [startDate, endDate]);
+
   // Load logged-in user
   useEffect(() => {
     async function loadUser() {
@@ -301,10 +318,9 @@ export default function ListingDetailPage() {
               </label>
               <input
                 type="number"
-                min={1}
                 value={days}
-                onChange={(e) => setDays(Number(e.target.value))}
-                className="w-32 border rounded-lg px-3 py-2"
+                readOnly
+                className="w-32 border rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed"
               />
             </div>
 
