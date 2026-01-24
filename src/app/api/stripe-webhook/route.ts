@@ -195,9 +195,9 @@ export async function POST(req: Request) {
     }
 
     // =====================================================
-    // BOOKING FLOW — UNCHANGED
+    // BOOKING FLOW — CREATE BOOKING
     // =====================================================
-    if (listing.transaction_type === "booking") {
+    if (session.metadata?.transaction_type === "booking") {
       const start_date = session.metadata?.start_date || null;
       const end_date = session.metadata?.end_date || null;
       const days = session.metadata?.days
