@@ -221,7 +221,6 @@ export async function POST(req: Request) {
           start_date,
           end_date,
           days,
-          estimated_time_window,
         },
       ]);
 
