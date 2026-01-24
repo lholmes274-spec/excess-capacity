@@ -123,6 +123,20 @@ export default function BookingMessagesPage() {
 
     if (bookingId) load();
   }, [bookingId, router]);
+  
+  /* -----------------------------
+     Re-check display name on focus
+  ------------------------------*/
+  useEffect(() => {
+    function handleFocus() {
+      if (currentUserId) {
+        checkMyDisplayName(currentUserId);
+      }
+    }
+
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, [currentUserId]);
 
   /* -----------------------------
      Send Message
@@ -200,6 +214,7 @@ export default function BookingMessagesPage() {
             </span>
             <Link
               href="/profile"
+              onClick={() => setShowNameBanner(false)}
               className="text-blue-700 font-semibold underline"
             >
               Add display name
