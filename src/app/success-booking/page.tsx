@@ -124,7 +124,7 @@ function SuccessBookingContent() {
     return <Loading message="Finalizing your booking…" />;
   }
 
-  if (!booking || !listing) {
+  if (!booking) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 text-center p-6">
         <p className="text-lg text-gray-700 mb-4">
