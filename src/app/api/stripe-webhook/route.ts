@@ -198,6 +198,14 @@ export async function POST(req: Request) {
     // BOOKING FLOW — UNCHANGED
     // =====================================================
     if (listing.transaction_type === "booking") {
+      const start_date = session.metadata?.start_date || null;
+      const end_date = session.metadata?.end_date || null;
+      const days = session.metadata?.days
+        ? Number(session.metadata.days)
+        : null;
+      const estimated_time_window =
+        session.metadata?.time_window || null;
+
       const { error } = await supabase.from("bookings").insert([
         {
           listing_id,
@@ -208,6 +216,12 @@ export async function POST(req: Request) {
           amount_paid: amountPaid,
           stripe_session_id: session.id,
           status: "paid",
+
+          // ✅ NEW — persist booking data
+          start_date,
+          end_date,
+          days,
+          estimated_time_window,
         },
       ]);
 
