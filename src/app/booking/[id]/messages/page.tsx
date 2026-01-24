@@ -39,6 +39,21 @@ export default function BookingMessagesPage() {
         }
 
         setCurrentUserId(authData.user.id);
+        // ---------------------------------
+        // Fetch CURRENT user's profile (for display-name banner)
+        // ---------------------------------
+        const { data: myProfile } = await supabase
+          .from("profiles")
+          .select("display_name")
+          .eq("id", authData.user.id)
+          .single();
+
+        // 🔔 Show banner ONLY if *current user* has no display name
+        if (!myProfile?.display_name || myProfile.display_name.trim() === "") {
+          setShowNameBanner(true);
+        } else {
+          setShowNameBanner(false);
+        }
 
         const { data: bookingData, error: bookingError } = await supabase
           .from("bookings")
@@ -76,11 +91,6 @@ export default function BookingMessagesPage() {
             "";
 
           setOtherUserName(displayName);
-
-          // 🔔 Show banner if NO display name exists
-          if (!profile?.display_name || profile.display_name.trim() === "") {
-            setShowNameBanner(true);
-          }
         }
 
         const { data: messageData, error: messageError } = await supabase
