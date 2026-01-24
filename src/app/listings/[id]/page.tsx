@@ -17,6 +17,11 @@ export default function ListingDetailPage() {
   // quantity for rentals only
   const [days, setDays] = useState<number>(1);
 
+  // ➕ START — booking requirements
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
+  const [estimatedTimeWindow, setEstimatedTimeWindow] = useState<string>("");
+
   // Load logged-in user
   useEffect(() => {
     async function loadUser() {
@@ -131,13 +136,24 @@ export default function ListingDetailPage() {
       return;
     }
 
+    // ➕ START — enforce required booking dates
+    if (!isForSale && (!startDate || !endDate)) {
+      alert("Please select a start and end date for your booking.");
+      return;
+    }
+
     if (listing.demo_mode) {
       alert("Demo Only – Checkout disabled");
     } else {
       router.push(
         isForSale
           ? `/checkout?listing_id=${listing.id}&transaction_type=sale`
-          : `/checkout?listing_id=${listing.id}&transaction_type=booking&days=${days}`
+          : `/checkout?listing_id=${listing.id}` +
+              `&transaction_type=booking` +
+              `&start_date=${startDate}` +
+              `&end_date=${endDate}` +
+              `&time_window=${estimatedTimeWindow}` +
+              `&days=${days}`
       );
     }
   };
@@ -221,6 +237,52 @@ export default function ListingDetailPage() {
             </p>
           )}
         </>
+      )}
+
+      {/* ➕ START — REQUIRED BOOKING DATES */}
+      {!isForSale && (
+        <div className="mt-6 space-y-4">
+          <div>
+            <label className="block font-semibold text-gray-800 mb-1">
+              Start Date *
+            </label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="border rounded-lg px-3 py-2 w-full"
+            />
+          </div>
+
+          <div>
+            <label className="block font-semibold text-gray-800 mb-1">
+              End Date *
+            </label>
+            <input
+              type="date"
+              min={startDate}
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="border rounded-lg px-3 py-2 w-full"
+            />
+          </div>
+
+          <div>
+            <label className="block font-semibold text-gray-800 mb-1">
+              Estimated Time Window (optional)
+            </label>
+            <select
+              value={estimatedTimeWindow}
+              onChange={(e) => setEstimatedTimeWindow(e.target.value)}
+              className="border rounded-lg px-3 py-2 w-full"
+            >
+              <option value="">Select</option>
+              <option value="morning">Morning</option>
+              <option value="afternoon">Afternoon</option>
+              <option value="evening">Evening</option>
+            </select>
+          </div>
+        </div>
       )}
 
       {/* RENTAL ONLY: QUANTITY + TOTAL */}
