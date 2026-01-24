@@ -28,11 +28,16 @@ export default function BookingMessagesPage() {
      Helper: check my display name
   ------------------------------*/
   async function checkMyDisplayName(userId: string) {
-    const { data } = await supabase
+     const { data, error } = await supabase
       .from("profiles")
       .select("display_name, full_name")
       .eq("id", userId)
       .single();
+
+  if (error) {
+    console.error("Error loading profile:", error);
+    return;
+  }
 
     const myDisplayName =
       data?.display_name ||
