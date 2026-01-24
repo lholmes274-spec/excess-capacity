@@ -18,8 +18,7 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [signupSuccess, setSignupSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);  
 
   // If logged-in → redirect properly
   useEffect(() => {
@@ -106,7 +105,8 @@ export default function SignupPage() {
     }
 
     setLoading(false);
-    setSignupSuccess(true);
+    router.push(`/signup-thankyou?email=${encodeURIComponent(email)}`);
+
   };
 
   const handleGoogleLogin = async () => {
@@ -125,30 +125,7 @@ export default function SignupPage() {
         <p className="text-gray-600 text-center mb-6">
           Join Prosperity Hub and unlock access to listings, bookings, and community.
         </p>
-
-        {signupSuccess && (
-          <div className="mb-6 p-5 bg-green-100 border border-green-300 rounded-lg text-center">
-            <h2 className="text-lg font-semibold text-green-900 mb-2">
-              ✅ Account created successfully
-            </h2>
-
-            <p className="text-green-800">
-              We’ve sent a confirmation email to <strong>{email}</strong>.
-              <br />
-              Please check your inbox and click the link to activate your account.
-            </p>
-
-            <p className="mt-4 text-sm text-green-800">
-              Once confirmed, you’ll be automatically signed in.
-            </p>
-
-            <p className="mt-2 text-sm text-green-800">
-              You may safely close this tab.
-            </p>
-          </div>
-        )}
-
-        {!signupSuccess && (
+        
           <>
             <input
               type="text"
@@ -211,7 +188,7 @@ export default function SignupPage() {
               </Link>
             </p>
           </>
-        )}
+        
       </div>
     </div>
   );
