@@ -22,9 +22,25 @@ export default function BookingMessagesPage() {
   const [sending, setSending] = useState(false);
 
   const [otherUserName, setOtherUserName] = useState<string>("");
-
-  // 🔔 Banner state (soft prompt)
   const [showNameBanner, setShowNameBanner] = useState(false);
+
+  /* -----------------------------
+     Helper: check my display name
+  ------------------------------*/
+  async function checkMyDisplayName(userId: string) {
+    const { data } = await supabase
+      .from("profiles")
+      .select("display_name, full_name")
+      .eq("id", userId)
+      .single();
+
+    const myDisplayName =
+      data?.display_name ||
+      data?.full_name ||
+      "";
+
+    setShowNameBanner(!myDisplayName);
+  }
 
   /* -----------------------------
      Load booking + messages
@@ -40,19 +56,8 @@ export default function BookingMessagesPage() {
 
         setCurrentUserId(authData.user.id);
 
-        // ✅ CHECK DISPLAY NAME OF LOGGED-IN USER ONLY
-        const { data: myProfile } = await supabase
-          .from("profiles")
-          .select("display_name,full_name")
-          .eq("id", authData.user.id)
-          .single();
-
-        const myDisplayName =
-          myProfile?.display_name ||
-          myProfile?.full_name ||
-          "";
-
-        setShowNameBanner(!myDisplayName);
+        // ✅ Check display name (initial load)
+        await checkMyDisplayName(authData.user.id);
 
         const { data: bookingData, error: bookingError } = await supabase
           .from("bookings")
@@ -68,9 +73,7 @@ export default function BookingMessagesPage() {
 
         setBooking(bookingData);
 
-        // ---------------------------------
-        // Resolve other participant (CORRECT ROLES)
-        // ---------------------------------
+        // Resolve other participant
         const otherUserId =
           authData.user.id === bookingData.user_id
             ? bookingData.owner_id
@@ -115,6 +118,20 @@ export default function BookingMessagesPage() {
 
     if (bookingId) load();
   }, [bookingId, router]);
+
+  /* -----------------------------
+     Re-check name when page regains focus
+  ------------------------------*/
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    function onFocus() {
+      checkMyDisplayName(currentUserId);
+    }
+
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [currentUserId]);
 
   /* -----------------------------
      Send Message
@@ -185,26 +202,17 @@ export default function BookingMessagesPage() {
           Conversation{otherUserName ? ` with ${otherUserName}` : ""}
         </h1>
 
-        {/* 🔔 Soft display-name banner */}
         {showNameBanner && (
           <div className="mt-3 mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-900 flex justify-between items-center gap-4">
             <span>
               👋 Add a display name so others can see your name in conversations.
             </span>
-            <div className="flex gap-3 shrink-0">
-              <Link
-                href="/profile"
-                className="text-blue-700 font-semibold underline"
-              >
-                Add display name
-              </Link>
-              <button
-                onClick={() => setShowNameBanner(false)}
-                className="text-blue-700 underline"
-              >
-                Dismiss
-              </button>
-            </div>
+            <Link
+              href="/profile"
+              className="text-blue-700 font-semibold underline"
+            >
+              Add display name
+            </Link>
           </div>
         )}
 
