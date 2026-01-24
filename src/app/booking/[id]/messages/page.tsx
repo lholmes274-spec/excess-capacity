@@ -78,7 +78,7 @@ export default function BookingMessagesPage() {
           setOtherUserName(displayName);
 
           // 🔔 Show banner if NO display name exists
-          if (!displayName) {
+          if (!profile?.display_name || profile.display_name.trim() === "") {
             setShowNameBanner(true);
           }
         }

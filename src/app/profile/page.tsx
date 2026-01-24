@@ -37,7 +37,7 @@ export default function ProfilePage() {
         .single();
 
       if (profile) {
-        setDisplayName(profile.display_name || "");
+        setDisplayName(profile.display_name?.trim() || "");
         setCity(profile.city || "");
         setState(profile.state || "");
       }
