@@ -10,6 +10,7 @@ export default function BookingDetailPage() {
   const { id } = useParams();
   const [booking, setBooking] = useState(null);
   const [listing, setListing] = useState(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -21,6 +22,8 @@ export default function BookingDetailPage() {
         setLoading(false);
         return;
       }
+
+      setUserId(user.id);
 
       // Fetch booking
       const { data: bookingData } = await supabase
@@ -64,11 +67,30 @@ export default function BookingDetailPage() {
     );
   }
 
+  const isLister = userId && listing?.owner_id === userId;
+
   return (
     <main className="max-w-2xl mx-auto p-8">
       <h1 className="text-3xl font-bold text-orange-700 mb-6">
         Booking Details
       </h1>
+
+      {/* 🔔 POST-BOOKING REMINDER — LISTER ONLY */}
+      {isLister && (
+        <div className="mb-6 bg-yellow-50 border border-yellow-300 text-yellow-900 p-4 rounded-lg">
+          <strong>Listing Availability Reminder</strong>
+          <p className="mt-1 text-sm">
+            Your listing is still visible to other users.  
+            If this item is unavailable during this booking, please pause the listing.
+          </p>
+          <Link
+            href="/my-listings"
+            className="inline-block mt-3 text-sm font-semibold text-orange-700 underline"
+          >
+            Go to My Listings
+          </Link>
+        </div>
+      )}
 
       <div className="bg-white border rounded-xl p-6 shadow">
         <h2 className="text-xl font-semibold mb-3">{listing?.title}</h2>
@@ -90,7 +112,9 @@ export default function BookingDetailPage() {
 
         {listing?.private_instructions && (
           <div className="mt-4 bg-green-50 border p-4 rounded-lg">
-            <h3 className="font-semibold text-green-700 mb-2">Private Instructions</h3>
+            <h3 className="font-semibold text-green-700 mb-2">
+              Private Instructions
+            </h3>
             <p className="text-gray-700 whitespace-pre-line">
               {listing.private_instructions}
             </p>
