@@ -100,6 +100,24 @@ export default function BookingDetailPage() {
         </p>
 
         <p className="mb-3">
+          <strong>Booked Dates:</strong>{" "}
+          {booking.start_date
+            ? new Date(booking.start_date).toLocaleDateString()
+            : "—"}{" "}
+          →{" "}
+          {booking.end_date
+            ? new Date(booking.end_date).toLocaleDateString()
+            : "—"}
+        </p>
+
+        <p className="mb-3">
+          <strong>Duration:</strong>{" "}
+          {booking.days
+            ? `${booking.days} day${booking.days !== 1 ? "s" : ""}`
+            : "—"}
+        </p>
+
+        <p className="mb-3">
           <strong>Status:</strong> {booking.status}
         </p>
 
