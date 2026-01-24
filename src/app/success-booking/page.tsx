@@ -169,6 +169,7 @@ function SuccessBookingContent() {
       {isLoggedIn && (
         <div className="max-w-xl w-full bg-white shadow-lg border rounded-2xl p-6 text-left space-y-6">
 
+      {listing && (
           <div>
             <h2 className="text-lg font-semibold text-green-700 mb-2">
               📍 Booking Location
@@ -179,6 +180,7 @@ function SuccessBookingContent() {
               {listing.city}, {listing.state} {listing.zip}
             </p>
           </div>
+        )}
 
           {listing.private_instructions && (
             <div>
