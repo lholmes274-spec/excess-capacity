@@ -29,6 +29,29 @@ export default function BookingMessagesPage() {
   /* -----------------------------
      Load booking + messages
   ------------------------------*/
+
+  useEffect(() => {
+  const recheckProfileOnFocus = async () => {
+    if (!currentUserId) return;
+
+    const { data } = await supabase
+      .from("profiles")
+      .select("display_name, full_name")
+      .eq("id", currentUserId)
+      .single();
+
+    const hasName =
+      data?.display_name ||
+      data?.full_name ||
+      "";
+
+    setShowNameBanner(!hasName);
+  };
+
+  window.addEventListener("focus", recheckProfileOnFocus);
+  return () => window.removeEventListener("focus", recheckProfileOnFocus);
+}, [currentUserId]);
+
   useEffect(() => {
     async function load() {
       try {
