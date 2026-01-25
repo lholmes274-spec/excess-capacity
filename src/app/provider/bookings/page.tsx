@@ -56,7 +56,6 @@ export default function ProviderBookingsPage() {
     .from("bookings")
     .update({ hidden_by_lister: true })
     .eq("id", bookingId)
-    .eq("owner_id", userId);
 
   if (error) {
     alert("Unable to archive booking.");
