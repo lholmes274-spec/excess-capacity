@@ -9,6 +9,8 @@ function CheckoutContent() {
   const listing_id = searchParams.get("listing_id");
   const days = searchParams.get("days"); // optional
   const transaction_type = searchParams.get("transaction_type"); // ✅ READ INTENT
+  const start_date = searchParams.get("start_date");
+  const end_date = searchParams.get("end_date");
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,6 +23,12 @@ function CheckoutContent() {
         return;
       }
 
+      if (transaction_type === "booking" && (!start_date || !end_date)) {
+        setError("Missing booking dates");
+        setLoading(false);
+        return;
+      }
+
       try {
         const res = await fetch("/api/create-checkout-session", {
           method: "POST",
@@ -29,6 +37,8 @@ function CheckoutContent() {
           body: JSON.stringify({
             listing_id,
             transaction_type, // ✅ PASS INTENT
+            start_date,
+            end_date,
             days: Number(days) || 1,
           }),
         });
@@ -51,7 +61,7 @@ function CheckoutContent() {
     }
 
     createCheckoutSession();
-  }, [listing_id, days, transaction_type]);
+  }, [listing_id, days, transaction_type, start_date, end_date]);
 
   if (loading)
     return (
