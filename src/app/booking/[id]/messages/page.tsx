@@ -25,29 +25,6 @@ export default function BookingMessagesPage() {
   const [showNameBanner, setShowNameBanner] = useState(false);
 
   /* -----------------------------
-     Helper: check my display name
-  ------------------------------*/
-  async function checkMyDisplayName(userId: string) {
-     const { data, error } = await supabase
-      .from("profiles")
-      .select("display_name, full_name")
-      .eq("id", userId)
-      .single();
-
-  if (error) {
-    console.error("Error loading profile:", error);
-    return;
-  }
-
-    const myDisplayName =
-      data?.display_name ||
-      data?.full_name ||
-      "";
-
-    setShowNameBanner(!myDisplayName);
-  }
-
-  /* -----------------------------
      Load booking + messages
   ------------------------------*/
   useEffect(() => {
@@ -61,8 +38,19 @@ export default function BookingMessagesPage() {
 
         setCurrentUserId(authData.user.id);
 
-        // ✅ Check display name (initial load)
-        await checkMyDisplayName(authData.user.id);
+        // ✅ CHECK DISPLAY NAME ONCE (LOGGED-IN USER ONLY)
+        const { data: myProfile } = await supabase
+          .from("profiles")
+          .select("display_name, full_name")
+          .eq("id", authData.user.id)
+          .single();
+
+        const myDisplayName =
+          myProfile?.display_name ||
+          myProfile?.full_name ||
+          "";
+
+        setShowNameBanner(!myDisplayName);
 
         const { data: bookingData, error: bookingError } = await supabase
           .from("bookings")
@@ -123,20 +111,6 @@ export default function BookingMessagesPage() {
 
     if (bookingId) load();
   }, [bookingId, router]);
-  
-  /* -----------------------------
-     Re-check display name on focus
-  ------------------------------*/
-  useEffect(() => {
-    function handleFocus() {
-      if (currentUserId) {
-        checkMyDisplayName(currentUserId);
-      }
-    }
-
-    window.addEventListener("focus", handleFocus);
-    return () => window.removeEventListener("focus", handleFocus);
-  }, [currentUserId]);
 
   /* -----------------------------
      Send Message
