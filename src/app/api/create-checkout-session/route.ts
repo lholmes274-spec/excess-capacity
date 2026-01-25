@@ -268,6 +268,7 @@ export async function POST(req: Request) {
         user_id: String(userId),
         user_email: String(userEmail),
         quantity: String(quantity),
+        days: String(quantity),
         start_date: String(start_date),
         end_date: String(end_date),
       },
