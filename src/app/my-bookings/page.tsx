@@ -29,7 +29,7 @@ export default function MyOrdersPage() {
         .from("bookings")
         .select("*, listings!left(*)")
         .eq("user_id", user.id)
-        .eq("hidden_by_booker", false) // ✅ ONLY SHOW NON-HIDDEN
+        .eq("hidden_by_booker", false)
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -57,14 +57,13 @@ export default function MyOrdersPage() {
       .update({ hidden_by_booker: true })
       .eq("id", orderId)
       .eq("user_id", userId);
-        
+
     if (error) {
       alert("Failed to remove order.");
       setDeletingId(null);
       return;
     }
 
-    // Remove from UI only
     setOrders((prev) => prev.filter((o) => o.id !== orderId));
     setDeletingId(null);
   }
