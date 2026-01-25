@@ -1,7 +1,7 @@
 // @ts-nocheck
 "use client";
 
-export const dynamic = "force-dynamic"; // 🔧 CHANGE
+export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -27,31 +27,32 @@ export default function BookingMessagesPage() {
   const [showNameBanner, setShowNameBanner] = useState(false);
 
   /* -----------------------------
+     Recheck profile on focus
+  ------------------------------*/
+  useEffect(() => {
+    const recheckProfileOnFocus = async () => {
+      if (!currentUserId) return;
+
+      const { data } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("id", currentUserId)
+        .single();
+
+      const hasDisplayName =
+        typeof data?.display_name === "string" &&
+        data.display_name.trim().length > 0;
+
+      setShowNameBanner(!hasDisplayName);
+    };
+
+    window.addEventListener("focus", recheckProfileOnFocus);
+    return () => window.removeEventListener("focus", recheckProfileOnFocus);
+  }, [currentUserId]);
+
+  /* -----------------------------
      Load booking + messages
   ------------------------------*/
-
-  useEffect(() => {
-  const recheckProfileOnFocus = async () => {
-    if (!currentUserId) return;
-
-    const { data } = await supabase
-      .from("profiles")
-      .select("display_name, full_name")
-      .eq("id", currentUserId)
-      .single();
-
-    const hasName =
-      data?.display_name ||
-      data?.full_name ||
-      "";
-
-    setShowNameBanner(!hasName);
-  };
-
-  window.addEventListener("focus", recheckProfileOnFocus);
-  return () => window.removeEventListener("focus", recheckProfileOnFocus);
-}, [currentUserId]);
-
   useEffect(() => {
     async function load() {
       try {
@@ -63,19 +64,18 @@ export default function BookingMessagesPage() {
 
         setCurrentUserId(authData.user.id);
 
-        // ✅ RECHECK DISPLAY NAME EVERY LOAD 🔧 CHANGE
+        // 🔒 CHECK DISPLAY NAME (single source of truth)
         const { data: myProfile } = await supabase
           .from("profiles")
-          .select("display_name, full_name")
+          .select("display_name")
           .eq("id", authData.user.id)
           .single();
 
-        const myDisplayName =
-          myProfile?.display_name ||
-          myProfile?.full_name ||
-          "";
+        const hasDisplayName =
+          typeof myProfile?.display_name === "string" &&
+          myProfile.display_name.trim().length > 0;
 
-        setShowNameBanner(!myDisplayName); // 🔧 CHANGE (re-evaluated every load)
+        setShowNameBanner(!hasDisplayName);
 
         const { data: bookingData, error: bookingError } = await supabase
           .from("bookings")
@@ -100,17 +100,11 @@ export default function BookingMessagesPage() {
         if (otherUserId) {
           const { data: profile } = await supabase
             .from("profiles")
-            .select("display_name, full_name, first_name")
+            .select("display_name")
             .eq("id", otherUserId)
             .single();
 
-          const displayName =
-            profile?.display_name ||
-            profile?.full_name ||
-            profile?.first_name ||
-            "";
-
-          setOtherUserName(displayName);
+          setOtherUserName(profile?.display_name || "");
         }
 
         const { data: messageData, error: messageError } = await supabase
