@@ -126,12 +126,20 @@ export default function BookingDetailsPage() {
           <strong>Amount Paid:</strong> ${booking.amount_paid}
         </p>
 
-        {!isPurchase && (
+        {!isPurchase && booking.days != null && (
+          <p>
+            <strong>Duration:</strong>{" "}
+             {booking.days}{" "}
+             {listing?.pricing_type === "per_night" ? "nights" : "days"}
+          </p>
+       )}        
+
+         {!isPurchase && (
           <p>
             <strong>Booking Created:</strong>{" "}
             {new Date(booking.created_at).toLocaleDateString()}
           </p>
-        )}
+       )}
 
         <p>
           <strong>Stripe Session:</strong> {booking.stripe_session_id}
