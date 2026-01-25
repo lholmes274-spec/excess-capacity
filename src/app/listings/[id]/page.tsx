@@ -39,6 +39,18 @@ export default function ListingDetailPage() {
     }
   }, [startDate, endDate]);
 
+  // ✅ FIX — clear end date if it becomes earlier than start date
+  useEffect(() => {
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+
+      if (end < start) {
+        setEndDate("");
+      }
+    }
+  }, [startDate]);
+
   // Load logged-in user
   useEffect(() => {
     async function loadUser() {
