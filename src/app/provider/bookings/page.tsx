@@ -30,6 +30,7 @@ export default function ProviderBookingsPage() {
         .from("bookings")
         .select("*, listings(*)")
         .eq("owner_id", user.id)
+        .eq("hidden_by_lister", false) // ← NEW
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -43,6 +44,28 @@ export default function ProviderBookingsPage() {
 
     load();
   }, []);
+
+  async function archiveBooking(bookingId) {
+  const confirmed = confirm(
+    "Archive this booking? This will hide it from your view only."
+  );
+
+  if (!confirmed) return;
+
+  const { error } = await supabase
+    .from("bookings")
+    .update({ hidden_by_lister: true })
+    .eq("id", bookingId)
+    .eq("owner_id", userId);
+
+  if (error) {
+    alert("Unable to archive booking.");
+    console.error(error);
+    return;
+  }
+
+  setBookings((prev) => prev.filter((b) => b.id !== bookingId));
+}
 
   async function finalizeBooking(bookingId) {
     const booking = bookings.find((b) => b.id === bookingId);
@@ -73,6 +96,7 @@ export default function ProviderBookingsPage() {
         .from("bookings")
         .select("*, listings(*)")
         .eq("owner_id", userId)
+        .eq("hidden_by_lister", false) // ← NEW
         .order("created_at", { ascending: false });
 
       setBookings(refreshed || []);
@@ -187,7 +211,7 @@ export default function ProviderBookingsPage() {
                   </p>
 
                   {/* ✅ ONLY CHANGE IS HERE */}
-                  <div className="mt-4 flex gap-2">
+                  <div className="mt-4 flex flex-wrap gap-2">
                     <Link
                       href={`/booking/${b.id}`}
                       className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition"
@@ -201,6 +225,13 @@ export default function ProviderBookingsPage() {
                     >
                       View Conversation
                     </Link>
+
+                    <button
+                      onClick={() => archiveBooking(b.id)}
+                       className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm hover:bg-gray-300 transition"
+                    >
+                      Archive
+                    </button>
                   </div>
 
                   {/* 🔒 FINALIZE HOURS (HOURLY ONLY) */}
