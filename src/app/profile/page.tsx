@@ -9,7 +9,7 @@ export default function ProfilePage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
 
-  // 🔑 Display name used everywhere in UI
+  // Display name shown in conversations and bookings
   const [displayName, setDisplayName] = useState("");
 
   const [city, setCity] = useState("");
@@ -29,8 +29,8 @@ export default function ProfilePage() {
 
       setUser(user);
 
-      // Load existing profile
-      const { data: profile } = await supabase
+      // Load existing profile row
+      const { data: profile, error } = await supabase
         .from("profiles")
         .select("display_name, city, state")
         .eq("id", user.id)
@@ -50,23 +50,21 @@ export default function ProfilePage() {
     e.preventDefault();
     if (!user) return;
 
-    const { error } = await supabase
-      .from("profiles")
-      .upsert({
-        id: user.id,
-        display_name: displayName.trim() || null,
-        city,
-        state,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", user.id);
+    // THIS IS THE FIXED SAVE LOGIC
+    const { error } = await supabase.from("profiles").upsert({
+      id: user.id,
+      display_name: displayName.trim(),
+      city,
+      state,
+      updated_at: new Date().toISOString(),
+    });
 
     if (error) {
       setMessage(`❌ ${error.message}`);
       return;
     }
 
-    // Optional: sync to auth metadata (admin / emails)
+    // Optional: keep auth metadata in sync
     if (displayName.trim()) {
       await supabase.auth.updateUser({
         data: { display_name: displayName.trim() },
@@ -75,6 +73,7 @@ export default function ProfilePage() {
 
     setMessage("✅ Profile updated successfully!");
 
+    // Redirect after save
     setTimeout(() => {
       router.push("/dashboard");
     }, 1500);
@@ -83,6 +82,7 @@ export default function ProfilePage() {
   return (
     <main className="min-h-screen bg-gray-50 flex flex-col items-center justify-center text-center p-6">
       <h1 className="text-3xl font-bold mb-4">Profile</h1>
+
       <p className="text-gray-600 max-w-md mb-8">
         This name is shown to other users in conversations and bookings.
       </p>
