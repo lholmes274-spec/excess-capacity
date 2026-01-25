@@ -45,13 +45,6 @@ function formatPricingUnit(type: string) {
 export async function POST(req: Request) {
   try {
     const { listing_id, days, start_date, end_date, transaction_type } = await req.json();
-    
-    if (transaction_type === "booking" && (!start_date || !end_date)) {
-      return NextResponse.json(
-        { error: "Missing start_date or end_date for booking" },
-        { status: 400 }
-      );
-    }
 
     if (!listing_id || !transaction_type) {
       return NextResponse.json(
