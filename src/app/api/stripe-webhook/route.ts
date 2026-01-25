@@ -206,6 +206,12 @@ export async function POST(req: Request) {
       const estimated_time_window =
         session.metadata?.time_window || null;
 
+      console.log("📅 Booking metadata:", {
+        start_date,
+        end_date,
+        days,
+      });
+
       const { error } = await supabase.from("bookings").insert([
         {
           listing_id,
