@@ -290,8 +290,9 @@ export default function ListingDetailPage() {
             </label>
             <input
               type="date"
-              min={startDate}
+              min={startDate || new Date().toISOString().split("T")[0]}
               value={endDate}
+              disabled={!startDate}
               onChange={(e) => setEndDate(e.target.value)}
               className="border rounded-lg px-3 py-2 w-full"
             />
