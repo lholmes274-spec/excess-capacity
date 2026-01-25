@@ -38,12 +38,7 @@ export default function BookingDetailsPage() {
         return;
       }
 
-      // ⭐ SECURITY CHECK:
-      // User may be:
-      // - Logged in buyer
-      // - Logged in owner
-      // - Guest checkout → match by email
-
+      // ⭐ SECURITY CHECK
       const buyerId = data.user_id;
       const buyerEmail = data.user_email;
 
@@ -58,7 +53,6 @@ export default function BookingDetailsPage() {
           ? localStorage.getItem("guest_email") === buyerEmail
           : false;
 
-      // ⭐ If none match, deny access
       if (!isLoggedInBuyer && !isLoggedInEmailMatch && !isGuestEmailMatch) {
         console.warn("Unauthorized access to booking");
         setBooking(null);
@@ -66,7 +60,6 @@ export default function BookingDetailsPage() {
         return;
       }
 
-      // Save guest email so guest sessions work after refresh
       if (!loggedInUser && buyerEmail) {
         localStorage.setItem("guest_email", buyerEmail);
       }
@@ -104,6 +97,8 @@ export default function BookingDetailsPage() {
   const thumbnail =
     listing?.image_urls?.[0] || listing?.image_url || "/no-image.png";
 
+  const isPurchase = listing?.pricing_type === "for_sale";
+
   return (
     <div className="container mx-auto px-6 py-10 max-w-3xl">
       <h1 className="text-3xl font-bold mb-6 text-center">Booking Details</h1>
@@ -129,10 +124,12 @@ export default function BookingDetailsPage() {
           <strong>Amount Paid:</strong> ${booking.amount_paid}
         </p>
 
-        <p>
-          <strong>Booking Date:</strong>{" "}
-          {new Date(booking.booking_date).toLocaleDateString()}
-        </p>
+        {!isPurchase && booking.booking_date && (
+          <p>
+            <strong>Booking Date:</strong>{" "}
+            {new Date(booking.booking_date).toLocaleDateString()}
+          </p>
+        )}
 
         <p>
           <strong>Stripe Session:</strong> {booking.stripe_session_id}
