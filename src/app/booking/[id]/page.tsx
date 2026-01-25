@@ -68,6 +68,7 @@ export default function BookingDetailPage() {
   }
 
   const isLister = userId && listing?.owner_id === userId;
+  const isPurchase = listing?.pricing_type === "for_sale";
 
   return (
     <main className="max-w-2xl mx-auto p-8">
@@ -76,7 +77,7 @@ export default function BookingDetailPage() {
       </h1>
 
       {/* 🔔 POST-BOOKING REMINDER — LISTER ONLY */}
-      {isLister && (
+      {isLister && !isPurchase && (
         <div className="mb-6 bg-yellow-50 border border-yellow-300 text-yellow-900 p-4 rounded-lg">
           <strong>Listing Availability Reminder</strong>
           <p className="mt-1 text-sm">
@@ -99,6 +100,7 @@ export default function BookingDetailPage() {
           <strong>Amount Paid:</strong> ${booking.amount_paid}
         </p>
 
+      {!isPurchase && (
         <p className="mb-3">
           <strong>Booked Dates:</strong>{" "}
           {booking.start_date
@@ -109,13 +111,16 @@ export default function BookingDetailPage() {
             ? new Date(booking.end_date).toLocaleDateString()
             : "—"}
         </p>
+      )}
 
+      {!isPurchase && (
         <p className="mb-3">
           <strong>Duration:</strong>{" "}
           {booking.days
             ? `${booking.days} day${booking.days !== 1 ? "s" : ""}`
             : "—"}
         </p>
+      )}
 
         <p className="mb-3">
           <strong>Status:</strong> {booking.status}
