@@ -83,13 +83,13 @@ export default function BookingDetailsPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
         <p className="text-red-600 text-xl font-semibold mb-4">
-          Booking not found or access denied.
+          Order not found or access denied.
         </p>
         <Link
           href="/my-bookings"
           className="px-6 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
         >
-          Back to My Bookings
+          Back to My Orders
         </Link>
       </div>
     );
@@ -101,7 +101,9 @@ export default function BookingDetailsPage() {
 
   return (
     <div className="container mx-auto px-6 py-10 max-w-3xl">
-      <h1 className="text-3xl font-bold mb-6 text-center">Booking Details</h1>
+      <h1 className="text-3xl font-bold mb-6 text-center">
+        {isPurchase ? "Order Details" : "Booking Details"}
+      </h1>
 
       <img
         src={thumbnail}
@@ -124,10 +126,10 @@ export default function BookingDetailsPage() {
           <strong>Amount Paid:</strong> ${booking.amount_paid}
         </p>
 
-        {!isPurchase && booking.booking_date && (
+        {!isPurchase && (
           <p>
-            <strong>Booking Date:</strong>{" "}
-            {new Date(booking.booking_date).toLocaleDateString()}
+            <strong>Booking Created:</strong>{" "}
+            {new Date(booking.created_at).toLocaleDateString()}
           </p>
         )}
 
