@@ -1,6 +1,8 @@
 // @ts-nocheck
 "use client";
 
+export const dynamic = "force-dynamic"; // 🔧 CHANGE
+
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -38,7 +40,7 @@ export default function BookingMessagesPage() {
 
         setCurrentUserId(authData.user.id);
 
-        // ✅ CHECK DISPLAY NAME ONCE (LOGGED-IN USER ONLY)
+        // ✅ RECHECK DISPLAY NAME EVERY LOAD 🔧 CHANGE
         const { data: myProfile } = await supabase
           .from("profiles")
           .select("display_name, full_name")
@@ -50,7 +52,7 @@ export default function BookingMessagesPage() {
           myProfile?.full_name ||
           "";
 
-        setShowNameBanner(!myDisplayName);
+        setShowNameBanner(!myDisplayName); // 🔧 CHANGE (re-evaluated every load)
 
         const { data: bookingData, error: bookingError } = await supabase
           .from("bookings")
@@ -188,7 +190,6 @@ export default function BookingMessagesPage() {
             </span>
             <Link
               href="/profile"
-              onClick={() => setShowNameBanner(false)}
               className="text-blue-700 font-semibold underline"
             >
               Add display name
