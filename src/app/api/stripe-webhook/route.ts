@@ -198,8 +198,16 @@ export async function POST(req: Request) {
     // BOOKING FLOW — CREATE BOOKING
     // =====================================================
     if (session.metadata?.transaction_type === "booking") {
-      const start_date = session.metadata?.start_date || null;
-      const end_date = session.metadata?.end_date || null;
+      const start_date =
+        session.metadata?.start_date && session.metadata.start_date !== "undefined"
+          ? session.metadata.start_date
+          : null;
+
+      const end_date =
+        session.metadata?.end_date && session.metadata.end_date !== "undefined"
+          ? session.metadata.end_date
+          : null;
+          
       const days = session.metadata?.days
         ? Number(session.metadata.days)
         : null;
