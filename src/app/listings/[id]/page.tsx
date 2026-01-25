@@ -28,16 +28,22 @@ export default function ListingDetailPage() {
       const start = new Date(startDate);
       const end = new Date(endDate);
 
-      // Inclusive day count
+      // Base date difference (used for nights or days)
       const diffTime = end.getTime() - start.getTime();
-      const diffDays =
-        Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+      const rawDays = Math.floor(
+        diffTime / (1000 * 60 * 60 * 24)
+      );
 
-      if (diffDays > 0) {
-        setDays(diffDays);
+      const calculatedDays =
+        listing?.pricing_type === "per_night"
+          ? rawDays
+          : rawDays + 1;
+
+      if (calculatedDays > 0) {
+        setDays(calculatedDays);
       }
     }
-  }, [startDate, endDate]);
+  }, [startDate, endDate, listing?.pricing_type]);
 
   // ✅ FIX — clear end date if it becomes earlier than start date
   useEffect(() => {
