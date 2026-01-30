@@ -23,11 +23,11 @@ export default function SignupThankYouPage() {
             We’ve sent a confirmation email to{" "}
             <strong>{email}</strong>.
             <br />
-            Please check your inbox and click the link to activate your account.
+            Please check your inbox and click the link to confirm your email address.
           </p>
 
           <p className="mt-4 text-sm text-green-800">
-            Once confirmed, you’ll be automatically signed in.
+            After confirming your email, return to Prosperity Hub and sign in to your account.
           </p>
 
           <p className="mt-2 text-sm text-green-800">
