@@ -15,8 +15,8 @@ export default function TermsPage() {
 
         <p className="text-sm text-gray-500 text-center mb-6">
           {isES
-            ? "Última actualización: 19 de noviembre de 2025"
-            : "Last updated: November 19, 2025"}
+            ? "Última actualización: 7 de febrero de 2026"
+            : "Last updated: February 7, 2026"}
         </p>
 
         <p className="text-gray-700 mb-4">
