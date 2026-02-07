@@ -13,7 +13,6 @@ export default function TermsPage() {
           {isES ? "Términos y Condiciones" : "Terms and Conditions"}
         </h1>
 
-        {/* ⭐ Always-visible Last Updated date */}
         <p className="text-sm text-gray-500 text-center mb-6">
           {isES
             ? "Última actualización: 19 de noviembre de 2025"
@@ -88,7 +87,41 @@ export default function TermsPage() {
         </ul>
 
         <h2 className="text-2xl font-semibold mt-8 mb-3 text-gray-900">
-          {isES ? "3. Pagos y Transacciones" : "3. Payments and Transactions"}
+          {isES
+            ? "3. Seguro y Responsabilidad de Riesgo"
+            : "3. Insurance and Risk Responsibility"}
+        </h2>
+        <p className="text-gray-700 mb-4">
+          {isES ? (
+            <>
+              Prosperity Hub no proporciona cobertura de seguro para anuncios,
+              activos o servicios ofrecidos a través de la plataforma. Los
+              proveedores son responsables de garantizar que cualquier activo
+              o servicio listado esté debidamente asegurado cuando así lo
+              requiera la ley o las políticas aplicables. Los clientes son
+              responsables de confirmar su propia cobertura o aceptar la
+              responsabilidad antes de reservar o utilizar cualquier activo o
+              servicio listado. Prosperity Hub actúa únicamente como un
+              conector de mercado y no garantiza cobertura de seguro para
+              ninguna transacción.
+            </>
+          ) : (
+            <>
+              Prosperity Hub does not provide insurance coverage for listings,
+              assets, or services offered through the platform. Providers are
+              responsible for ensuring that any listed assets or services are
+              properly insured where required by law or applicable policies.
+              Customers are responsible for confirming their own coverage or
+              accepting responsibility before booking or using any listed
+              asset or service. Prosperity Hub acts solely as a marketplace
+              connector and does not guarantee insurance coverage for any
+              transaction.
+            </>
+          )}
+        </p>
+
+        <h2 className="text-2xl font-semibold mt-8 mb-3 text-gray-900">
+          {isES ? "4. Pagos y Transacciones" : "4. Payments and Transactions"}
         </h2>
         <p className="text-gray-700 mb-4">
           {isES ? (
@@ -110,7 +143,7 @@ export default function TermsPage() {
         </p>
 
         <h2 className="text-2xl font-semibold mt-8 mb-3 text-gray-900">
-          {isES ? "4. Limitación de Responsabilidad" : "4. Limitation of Liability"}
+          {isES ? "5. Limitación de Responsabilidad" : "5. Limitation of Liability"}
         </h2>
         <p className="text-gray-700 mb-4">
           {isES ? (
@@ -131,7 +164,7 @@ export default function TermsPage() {
         </p>
 
         <h2 className="text-2xl font-semibold mt-8 mb-3 text-gray-900">
-          {isES ? "5. Terminación" : "5. Termination"}
+          {isES ? "6. Terminación" : "6. Termination"}
         </h2>
         <p className="text-gray-700 mb-4">
           {isES ? (
@@ -150,7 +183,7 @@ export default function TermsPage() {
         </p>
 
         <h2 className="text-2xl font-semibold mt-8 mb-3 text-gray-900">
-          {isES ? "6. Actualizaciones de los Términos" : "6. Updates to Terms"}
+          {isES ? "7. Actualizaciones de los Términos" : "7. Updates to Terms"}
         </h2>
         <p className="text-gray-700 mb-4">
           {isES ? (
@@ -172,7 +205,7 @@ export default function TermsPage() {
         </p>
 
         <h2 className="text-2xl font-semibold mt-8 mb-3 text-gray-900">
-          {isES ? "7. Contáctanos" : "7. Contact Us"}
+          {isES ? "8. Contáctanos" : "8. Contact Us"}
         </h2>
         <p className="text-gray-700">
           {isES ? (
@@ -182,8 +215,8 @@ export default function TermsPage() {
             </>
           ) : (
             <>
-              If you have any questions about these Terms and Conditions, please
-              contact us at{" "}
+              If you have any questions about these Terms and Conditions,
+              please contact us at{" "}
             </>
           )}
           <a
