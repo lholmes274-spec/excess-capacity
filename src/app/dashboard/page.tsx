@@ -193,7 +193,7 @@ export default function Dashboard() {
             Welcome, {user?.email} {isSubscribed && "💎"}
           </h1>
 
-          {stripeSynced && stripeStatus === "active" && (
+          {stripeSynced && profile?.stripe_charges_enabled && profile?.stripe_payouts_enabled && (
             <p className="text-sm text-green-700 mb-4">
               ✅ Stripe payments are active
             </p>
@@ -234,7 +234,8 @@ export default function Dashboard() {
               </div>
             )}
 
-            {stripeSynced && profile?.stripe_account_id && !profile?.stripe_charges_enabled && (
+            {stripeSynced && profile?.stripe_account_id && !(profile?.stripe_charges_enabled && profile?.stripe_payouts_enabled) && (
+
               <div className="p-5 bg-white border-2 border-yellow-400 rounded-xl shadow">
                 <h3 className="font-semibold text-yellow-700">
                   {stripeRequirements.length > 0
