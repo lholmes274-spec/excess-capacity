@@ -234,10 +234,12 @@ export default function Dashboard() {
               </div>
             )}
 
-            {stripeSynced && profile?.stripe_account_id && stripeStatus === "pending" && (
+            {stripeSynced && profile?.stripe_account_id && !profile?.stripe_charges_enabled && (
               <div className="p-5 bg-white border-2 border-yellow-400 rounded-xl shadow">
                 <h3 className="font-semibold text-yellow-700">
-                  ⏳ Verification in progress
+                  {stripeRequirements.length > 0
+                  ? "⚠️ Action Required"
+                  : "⏳ Verification in Progress"}
                 </h3>
 
                 {stripeRequirements.length > 0 ? (
