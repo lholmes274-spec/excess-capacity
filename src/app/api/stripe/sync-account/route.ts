@@ -103,13 +103,26 @@ export async function POST() {
       !hasRequirements &&
       !hasRestriction;
 
+    // 🔥 NEW — More precise Stripe status
+    let stripeStatus = "pending";
+
+    if (isFullyActive) {
+      stripeStatus = "active";
+    } else if (hasRestriction) {
+      stripeStatus = "restricted";
+    } else if (!details_submitted || requirements_due.length > 0) {
+      stripeStatus = "incomplete";
+    } else {
+      stripeStatus = "reviewing";
+    }
+
     // 4️⃣ Sync Supabase with Stripe truth
     const { error: updateError } = await supabase
       .from("profiles")
       .update({
         stripe_charges_enabled: charges_enabled,
         stripe_payouts_enabled: payouts_enabled,
-        stripe_account_status: isFullyActive ? "active" : "pending",
+        stripe_account_status: stripeStatus,
         stripe_requirements_currently_due: requirements_due,
         updated_at: new Date().toISOString(),
       })
@@ -124,7 +137,7 @@ export async function POST() {
       success: true,
       stripe_charges_enabled: charges_enabled,
       stripe_payouts_enabled: payouts_enabled,
-      stripe_account_status: isFullyActive ? "active" : "pending",
+      stripe_account_status: stripeStatus,
     });
   } catch (err: any) {
     console.error("Stripe sync error:", err);
