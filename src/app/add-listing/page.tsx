@@ -152,11 +152,6 @@ export default function AddListingPage() {
     e.preventDefault();
     if (loading) return; // 🔒 HARD STOP
 
-    if (!stripeReady) {
-      alert("You must connect Stripe before publishing a listing.");
-      return;
-    }
-
     setLoading(true);
 
     const { data: userData } = await supabase.auth.getUser();
@@ -258,10 +253,11 @@ export default function AddListingPage() {
       {!stripeReady && (
         <div className="mb-6 p-5 bg-white border-2 border-red-400 rounded-xl shadow">
           <h3 className="font-semibold text-red-700">
-            ❌ Payout setup required
+            ⚠️ Stripe not connected
           </h3>
           <p className="text-sm text-gray-600 mt-1">
-            You must connect Stripe to publish listings and receive payouts.
+            You can create and publish listings.
+            To receive payouts, please connect Stripe.
           </p>
           <button
             onClick={handleConnectStripe}
@@ -516,7 +512,7 @@ export default function AddListingPage() {
         {/* Submit */}
         <button
           type="submit"
-          disabled={loading || !stripeReady}
+          disabled={loading}
           className="w-full bg-orange-600 hover:bg-orange-700 text-white p-3 rounded-lg font-semibold transition disabled:opacity-50"
         >
           {loading ? "Submitting..." : "Add Listing"}
