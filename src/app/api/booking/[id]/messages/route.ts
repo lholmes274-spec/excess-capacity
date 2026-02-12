@@ -11,8 +11,6 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-const resend = new Resend(process.env.RESEND_API_KEY!);
-
 // --------------------------------------------------
 // POST: Send booking message + notify participant
 // --------------------------------------------------
@@ -133,6 +131,14 @@ export async function POST(
     // --------------------------------------------------
     // Send Prosperity Hub™ email
     // --------------------------------------------------
+
+    if (!process.env.RESEND_API_KEY) {
+      console.warn("⚠️ RESEND_API_KEY missing. Skipping email send.");
+      return NextResponse.json({ success: true });
+    }
+
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    
     try {
       await resend.emails.send({
         from: `Prosperity Hub™ <${process.env.RESEND_FROM_EMAIL}>`,
