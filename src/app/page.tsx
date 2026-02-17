@@ -8,11 +8,10 @@ import { useLanguage } from "./components/LanguageProvider";
 
 export default function HomePage() {
   const [realListings, setRealListings] = useState([]);
-  const [user, setUser] = useState(undefined); // undefined = loading, null = no user
+  const [user, setUser] = useState(undefined);
   const { language } = useLanguage();
   const isES = language === "es";
 
-  // Load listings and check auth
   useEffect(() => {
     async function load() {
       const { data } = await supabase.auth.getUser();
@@ -22,7 +21,7 @@ export default function HomePage() {
         .from("listings")
         .select("*")
         .eq("demo_mode", false)
-        .eq("listing_status", "active") 
+        .eq("listing_status", "active")
         .limit(6);
 
       setRealListings(realData || []);
@@ -55,7 +54,6 @@ export default function HomePage() {
             boxShadow: "0 8px 30px rgba(0,0,0,0.10)",
           }}
         >
-          {/* 🔵 Blue rectangle behind the title */}
           <div className="inline-block bg-[#0057ff] px-6 py-2 rounded-md">
             <h1 className="text-4xl font-extrabold tracking-tight text-white">
               Prosperity Hub™
@@ -82,7 +80,6 @@ export default function HomePage() {
             : "List unused items, rent from neighbors, and discover opportunities within your local community."}
         </p>
 
-        {/* CTA BUTTONS (ONLY WHEN LOGGED OUT) */}
         {user === null && (
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
             <Link href="/signup">
@@ -113,10 +110,28 @@ export default function HomePage() {
               href={`/listings/${listing.id}`}
               className="bg-white rounded-xl shadow p-4 border border-gray-200 hover:shadow-lg transition"
             >
-              <img
-                src={listing.image_url}
-                className="w-full h-40 object-cover rounded-lg"
-              />
+              {/* IMAGE + BADGE WRAPPER */}
+              <div className="relative">
+                <img
+                  src={listing.image_url}
+                  className="w-full h-40 object-cover rounded-lg"
+                />
+
+                {/* RENT / SALE BADGE */}
+                {listing.transaction_type && (
+                  <div
+                    className={`absolute top-2 right-2 px-3 py-1 text-xs font-semibold rounded-full text-white shadow ${
+                      listing.transaction_type === "booking"
+                        ? "bg-blue-600"
+                        : "bg-green-600"
+                    }`}
+                  >
+                    {listing.transaction_type === "booking"
+                      ? "Rent"
+                      : "Sale"}
+                  </div>
+                )}
+              </div>
 
               <h3 className="text-lg font-semibold mt-3">
                 {listing.title}
