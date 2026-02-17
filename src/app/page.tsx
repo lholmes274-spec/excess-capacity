@@ -112,7 +112,7 @@ export default function HomePage() {
               : "Prosperity Hub™ is expanding into new communities. Early providers receive maximum visibility as the platform grows."}
           </p>
 
-          <Link href="/create-listing">
+          <Link href="/add-listing">
             <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full text-lg font-semibold transition">
               {isES ? "Crear tu primer anuncio" : "Create Your First Listing"}
             </button>
