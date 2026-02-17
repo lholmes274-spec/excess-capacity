@@ -97,6 +97,29 @@ export default function HomePage() {
         )}
       </div>
 
+      {/* 🚀 EARLY PROVIDER POSITIONING SECTION */}
+      <div className="mt-16 px-6">
+        <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-md p-10 text-center border border-gray-200">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            {isES
+              ? "Sé uno de los primeros proveedores en tu área"
+              : "Be One of the First Providers in Your Area"}
+          </h2>
+
+          <p className="text-gray-600 max-w-2xl mx-auto mb-6">
+            {isES
+              ? "Prosperity Hub™ está expandiéndose a nuevas comunidades. Los primeros proveedores reciben máxima visibilidad a medida que la plataforma crece."
+              : "Prosperity Hub™ is expanding into new communities. Early providers receive maximum visibility as the platform grows."}
+          </p>
+
+          <Link href="/create-listing">
+            <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full text-lg font-semibold transition">
+              {isES ? "Crear tu primer anuncio" : "Create Your First Listing"}
+            </button>
+          </Link>
+        </div>
+      </div>
+
       {/* AVAILABLE LISTINGS */}
       <div className="mt-14 px-4 max-w-5xl mx-auto mb-20">
         <h2 className="text-2xl font-semibold mb-4">
@@ -110,14 +133,12 @@ export default function HomePage() {
               href={`/listings/${listing.id}`}
               className="bg-white rounded-xl shadow p-4 border border-gray-200 hover:shadow-lg transition"
             >
-              {/* IMAGE + BADGE WRAPPER */}
               <div className="relative">
                 <img
                   src={listing.image_url}
                   className="w-full h-40 object-cover rounded-lg"
                 />
 
-                {/* RENT / SALE BADGE */}
                 {listing.transaction_type && (
                   <div
                     className={`absolute top-2 right-2 px-3 py-1 text-xs font-semibold rounded-full text-white shadow ${
