@@ -25,6 +25,7 @@ type Listing = {
   pricing_type?: string | null;
   demo_mode?: boolean;
   listing_status?: string | null;
+  transaction_type?: string | null; // ✅ Added
 };
 
 function ListingsContent() {
@@ -43,8 +44,8 @@ function ListingsContent() {
         const { data, error } = await supabase
           .from("listings")
           .select("*")
-          .eq("demo_mode", false)              // hide demo listings
-          .eq("listing_status", "active")     // ✅ hide paused listings
+          .eq("demo_mode", false)
+          .eq("listing_status", "active")
           .order("created_at", { ascending: false });
 
         if (error) throw error;
@@ -134,19 +135,39 @@ function ListingsContent() {
                 href={`/listings/${listing.id}`}
                 className="block bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition p-4"
               >
-                {thumbnail ? (
-                  <img
-                    src={thumbnail}
-                    alt={listing.title}
-                    className="w-full h-48 object-cover rounded-lg mb-3"
-                  />
-                ) : (
-                  <div className="w-full h-48 bg-gray-200 rounded-lg mb-3 flex items-center justify-center text-gray-500 text-sm">
-                    No Image
-                  </div>
-                )}
+                {/* Image + Badge Wrapper */}
+                <div className="relative mb-3">
+                  {thumbnail ? (
+                    <img
+                      src={thumbnail}
+                      alt={listing.title}
+                      className="w-full h-48 object-cover rounded-lg"
+                    />
+                  ) : (
+                    <div className="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center text-gray-500 text-sm">
+                      No Image
+                    </div>
+                  )}
 
-                <h2 className="text-lg font-semibold mb-1">{listing.title}</h2>
+                  {/* Rent / Sale Badge */}
+                  {listing.transaction_type && (
+                    <div
+                      className={`absolute top-2 right-2 px-3 py-1 text-xs font-semibold rounded-full text-white shadow-sm ${
+                        listing.transaction_type === "booking"
+                          ? "bg-blue-600"
+                          : "bg-green-600"
+                      }`}
+                    >
+                      {listing.transaction_type === "booking"
+                        ? "Rent"
+                        : "Sale"}
+                    </div>
+                  )}
+                </div>
+
+                <h2 className="text-lg font-semibold mb-1">
+                  {listing.title}
+                </h2>
                 <p className="text-sm text-gray-600 mb-2 line-clamp-2">
                   {listing.description}
                 </p>
