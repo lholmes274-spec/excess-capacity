@@ -55,6 +55,12 @@ export default function Dashboard() {
        try {
          await fetch("/api/geo-reconcile", {
           method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: data.user.id,
+          }),
          });
        } catch (err) {
          console.error("Geo reconcile failed:", err);
