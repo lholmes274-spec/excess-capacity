@@ -44,11 +44,22 @@ export default function Dashboard() {
           stripe_account_status,
           stripe_charges_enabled,
           stripe_payouts_enabled,
-          stripe_requirements_currently_due
+          stripe_requirements_currently_due,
+          signup_country
         `
         )
         .eq("id", data.user.id)
         .single();
+
+      if (!initialProfile?.signup_country) {
+       try {
+         await fetch("/api/geo-reconcile", {
+          method: "POST",
+         });
+       } catch (err) {
+         console.error("Geo reconcile failed:", err);
+       }
+      }
 
       // ⭐ ALWAYS reconcile Stripe → Supabase when Stripe is connected
       if (initialProfile?.stripe_account_id) {
@@ -73,7 +84,8 @@ export default function Dashboard() {
           stripe_account_status,
           stripe_charges_enabled,
           stripe_payouts_enabled,
-          stripe_requirements_currently_due
+          stripe_requirements_currently_due,
+          signup_country
         `
         )
         .eq("id", data.user.id)
