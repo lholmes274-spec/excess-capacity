@@ -13,14 +13,16 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ Use Vercel built-in geo (NO external API)
-    const geo = (req as any).geo || {};
+    // ✅ Get Geo from Vercel headers (Next 14 compatible)
+    const signup_country =
+      req.headers.get("x-vercel-ip-country") || null;
 
-    const signup_country = geo.country || null;
-    const signup_region = geo.region || null;
-    const signup_city = geo.city || null;
+    const signup_region =
+      req.headers.get("x-vercel-ip-country-region") || null;
 
-    // ✅ Create Supabase Client
+    const signup_city =
+      req.headers.get("x-vercel-ip-city") || null;
+
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -31,7 +33,6 @@ export async function POST(req: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // ✅ Create auth user
     const { data: authData, error: authError } =
       await supabase.auth.signUp({
         email,
@@ -47,7 +48,6 @@ export async function POST(req: Request) {
 
     const userId = authData.user.id;
 
-    // ✅ Insert into profiles (clean geo structure)
     const { error: profileError } = await supabaseAdmin
       .from("profiles")
       .upsert(
