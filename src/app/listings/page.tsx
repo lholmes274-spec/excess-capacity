@@ -1,5 +1,6 @@
 // @ts-nocheck
 "use client";
+console.log("🔥 VERSION TEST 1 🔥");
 export const dynamic = "force-dynamic";
 
 import { Suspense, useEffect, useState } from "react";
