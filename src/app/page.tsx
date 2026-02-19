@@ -163,6 +163,16 @@ export default function HomePage() {
             </Link>
           ))}
         </div>
+
+        {/* VIEW ALL LISTINGS BUTTON (ADDED) */}
+        <div className="text-center mt-10">
+          <Link href="/listings">
+            <button className="bg-gray-900 hover:bg-black text-white px-8 py-3 rounded-full font-semibold transition">
+              {isES ? "Ver todos los anuncios" : "View All Listings"}
+            </button>
+          </Link>
+        </div>
+
       </div>
     </div>
   );
