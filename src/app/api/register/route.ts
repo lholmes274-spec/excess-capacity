@@ -29,14 +29,14 @@ export async function POST(req: Request) {
     let region = null;
 
     try {
-    const geoRes = await fetch(`https://ipwho.is/${ip}`);
+    const geoRes = await fetch(`https://ipapi.co/${ip}/json/`);
     const geoData = await geoRes.json();
 
-      console.log("GEO DATA:", geoData);
+    console.log("GEO DATA:", geoData);
 
-    if (geoData.success) {
-      country = geoData.country || null;
-      country_code = geoData.country_code || null;
+    if (!geoData.error) {
+      country = geoData.country_name || null;
+      country_code = geoData.country || null;
       city = geoData.city || null;
       region = geoData.region || null;
     } else {
