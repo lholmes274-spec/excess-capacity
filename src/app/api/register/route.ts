@@ -13,43 +13,17 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ Get IP address from headers
-    const forwardedFor = req.headers.get("x-forwarded-for");
-    const realIp = req.headers.get("x-real-ip");
+    // ✅ Use Vercel built-in geo (NO external API)
+    const geo = (req as any).geo || {};
 
-    const ip =
-      forwardedFor?.split(",")[0]?.trim() ||
-      realIp ||
-      "8.8.8.8"; // fallback for local dev
+    const signup_country = geo.country || null;
+    const signup_region = geo.region || null;
+    const signup_city = geo.city || null;
 
-    // ✅ Fetch geo data from ipapi
-    let country = null;
-    let country_code = null;
-    let city = null;
-    let region = null;
-
-    try {
-    const geoRes = await fetch(`https://ipapi.co/${ip}/json/`);
-    const geoData = await geoRes.json();
-
-    console.log("GEO DATA:", geoData);
-
-    if (!geoData.error) {
-      country = geoData.country_name || null;
-      country_code = geoData.country || null;
-      city = geoData.city || null;
-      region = geoData.region || null;
-    } else {
-      console.log("Geo failed:", geoData);
-    }
-    } catch (geoError) {
-      console.error("Geo lookup failed:", geoError);
-    }
-
-    // ✅ Create Supabase Admin Client (server-side only)
+    // ✅ Create Supabase Client
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
 
     const supabaseAdmin = createClient(
@@ -73,22 +47,20 @@ export async function POST(req: Request) {
 
     const userId = authData.user.id;
 
-    // ✅ Insert into profiles with geo data
+    // ✅ Insert into profiles (clean geo structure)
     const { error: profileError } = await supabaseAdmin
       .from("profiles")
       .upsert(
         {
-        id: userId,
-        email: email,
-        display_name: displayName?.trim() || null,
-        country,
-        country_code,
-        signup_ip: ip,
-        signup_city: city,
-        signup_region: region,
-      },
-      { onConflict: "id" }
-    );
+          id: userId,
+          email: email,
+          display_name: displayName?.trim() || null,
+          signup_country,
+          signup_region,
+          signup_city,
+        },
+        { onConflict: "id" }
+      );
 
     if (profileError) {
       return NextResponse.json(
