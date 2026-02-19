@@ -32,6 +32,8 @@ export async function POST(req: Request) {
       const geoRes = await fetch(`https://ipapi.co/${ip}/json/`);
       const geoData = await geoRes.json();
 
+      console.log("GEO DATA:", geoData);
+
       country = geoData.country_name || null;
       country_code = geoData.country || null;
       city = geoData.city || null;
