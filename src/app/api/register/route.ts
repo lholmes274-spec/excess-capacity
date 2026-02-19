@@ -20,8 +20,8 @@ export async function POST(req: Request) {
     const signup_region =
       req.headers.get("x-vercel-ip-country-region") || null;
 
-    const signup_city =
-      req.headers.get("x-vercel-ip-city") || null;
+    const rawCity = req.headers.get("x-vercel-ip-city");
+    const signup_city = rawCity ? decodeURIComponent(rawCity) : null;
 
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
