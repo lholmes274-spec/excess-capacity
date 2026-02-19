@@ -48,6 +48,9 @@ function ListingsContent() {
           .eq("listing_status", "active")
           .order("created_at", { ascending: false });
 
+        console.log("Returned listings count:", data?.length);
+        console.log("Returned listing IDs:", data?.map(l => l.id));
+
         if (error) throw error;
         setListings(data || []);
       } catch (err) {
