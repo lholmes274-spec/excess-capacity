@@ -46,6 +46,11 @@ export async function POST(req: Request) {
        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
 
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
     // ✅ Create auth user
     const { data: authData, error: authError } =
       await supabase.auth.signUp({
@@ -63,7 +68,7 @@ export async function POST(req: Request) {
     const userId = authData.user.id;
 
     // ✅ Insert into profiles with geo data
-    const { error: profileError } = await supabase
+    const { error: profileError } = await supabaseAdmin
       .from("profiles")
       .upsert(
         {
