@@ -66,7 +66,8 @@ export async function POST(req: Request) {
     // ✅ Insert into profiles with geo data
     const { error: profileError } = await supabase
       .from("profiles")
-      .insert({
+      .upsert(
+        {
         id: userId,
         email: email,
         display_name: displayName?.trim() || null,
@@ -75,7 +76,9 @@ export async function POST(req: Request) {
         signup_ip: ip,
         signup_city: city,
         signup_region: region,
-      });
+      },
+      { onConflict: "id" }
+    );
 
     if (profileError) {
       return NextResponse.json(
