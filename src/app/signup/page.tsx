@@ -77,36 +77,29 @@ export default function SignupPage() {
 
     setLoading(true);
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
+    // ✅ NEW: Call server-side API instead of client Supabase
+    const response = await fetch("/api/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        password,
+        displayName,
+      }),
     });
 
-    if (error) {
+    const result = await response.json();
+
+    if (!response.ok) {
       setLoading(false);
-      alert(error.message);
+      alert(result.error || "Registration failed.");
       return;
-    }
-
-    // ✅ Create profile (display name OPTIONAL)
-    if (data?.user) {
-      await supabase.from("profiles").insert({
-        id: data.user.id,
-        display_name: displayName.trim() || null,
-        email: email,
-      });
-
-      // ✅ Optional: populate auth metadata for admin / emails
-      if (displayName.trim()) {
-        await supabase.auth.updateUser({
-          data: { display_name: displayName.trim() },
-        });
-      }
     }
 
     setLoading(false);
     router.push(`/signup-thankyou?email=${encodeURIComponent(email)}`);
-
   };
 
   const handleGoogleLogin = async () => {
