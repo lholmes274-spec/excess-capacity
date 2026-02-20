@@ -190,8 +190,10 @@ export default function AddListingPage() {
 
     const primaryImage = uploadedUrls[0] || null;
 
-    const { error } = await supabase.from("listings").insert([
-      {
+    const { data: insertedListing, error } = await supabase
+      .from("listings")
+      .insert([
+       {
         owner_id: userId,
         title: form.title,
         description: form.description,
@@ -212,8 +214,10 @@ export default function AddListingPage() {
         demo_mode: form.demo_mode,
         image_url: primaryImage,
         image_urls: uploadedUrls,
-      },
-    ]);
+       },
+    ])
+    .select()
+    .single();
 
     setLoading(false);
 
