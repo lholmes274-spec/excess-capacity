@@ -22,6 +22,7 @@ export default function HomePage() {
         .select("*")
         .eq("demo_mode", false)
         .eq("listing_status", "active")
+        .order("created_at", { ascending: false }) // 👈 NEW LINE
         .limit(6);
 
       setRealListings(realData || []);
