@@ -154,6 +154,19 @@ export default function AddListingPage() {
 
     setLoading(true);
 
+    // 🚫 BLOCK EXTERNAL LINKS IN DESCRIPTION
+    const containsExternalLink =
+      form.description.includes("http") ||
+      form.description.includes("https") ||
+      form.description.includes("www.");
+    if (containsExternalLink) {
+      alert(
+         "External links are not allowed in listing descriptions.\n\nPlease remove any website URLs before submitting."
+      );
+      setLoading(false);
+      return;
+    }
+
     const { data: userData } = await supabase.auth.getUser();
     const userId = userData?.user?.id;
 
