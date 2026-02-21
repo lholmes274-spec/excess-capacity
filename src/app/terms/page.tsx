@@ -15,8 +15,8 @@ export default function TermsPage() {
 
         <p className="text-sm text-gray-500 text-center mb-6">
           {isES
-            ? "Última actualización: 7 de febrero de 2026"
-            : "Last updated: February 7, 2026"}
+            ? "Última actualización: 21 de febrero de 2026"
+            : "Last updated: February 21, 2026"}
         </p>
 
         <p className="text-gray-700 mb-4">
@@ -37,6 +37,7 @@ export default function TermsPage() {
           )}
         </p>
 
+        {/* 1 */}
         <h2 className="text-2xl font-semibold mt-8 mb-3 text-gray-900">
           {isES ? "1. Propósito de la Plataforma" : "1. Purpose of the Platform"}
         </h2>
@@ -59,6 +60,7 @@ export default function TermsPage() {
           )}
         </p>
 
+        {/* 2 */}
         <h2 className="text-2xl font-semibold mt-8 mb-3 text-gray-900">
           {isES ? "2. Responsabilidades del Usuario" : "2. User Responsibilities"}
         </h2>
@@ -86,6 +88,7 @@ export default function TermsPage() {
           )}
         </ul>
 
+        {/* 3 */}
         <h2 className="text-2xl font-semibold mt-8 mb-3 text-gray-900">
           {isES
             ? "3. Seguro y Responsabilidad de Riesgo"
@@ -120,6 +123,7 @@ export default function TermsPage() {
           )}
         </p>
 
+        {/* 4 */}
         <h2 className="text-2xl font-semibold mt-8 mb-3 text-gray-900">
           {isES ? "4. Pagos y Transacciones" : "4. Payments and Transactions"}
         </h2>
@@ -142,16 +146,45 @@ export default function TermsPage() {
           )}
         </p>
 
+        {/* 5 NEW */}
         <h2 className="text-2xl font-semibold mt-8 mb-3 text-gray-900">
-          {isES ? "5. Limitación de Responsabilidad" : "5. Limitation of Liability"}
+          {isES
+            ? "5. Reglas de Anuncios y Transacciones Externas"
+            : "5. Listing and Off-Platform Transaction Rules"}
+        </h2>
+        <p className="text-gray-700 mb-4">
+          {isES ? (
+            <>
+              Los anuncios no pueden incluir enlaces externos, enlaces de donación
+              ni instrucciones que dirijan a los usuarios a completar pagos o
+              transacciones fuera de Prosperity Hub. Todas las reservas y pagos
+              deben realizarse exclusivamente a través de la plataforma.
+              Prosperity Hub se reserva el derecho de eliminar cualquier anuncio
+              que intente redirigir usuarios fuera del sistema.
+            </>
+          ) : (
+            <>
+              Listings may not include external website links, donation links,
+              or instructions directing users to complete payments or
+              transactions outside of Prosperity Hub. All bookings and payments
+              must occur exclusively through the platform. Prosperity Hub
+              reserves the right to remove any listing that attempts to redirect
+              users outside of the system.
+            </>
+          )}
+        </p>
+
+        {/* 6 */}
+        <h2 className="text-2xl font-semibold mt-8 mb-3 text-gray-900">
+          {isES ? "6. Limitación de Responsabilidad" : "6. Limitation of Liability"}
         </h2>
         <p className="text-gray-700 mb-4">
           {isES ? (
             <>
               Prosperity Hub no es responsable de daños directos, indirectos,
               incidentales o consecuentes derivados de interacciones entre
-              usuarios, uso indebido de anuncios o acciones de terceros. Los
-              usuarios participan bajo su propio riesgo y discreción.
+              usuarios, uso indebido de anuncios o acciones de terceros.
+              Los usuarios participan bajo su propio riesgo y discreción.
             </>
           ) : (
             <>
@@ -163,8 +196,9 @@ export default function TermsPage() {
           )}
         </p>
 
+        {/* 7 */}
         <h2 className="text-2xl font-semibold mt-8 mb-3 text-gray-900">
-          {isES ? "6. Terminación" : "6. Termination"}
+          {isES ? "7. Terminación" : "7. Termination"}
         </h2>
         <p className="text-gray-700 mb-4">
           {isES ? (
@@ -182,65 +216,48 @@ export default function TermsPage() {
           )}
         </p>
 
+        {/* 8 */}
         <h2 className="text-2xl font-semibold mt-8 mb-3 text-gray-900">
-          {isES ? "7. Actualizaciones de los Términos" : "7. Updates to Terms"}
+          {isES ? "8. Actualizaciones de los Términos" : "8. Updates to Terms"}
         </h2>
         <p className="text-gray-700 mb-4">
           {isES ? (
             <>
               Estos Términos y Condiciones pueden actualizarse periódicamente
               para reflejar cambios en políticas, leyes o funciones del
-              servicio. El uso continuo de la plataforma después de dichas
-              actualizaciones constituye la aceptación de los términos
-              revisados.
+              servicio.
             </>
           ) : (
             <>
               These Terms and Conditions may be updated from time to time to
-              reflect changes in policies, laws, or service features. Your
-              continued use of the platform after such updates constitutes
-              acceptance of the revised terms.
+              reflect changes in policies, laws, or service features.
             </>
           )}
         </p>
 
+        {/* 9 */}
         <h2 className="text-2xl font-semibold mt-8 mb-3 text-gray-900">
-          {isES ? "8. Contáctanos" : "8. Contact Us"}
+          {isES ? "9. Contáctanos" : "9. Contact Us"}
         </h2>
         <p className="text-gray-700">
-          {isES ? (
-            <>
-              Si tienes alguna pregunta sobre estos Términos y Condiciones,
-              contáctanos en{" "}
-            </>
-          ) : (
-            <>
-              If you have any questions about these Terms and Conditions,
-              please contact us at{" "}
-            </>
-          )}
           <a
             href="mailto:support@prosperityhub.app"
             className="text-green-700 underline hover:text-green-900"
           >
             support@prosperityhub.app
           </a>
-          .
         </p>
 
         <p className="text-gray-600 text-sm mt-10">
           {isES ? (
             <>
               ProsperityHub.app es propiedad y está operado por{" "}
-              <strong>Prosperity Voyage LLC</strong>, la entidad comercial oficial
-              responsable de todos los servicios proporcionados a través de la
-              plataforma.
+              <strong>Prosperity Voyage LLC</strong>.
             </>
           ) : (
             <>
               ProsperityHub.app is owned and operated by{" "}
-              <strong>Prosperity Voyage LLC</strong>, the official business entity
-              responsible for all services provided through the platform.
+              <strong>Prosperity Voyage LLC</strong>.
             </>
           )}
         </p>
