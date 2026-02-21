@@ -142,7 +142,14 @@ export default function AddListingPage() {
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
+
     const files = Array.from(e.target.files);
+
+    // 🔒 HARD LIMIT: 10 images max
+    if (files.length > 10) {
+      alert("You can upload a maximum of 10 images per listing.");
+      return;
+    }
 
     setImages(files);
     setPreviewUrls(files.map((file) => URL.createObjectURL(file)));
