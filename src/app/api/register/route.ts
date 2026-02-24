@@ -37,6 +37,9 @@ export async function POST(req: Request) {
       await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: "https://prosperityhub.app/auth/callback",
+        },
       });
 
     if (authError || !authData.user) {
