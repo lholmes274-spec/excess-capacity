@@ -13,6 +13,9 @@ export default function Dashboard() {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  // ✅ Listing activation metric
+  const [listingCount, setListingCount] = useState<number>(0);
+
   // 🔑 NEW — gate Stripe UI until sync completes
   const [stripeSynced, setStripeSynced] = useState(false);
 
@@ -98,6 +101,19 @@ export default function Dashboard() {
         .single();
 
       setProfile(syncedProfile);
+
+      // ✅ Fetch listing count
+      const { count, error: countError } = await supabase
+        .from("listings")
+        .select("id", { count: "exact", head: true })
+        .eq("owner_id", data.user.id);
+
+      if (countError) {
+       console.error("Listing count fetch error:", countError);
+      }
+
+      setListingCount(count || 0);
+
       // 🔑 Stripe → Supabase reconciliation complete
       setStripeSynced(true);
 
@@ -210,6 +226,35 @@ export default function Dashboard() {
           <h1 className="text-2xl font-bold mb-2">
             Welcome, {user?.email} {isSubscribed && "💎"}
           </h1>
+
+          {/* 🚀 First Listing Activation */}
+          {listingCount === 0 && (
+            <div className="mt-6 p-6 rounded-2xl shadow-md border border-yellow-400 bg-yellow-50">
+              <h3 className="text-lg font-semibold text-yellow-800">
+                🚀 Complete Your First Listing (Takes 5 Minutes)
+              </h3>
+
+              <p className="text-sm text-gray-700 mt-2">
+                Start earning by sharing your unused space, tools, equipment, or services.
+              </p>
+
+              <ul className="list-disc list-inside text-sm text-gray-700 mt-3 space-y-1">
+                <li>Upload 1 photo</li>
+                <li>Add a title</li>
+                <li>Set a price</li>
+              </ul>
+
+              <p className="text-sm text-gray-600 mt-3">
+                You can edit anytime.
+              </p>
+
+              <Link href="/add-listing">
+                <div className="mt-4 w-full text-center px-4 py-3 rounded-lg font-semibold text-black bg-gradient-to-r from-yellow-300 to-yellow-500 hover:opacity-90 transition">
+                  Create My First Listing
+                </div>
+              </Link>
+             </div>
+            )}
 
           {stripeSynced && profile?.stripe_charges_enabled && profile?.stripe_payouts_enabled && (
             <p className="text-sm text-green-700 mb-4">
