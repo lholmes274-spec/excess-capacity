@@ -57,6 +57,7 @@ export default function FAQPage() {
           </p>
         </div>
 
+        {/* UPDATED SECTION */}
         <div>
           <h2 className="font-semibold text-lg">
             {isES
@@ -65,8 +66,8 @@ export default function FAQPage() {
           </h2>
           <p className="text-gray-700 mt-2">
             {isES
-              ? "Algunos anuncios permiten reservas como invitado, mientras que otros requieren una cuenta. Crear una cuenta te permite administrar reservas y anuncios más fácilmente."
-              : "Some listings allow guest bookings, while others require an account. Creating an account allows you to manage bookings and listings more easily."}
+              ? "Sí. Debes crear una cuenta para reservar un anuncio. Tener una cuenta te permite administrar tus reservas, recibir confirmaciones y comunicarte de forma segura con los proveedores."
+              : "Yes. You must create an account to book a listing. Having an account allows you to manage your bookings, receive confirmations, and communicate securely with providers."}
           </p>
         </div>
 
