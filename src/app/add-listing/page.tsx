@@ -29,6 +29,59 @@ const PRICING_INTENT: Record<
   flat_rate: { model: "duration", label: "One-time flat rate" },
 };
 
+  const US_STATES = [
+    "Alabama",
+    "Alaska",
+    "Arizona",
+    "Arkansas",
+    "California",
+    "Colorado",
+    "Connecticut",
+    "Delaware",
+    "Florida",
+    "Georgia",
+    "Hawaii",
+    "Idaho",
+    "Illinois",
+    "Indiana",
+    "Iowa",
+    "Kansas",
+    "Kentucky",
+    "Louisiana",
+    "Maine",
+    "Maryland",
+    "Massachusetts",
+    "Michigan",
+    "Minnesota",
+    "Mississippi",
+    "Missouri",
+    "Montana",
+    "Nebraska",
+    "Nevada",
+    "New Hampshire",
+    "New Jersey",
+    "New Mexico",
+    "New York",
+    "North Carolina",
+    "North Dakota",
+    "Ohio",
+    "Oklahoma",
+    "Oregon",
+    "Pennsylvania",
+    "Rhode Island",
+    "South Carolina",
+    "South Dakota",
+    "Tennessee",
+    "Texas",
+    "Utah",
+    "Vermont",
+    "Virginia",
+    "Washington",
+    "West Virginia",
+    "Wisconsin",
+    "Wyoming",
+  ];
+
 export default function AddListingPage() {
   const router = useRouter();
 
@@ -38,7 +91,7 @@ export default function AddListingPage() {
     baseprice: "",
     pricing_type: "",
     type: "",
-    location: "",
+    country: "United States",
     state: "",
     city: "",
     zip: "",
@@ -220,7 +273,7 @@ export default function AddListingPage() {
         baseprice: Number(form.baseprice),
         pricing_type: form.pricing_type,
         type: form.type.toLowerCase(),
-        location: form.location,
+        country: form.country,
         state: form.state,
         city: form.city,
         zip: form.zip,
@@ -403,15 +456,6 @@ export default function AddListingPage() {
           )}
         </div>
 
-        {/* Location */}
-        <input
-          name="location"
-          value={form.location}
-          onChange={handleChange}
-          placeholder="Location (City, State)"
-          className="w-full p-3 border rounded-lg"
-        />
-
         {/* Address */}
         <div className="space-y-3">
           <input
@@ -428,6 +472,20 @@ export default function AddListingPage() {
             placeholder="Address Line 2 (optional)"
             className="w-full p-3 border rounded-lg"
           />
+
+          <select
+            name="country"
+            value={form.country}
+            onChange={handleChange}
+            className="w-full p-3 border rounded-lg bg-white"
+          >
+            <option value="United States">United States</option>
+            <option value="Canada">Canada</option>
+            <option value="United Kingdom">United Kingdom</option>
+            <option value="Australia">Australia</option>
+            <option value="Nigeria">Nigeria</option>
+          </select>
+
           <input
             name="city"
             value={form.city}
@@ -435,13 +493,33 @@ export default function AddListingPage() {
             placeholder="City"
             className="w-full p-3 border rounded-lg"
           />
-          <input
-            name="state"
-            value={form.state}
-            onChange={handleChange}
-            placeholder="State"
-            className="w-full p-3 border rounded-lg"
-          />
+
+          {form.country === "United States" ? (
+            <select
+              name="state"
+              value={form.state}
+              onChange={handleChange}
+              required
+              className="w-full p-3 border rounded-lg bg-white"
+          >
+              <option value="">Select State</option>
+              {US_STATES.map((st) => (
+                <option key={st} value={st}>
+                  {st}
+                </option>
+           ))}
+          </select>
+          ) : (
+            <input
+              name="state"
+              value={form.state}
+              onChange={handleChange}
+              placeholder="Province / Region"
+              className="w-full p-3 border rounded-lg"
+              required
+            />
+   )}
+
           <input
             name="zip"
             value={form.zip}
