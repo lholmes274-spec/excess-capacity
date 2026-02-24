@@ -182,6 +182,11 @@ export default function AddListingPage() {
   ) => {
     const { name, value } = e.target;
 
+    if (name === "country") {
+      setForm({ ...form, country: value, state: "" });
+      return;
+    }
+
     setForm({ ...form, [name]: value });
 
     if (name === "contact_email") {
@@ -481,9 +486,7 @@ export default function AddListingPage() {
           >
             <option value="United States">United States</option>
             <option value="Canada">Canada</option>
-            <option value="United Kingdom">United Kingdom</option>
-            <option value="Australia">Australia</option>
-            <option value="Nigeria">Nigeria</option>
+            <option value="Other">Other Country</option>
           </select>
 
           <input
