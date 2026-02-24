@@ -126,7 +126,7 @@ function ListingsContent() {
             const thumbnail =
               listing.image_urls?.[0] ||
               listing.image_url ||
-              null;
+              "/prosperity-logo.png";
 
             const displayPricing =
               listing.pricing_type
