@@ -29,12 +29,19 @@ export default function Dashboard() {
 
       const { data: { session } } = await supabase.auth.getSession();
 
-      if (!session) {
+      let currentSession = session;
+
+      if (!currentSession) {
+        const { data } = await supabase.auth.refreshSession();
+        currentSession = data.session;
+      }
+
+      if (!currentSession) {
         router.push("/login");
         return;
       }
 
-      const user = session.user;
+      const user = currentSession.user;
       setUser(user);
 
       // 🔑 FIRST FETCH — may be stale
