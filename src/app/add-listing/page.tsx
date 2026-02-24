@@ -521,16 +521,25 @@ export default function AddListingPage() {
               className="w-full p-3 border rounded-lg"
               required
             />
-   )}
+          )}
 
+        <div>
+          <label className="block font-semibold mb-1">
+            {form.country === "United States" ? "ZIP Code" : "Postal Code"}
+          </label>
           <input
             name="zip"
             value={form.zip}
             onChange={handleChange}
-            placeholder="Zip Code"
+            placeholder={
+              form.country === "United States"
+                ? "Enter ZIP Code"
+                : "Enter Postal Code"
+            }
             className="w-full p-3 border rounded-lg"
           />
         </div>
+      </div>
 
         {/* Contact */}
         <div className="space-y-3">
@@ -555,7 +564,7 @@ export default function AddListingPage() {
               onChange={handleChange}
               placeholder="Contact Email"
               className={`w-full p-3 border rounded-lg pr-10 ${
-                isEmailValid === false ? "border-gray-300" : ""
+              isEmailValid === false ? "border-gray-300" : ""
               }`}
             />
             {isEmailValid && (
