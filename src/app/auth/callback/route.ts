@@ -6,22 +6,24 @@ export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
 
-  if (code) {
-    const cookieStore = cookies();
+  const response = NextResponse.redirect(
+    new URL("/dashboard", request.url)
+  );
 
+  if (code) {
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
-          get(name) {
-            return cookieStore.get(name)?.value;
+          get(name: string) {
+            return cookies().get(name)?.value;
           },
-          set(name, value, options) {
-            cookieStore.set({ name, value, ...options });
+          set(name: string, value: string, options: any) {
+            response.cookies.set(name, value, options);
           },
-          remove(name, options) {
-            cookieStore.set({ name, value: "", ...options });
+          remove(name: string, options: any) {
+            response.cookies.set(name, "", options);
           },
         },
       }
@@ -30,5 +32,5 @@ export async function GET(request: Request) {
     await supabase.auth.exchangeCodeForSession(code);
   }
 
-  return NextResponse.redirect(new URL("/dashboard", request.url));
+  return response;
 }
