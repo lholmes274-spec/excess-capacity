@@ -27,14 +27,15 @@ export default function Dashboard() {
       const params = new URLSearchParams(window.location.search);
       const fromStripe = params.get("from") === "stripe";
 
-      const { data } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
 
-      if (!data?.user) {
+      if (!session) {
         router.push("/login");
         return;
       }
 
-      setUser(data.user);
+      const user = session.user;
+      setUser(user);
 
       // 🔑 FIRST FETCH — may be stale
       const { data: initialProfile } = await supabase
@@ -51,7 +52,7 @@ export default function Dashboard() {
           signup_country
         `
         )
-        .eq("id", data.user.id)
+        .eq("id", user.id)
         .single();
 
       if (!initialProfile?.signup_country) {
@@ -62,7 +63,7 @@ export default function Dashboard() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            userId: data.user.id,
+            userId: user.id,
           }),
          });
        } catch (err) {
@@ -97,7 +98,7 @@ export default function Dashboard() {
           signup_country
         `
         )
-        .eq("id", data.user.id)
+        .eq("id", user.id)
         .single();
 
       setProfile(syncedProfile);
@@ -106,7 +107,7 @@ export default function Dashboard() {
       const { count, error: countError } = await supabase
         .from("listings")
         .select("id", { count: "exact", head: true })
-        .eq("owner_id", data.user.id);
+        .eq("owner_id", user.id)
 
       if (countError) {
        console.error("Listing count fetch error:", countError);
