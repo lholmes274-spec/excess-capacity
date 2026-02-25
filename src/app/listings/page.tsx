@@ -1,6 +1,6 @@
 // @ts-nocheck
 "use client";
-console.log("🔥 VERSION TEST 1 🔥");
+console.log("🔥 VERSION TEST 2 🔥");
 export const dynamic = "force-dynamic";
 
 import { Suspense, useEffect, useState } from "react";
@@ -26,7 +26,7 @@ type Listing = {
   pricing_type?: string | null;
   demo_mode?: boolean;
   listing_status?: string | null;
-  transaction_type?: string | null; // ✅ Added
+  transaction_type?: string | null;
 };
 
 function ListingsContent() {
@@ -38,7 +38,6 @@ function ListingsContent() {
   const searchParams = useSearchParams();
   const selectedType = searchParams.get("type");
 
-  // Fetch listings (PUBLIC: ACTIVE + NON-DEMO ONLY)
   useEffect(() => {
     async function fetchListings() {
       try {
@@ -48,9 +47,6 @@ function ListingsContent() {
           .eq("demo_mode", false)
           .eq("listing_status", "active")
           .order("created_at", { ascending: false });
-
-        console.log("Returned listings count:", data?.length);
-        console.log("Returned listing IDs:", data?.map(l => l.id));
 
         if (error) throw error;
         setListings(data || []);
@@ -63,7 +59,6 @@ function ListingsContent() {
     fetchListings();
   }, []);
 
-  // Filtering logic
   useEffect(() => {
     let filtered = [...listings];
 
@@ -124,9 +119,7 @@ function ListingsContent() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredListings.map((listing) => {
             const thumbnail =
-              listing.image_urls?.[0] ||
-              listing.image_url ||
-              "/prosperity-logo.png";
+              listing.image_urls?.[0] || listing.image_url || null;
 
             const displayPricing =
               listing.pricing_type
@@ -141,13 +134,38 @@ function ListingsContent() {
               >
                 {/* Image + Badge Wrapper */}
                 <div className="relative mb-3">
-                  <img
-                    src={thumbnail}
-                    alt={listing.title}
-                    className="w-full h-48 object-cover rounded-lg"
-                  />
+                  {thumbnail ? (
+                    <img
+                      src={thumbnail}
+                      alt={listing.title}
+                      className="w-full h-48 object-cover rounded-lg"
+                    />
+                  ) : (
+                    <div className="w-full h-48 rounded-lg flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 text-gray-500">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-8 w-8 mb-2 opacity-60"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={1.5}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M3 16l4-4a3 3 0 014 0l4 4m0 0l2-2a3 3 0 014 0l3 3M4 19h16"
+                        />
+                      </svg>
 
-                  {/* Rent / Sale Badge */}
+                      <p className="text-sm font-semibold">
+                        Image Coming Soon
+                      </p>
+                      <p className="text-xs opacity-70">
+                        Submitted by Seller
+                      </p>
+                    </div>
+                  )}
+
                   {listing.transaction_type && (
                     <div
                       className={`absolute top-2 right-2 px-3 py-1 text-xs font-semibold rounded-full text-white shadow-sm ${
