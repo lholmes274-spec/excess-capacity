@@ -268,6 +268,9 @@ export default function AddListingPage() {
 
     const primaryImage = uploadedUrls[0] || null;
 
+    const transactionType =
+      form.pricing_type === "for_sale" ? "sale" : "booking";
+
     const { data: insertedListing, error } = await supabase
       .from("listings")
       .insert([
@@ -277,6 +280,7 @@ export default function AddListingPage() {
         description: form.description,
         baseprice: Number(form.baseprice),
         pricing_type: form.pricing_type,
+        transaction_type: transactionType,
         type: form.type.toLowerCase(),
         country: form.country,
         state: form.state,
