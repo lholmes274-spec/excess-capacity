@@ -204,11 +204,29 @@ export default function ListingDetailPage() {
             className="w-full max-h-[650px] object-cover rounded-xl shadow border"
           />
         ) : (
-          <img
-            src="/prosperity-logo.png"
-            alt="Prosperity Hub Placeholder"
-            className="w-full max-h-[650px] object-cover rounded-xl shadow border"
-          />
+          <div className="w-full h-[500px] rounded-xl flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 text-gray-500 shadow border">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-12 w-12 mb-3 opacity-60"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3 16l4-4a3 3 0 014 0l4 4m0 0l2-2a3 3 0 014 0l3 3M4 19h16"
+              />
+            </svg>
+
+            <p className="text-lg font-semibold">
+              Image Coming Soon
+            </p>
+            <p className="text-sm opacity-70">
+              Submitted by Seller
+            </p>
+          </div>
         )}
 
         {/* GALLERY */}
