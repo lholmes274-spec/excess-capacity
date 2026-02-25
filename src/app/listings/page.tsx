@@ -141,17 +141,11 @@ function ListingsContent() {
               >
                 {/* Image + Badge Wrapper */}
                 <div className="relative mb-3">
-                  {thumbnail ? (
-                    <img
-                      src={thumbnail}
-                      alt={listing.title}
-                      className="w-full h-48 object-cover rounded-lg"
-                    />
-                  ) : (
-                    <div className="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center text-gray-500 text-sm">
-                      No Image
-                    </div>
-                  )}
+                  <img
+                    src={thumbnail}
+                    alt={listing.title}
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
 
                   {/* Rent / Sale Badge */}
                   {listing.transaction_type && (
