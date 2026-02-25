@@ -22,7 +22,7 @@ export default function HomePage() {
         .select("*")
         .eq("demo_mode", false)
         .eq("listing_status", "active")
-        .order("created_at", { ascending: false }) // 👈 NEW LINE
+        .order("created_at", { ascending: false })
         .limit(6);
 
       setRealListings(realData || []);
@@ -33,23 +33,10 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      {/* ⭐ PREMIUM GRADIENT BANNER WITH BLUE TITLE BOX */}
+      {/* ⭐ PREMIUM GRADIENT BANNER */}
       <div className="w-full flex justify-center px-4 mt-6">
         <div
-          className="
-            w-full 
-            max-w-[1300px]
-            rounded-2xl 
-            shadow-xl 
-            py-10 
-            px-6 
-            text-center 
-            text-white
-            bg-gradient-to-r 
-            from-[#0f172a] 
-            via-[#142c45] 
-            to-[#d4a934]
-          "
+          className="w-full max-w-[1300px] rounded-2xl shadow-xl py-10 px-6 text-center text-white bg-gradient-to-r from-[#0f172a] via-[#142c45] to-[#d4a934]"
           style={{
             borderRadius: "18px",
             boxShadow: "0 8px 30px rgba(0,0,0,0.10)",
@@ -72,7 +59,9 @@ export default function HomePage() {
       {/* HERO SECTION */}
       <div className="text-center mt-10 px-4">
         <h1 className="text-3xl font-bold text-gray-900">
-          {isES ? "Desbloquea tu prosperidad local" : "Unlock Your Local Prosperity"}
+          {isES
+            ? "Desbloquea tu prosperidad local"
+            : "Unlock Your Local Prosperity"}
         </h1>
 
         <p className="text-gray-600 mt-3 max-w-xl mx-auto">
@@ -91,14 +80,16 @@ export default function HomePage() {
 
             <Link href="/demo">
               <button className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-full text-lg font-semibold transition">
-                {isES ? "Ver anuncios de demostración" : "View Demo Listings"}
+                {isES
+                  ? "Ver anuncios de demostración"
+                  : "View Demo Listings"}
               </button>
             </Link>
           </div>
         )}
       </div>
 
-      {/* 🚀 EARLY PROVIDER POSITIONING SECTION */}
+      {/* EARLY PROVIDER SECTION */}
       <div className="mt-16 px-6">
         <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-md p-10 text-center border border-gray-200">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
@@ -115,7 +106,9 @@ export default function HomePage() {
 
           <Link href="/add-listing">
             <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full text-lg font-semibold transition">
-              {isES ? "Crear tu primer anuncio" : "Create Your First Listing"}
+              {isES
+                ? "Crear tu primer anuncio"
+                : "Create Your First Listing"}
             </button>
           </Link>
         </div>
@@ -135,10 +128,36 @@ export default function HomePage() {
               className="bg-white rounded-xl shadow p-4 border border-gray-200 hover:shadow-lg transition"
             >
               <div className="relative">
-                <img
-                  src={listing.image_url}
-                  className="w-full h-40 object-cover rounded-lg"
-                />
+                {listing.image_url ? (
+                  <img
+                    src={listing.image_url}
+                    className="w-full h-40 object-cover rounded-lg"
+                  />
+                ) : (
+                  <div className="w-full h-40 rounded-lg flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 text-gray-500">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-8 w-8 mb-2 opacity-60"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={1.5}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M3 16l4-4a3 3 0 014 0l4 4m0 0l2-2a3 3 0 014 0l3 3M4 19h16"
+                      />
+                    </svg>
+
+                    <p className="text-sm font-semibold">
+                      Image Coming Soon
+                    </p>
+                    <p className="text-xs opacity-70">
+                      Submitted by Seller
+                    </p>
+                  </div>
+                )}
 
                 {listing.transaction_type && (
                   <div
@@ -165,7 +184,6 @@ export default function HomePage() {
           ))}
         </div>
 
-        {/* VIEW ALL LISTINGS BUTTON (ADDED) */}
         <div className="text-center mt-10">
           <Link href="/listings">
             <button className="bg-gray-900 hover:bg-black text-white px-8 py-3 rounded-full font-semibold transition">
@@ -173,7 +191,6 @@ export default function HomePage() {
             </button>
           </Link>
         </div>
-
       </div>
     </div>
   );
