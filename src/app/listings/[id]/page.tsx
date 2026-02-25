@@ -204,9 +204,11 @@ export default function ListingDetailPage() {
             className="w-full max-h-[650px] object-cover rounded-xl shadow border"
           />
         ) : (
-          <div className="w-full max-h-[650px] bg-gray-200 rounded-xl flex items-center justify-center text-gray-500">
-            No Image Available
-          </div>
+          <img
+            src="/prosperity-logo.png"
+            alt="Prosperity Hub Placeholder"
+            className="w-full max-h-[650px] object-cover rounded-xl shadow border"
+          />
         )}
 
         {/* GALLERY */}
