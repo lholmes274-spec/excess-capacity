@@ -414,7 +414,7 @@ export default function ListingDetailPage() {
           >
             {listing.demo_mode
               ? "Demo Listing – Checkout Disabled"
-              : "Proceed to Checkout"}
+              : buttonText}
           </button>
          );
       })()}
