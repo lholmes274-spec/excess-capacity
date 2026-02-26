@@ -280,10 +280,12 @@ export default function ListingDetailPage() {
         <>
           <p className="text-2xl font-semibold text-green-700 mt-2">
             {formatCurrency(Number(listing.baseprice), listing.currency)}
+            {!isForSale && (
             <span className="text-base font-normal text-gray-600">
               {" "}
               / {formattedPricing}
             </span>
+            )}
           </p>
 
           {listing.pricing_type === "per_service" && (
