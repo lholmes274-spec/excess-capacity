@@ -159,6 +159,16 @@ export default function ListingDetailPage() {
     listing.pricing_type ? listing.pricing_type.replace("_", " ") : "per unit";
 
   const isForSale = listing.transaction_type === "sale";
+  const currencySymbols: Record<string, string> = {
+    USD: "$",
+    NGN: "₦",
+    INR: "₹",
+    CAD: "C$",
+    MXN: "$",
+    EUR: "€",
+  };
+
+  const symbol = currencySymbols[listing.currency || "USD"] || "$";
 
   const totalPrice =
     !isForSale && listing.baseprice && days
@@ -272,7 +282,7 @@ export default function ListingDetailPage() {
       {listing.baseprice !== null && (
         <>
           <p className="text-2xl font-semibold text-green-700 mt-2">
-            ${listing.baseprice}
+            {symbol}{listing.baseprice}
             <span className="text-base font-normal text-gray-600">
               {" "}
               / {formattedPricing}
@@ -365,7 +375,7 @@ export default function ListingDetailPage() {
             </div>
 
             <p className="mt-3 text-lg font-semibold text-gray-900">
-              Total: ${totalPrice}
+              Total: {symbol}{totalPrice}
             </p>
           </>
         )}
