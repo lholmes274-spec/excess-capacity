@@ -383,18 +383,41 @@ export default function ListingDetailPage() {
       )}
 
       {/* CHECKOUT BUTTON */}
-      <button
-        className={`mt-6 w-full text-white py-3 rounded-lg font-semibold transition ${
-          listing.demo_mode
-            ? "bg-gray-400 cursor-not-allowed"
-            : "bg-green-600 hover:bg-green-700"
-        }`}
-        onClick={handleCheckout}
-      >
-        {listing.demo_mode
-          ? "Demo Listing – Checkout Disabled"
-          : "Proceed to Checkout"}
-      </button>
+
+      {(() => {
+         const isForSale = listing.transaction_type === "sale";
+         const isService =
+           !isForSale && listing.pricing_type === "per_service";
+
+         let buttonText = "";
+         let buttonColor = "";
+
+         if (isForSale) {
+          buttonText = "Purchase Now";
+          buttonColor = "bg-green-600 hover:bg-green-700"
+         } else if (isService) {
+           buttonText = "Book Service";
+           buttonColor = "bg-purple-600 hover:bg-purple-700";
+         } else {
+           buttonText = "Reserve Now";
+           buttonColor = "bg-blue-600 hover:bg-blue-700";
+         }
+
+         return (
+           <button
+             className={`mt-6 w-full text-white py-3 rounded-lg font-semibold transition ${
+               listing.demo_mode
+                 ? "bg-gray-400 cursor-not-allowed"
+                 : buttonColor
+            }`}
+            onClick={handleCheckout}
+          >
+            {listing.demo_mode
+              ? "Demo Listing – Checkout Disabled"
+              : "Proceed to Checkout"}
+          </button>
+         );
+      })()}
     </div>
   );
 }
