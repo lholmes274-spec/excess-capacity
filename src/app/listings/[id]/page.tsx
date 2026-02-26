@@ -414,14 +414,17 @@ export default function ListingDetailPage() {
 
          return (
            <button
+             disabled={finalImages.length === 0 || listing.demo_mode}
              className={`mt-6 w-full text-white py-3 rounded-lg font-semibold transition ${
-               listing.demo_mode
+               finalImages.length === 0 || listing.demo_mode
                  ? "bg-gray-400 cursor-not-allowed"
                  : buttonColor
             }`}
             onClick={handleCheckout}
           >
-            {listing.demo_mode
+            {finalImages.length === 0
+              ? "Photo Required Before Booking"
+              : listing.demo_mode
               ? "Demo Listing – Checkout Disabled"
               : buttonText}
           </button>
