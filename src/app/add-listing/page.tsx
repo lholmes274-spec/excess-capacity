@@ -89,6 +89,7 @@ export default function AddListingPage() {
     title: "",
     description: "",
     baseprice: "",
+    currency: "USD",
     pricing_type: "",
     type: "",
     country: "United States",
@@ -279,6 +280,7 @@ export default function AddListingPage() {
         title: form.title,
         description: form.description,
         baseprice: Number(form.baseprice),
+        currency: form.currency, 
         pricing_type: form.pricing_type,
         transaction_type: transactionType,
         type: form.type.toLowerCase(),
@@ -417,15 +419,31 @@ export default function AddListingPage() {
           rows={3}
         />
 
-        {/* Base Price */}
-        <input
-          name="baseprice"
-          value={form.baseprice}
-          onChange={handleChange}
-          placeholder="Base Price"
-          className="w-full p-3 border rounded-lg"
-          required
-        />
+        {/* Base Price + Currency */}
+        <div className="grid grid-cols-2 gap-4">
+          <input
+            name="baseprice"
+            value={form.baseprice}
+            onChange={handleChange}
+            placeholder="Base Price"
+            className="w-full p-3 border rounded-lg"
+            required
+          />
+
+          <select
+            name="currency"
+            value={form.currency}
+            onChange={handleChange}
+            className="w-full p-3 border rounded-lg bg-white"
+          >
+            <option value="USD">USD – US Dollar</option>
+            <option value="NGN">NGN – Nigerian Naira</option>
+            <option value="INR">INR – Indian Rupee</option>
+            <option value="CAD">CAD – Canadian Dollar</option>
+            <option value="MXN">MXN – Mexican Peso</option>
+            <option value="EUR">EUR – Euro</option>
+          </select>
+        </div>
 
         {/* Pricing Type */}
         <div>
