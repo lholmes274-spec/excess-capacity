@@ -198,7 +198,7 @@ function ListingsContent() {
                 </p>
 
                 <p className="text-blue-700 font-medium mb-2">
-                  {new Intl.NumberFormat(undefined, {
+                  {new Intl.NumberFormat("en-NG", {
                     style: "currency",
                     currency: listing.currency || "USD",
                     minimumFractionDigits: 0,
