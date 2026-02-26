@@ -166,6 +166,16 @@ export default function HomePage() {
               <h3 className="text-lg font-semibold mt-3">
                 {listing.title}
               </h3>
+
+              {listing.baseprice !== null && (
+                <p className="text-green-700 font-semibold mt-1">
+                  {new Intl.NumberFormat(undefined, {
+                    style: "currency",
+                    currency: listing.currency || "USD",
+                    minimumFractionDigits: 0,
+                  }).format(Number(listing.baseprice))}
+                </p>
+              )}
               <p className="text-gray-600 text-sm">
                 {listing.city}, {listing.state}
               </p>
