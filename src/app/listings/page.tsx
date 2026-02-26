@@ -121,10 +121,15 @@ function ListingsContent() {
             const thumbnail =
               listing.image_urls?.[0] || listing.image_url || null;
 
-            const displayPricing =
-              listing.pricing_type
-                ? listing.pricing_type.replace("_", " ")
-                : "";
+            let displayPricing = "";
+
+            if (listing.type === "service") {
+              displayPricing = "per service";
+            } else if (listing.transaction_type === "sale") {
+               displayPricing = "for sale";
+            } else if (listing.pricing_type) {
+              displayPricing = listing.pricing_type.replace("_", " ");
+            }
 
             return (
               <Link
@@ -166,17 +171,21 @@ function ListingsContent() {
                     </div>
                   )}
 
-                  {listing.transaction_type && (
+                  {(listing.type || listing.transaction_type) && (
                     <div
                       className={`absolute top-2 right-2 px-3 py-1 text-xs font-semibold rounded-full text-white shadow-sm ${
-                        listing.transaction_type === "booking"
-                          ? "bg-blue-600"
-                          : "bg-green-600"
+                        listing.type === "service"
+                          ? "bg-purple-600"
+                          : listing.transaction_type === "sale"
+                          ? "bg-green-600"
+                          : "bg-blue-600"
                       }`}
                     >
-                      {listing.transaction_type === "booking"
-                        ? "Rent"
-                        : "Sale"}
+                      {listing.type === "service"
+                        ? "Service"
+                        : listing.transaction_type === "sale"
+                        ? "Sale"
+                        : "Rent"}
                     </div>
                   )}
                 </div>
