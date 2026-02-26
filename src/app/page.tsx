@@ -33,7 +33,8 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      {/* ⭐ PREMIUM GRADIENT BANNER */}
+
+      {/* PREMIUM BANNER */}
       <div className="w-full flex justify-center px-4 mt-6">
         <div
           className="w-full max-w-[1300px] rounded-2xl shadow-xl py-10 px-6 text-center text-white bg-gradient-to-r from-[#0f172a] via-[#142c45] to-[#d4a934]"
@@ -56,7 +57,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* HERO SECTION */}
+      {/* HERO */}
       <div className="text-center mt-10 px-4">
         <h1 className="text-3xl font-bold text-gray-900">
           {isES
@@ -135,21 +136,6 @@ export default function HomePage() {
                   />
                 ) : (
                   <div className="w-full h-40 rounded-lg flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 text-gray-500">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-8 w-8 mb-2 opacity-60"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={1.5}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M3 16l4-4a3 3 0 014 0l4 4m0 0l2-2a3 3 0 014 0l3 3M4 19h16"
-                      />
-                    </svg>
-
                     <p className="text-sm font-semibold">
                       Image Coming Soon
                     </p>
@@ -159,34 +145,22 @@ export default function HomePage() {
                   </div>
                 )}
 
-                {listing.transaction_type && (() => {
-                  const isSale = listing.transaction_type === "sale";
-                  const isService =
-                    !isSale && listing.pricing_type === "per_service";
-
-                  let badgeText = "";
-                  let badgeColor = "";
-
-                  if (isSale) {
-                    badgeText = "Sale";
-                    badgeColor = "bg-green-600";
-                  } else if (isService) {
-                    badgeText = "Service";
-                    badgeColor = "bg-purple-600";
-                  } else {
-                    badgeText = "Rent";
-                    badgeColor = "bg-blue-600";
-                  }
-
-                  return (
-                    <div
-                      className={`absolute top-2 right-2 px-3 py-1 text-xs font-semibold rounded-full text-white shadow ${badgeColor}`}
-                    >
-                      {badgeText}
-                    </div>
-                  );
-                }
-                )}
+                {/* BADGE LOGIC */}
+                <div
+                  className={`absolute top-2 right-2 px-3 py-1 text-xs font-semibold rounded-full text-white shadow ${
+                    listing.transaction_type === "sale"
+                      ? "bg-green-600"
+                      : listing.pricing_type === "per_service"
+                      ? "bg-purple-600"
+                      : "bg-blue-600"
+                  }`}
+                >
+                  {listing.transaction_type === "sale"
+                    ? "Sale"
+                    : listing.pricing_type === "per_service"
+                    ? "Service"
+                    : "Rent"}
+                </div>
               </div>
 
               <h3 className="text-lg font-semibold mt-3">
