@@ -159,18 +159,33 @@ export default function HomePage() {
                   </div>
                 )}
 
-                {listing.transaction_type && (
-                  <div
-                    className={`absolute top-2 right-2 px-3 py-1 text-xs font-semibold rounded-full text-white shadow ${
-                      listing.transaction_type === "booking"
-                        ? "bg-blue-600"
-                        : "bg-green-600"
-                    }`}
-                  >
-                    {listing.transaction_type === "booking"
-                      ? "Rent"
-                      : "Sale"}
-                  </div>
+                {listing.transaction_type && (() => {
+                  const isSale = listing.transaction_type === "sale";
+                  const isService =
+                    !isSale && listing.pricing_type === "per_service";
+
+                  let badgeText = "";
+                  let badgeColor = "";
+
+                  if (isSale) {
+                    badgeText = "Sale";
+                    badgeColor = "bg-green-600";
+                  } else if (isService) {
+                    badgeText = "Service";
+                    badgeColor = "bg-purple-600";
+                  } else {
+                    badgeText = "Rent";
+                    badgeColor = "bg-blue-600";
+                  }
+
+                  return (
+                    <div
+                      className={`absolute top-2 right-2 px-3 py-1 text-xs font-semibold rounded-full text-white shadow ${badgeColor}`}
+                    >
+                      {badgeText}
+                    </div>
+                  );
+                }
                 )}
               </div>
 
