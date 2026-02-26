@@ -198,8 +198,18 @@ function ListingsContent() {
                 </p>
 
                 <p className="text-blue-700 font-medium mb-2">
-                  ${listing.baseprice}
-                  {displayPricing ? ` / ${displayPricing}` : ""}
+                  {new Intl.NumberFormat(undefined, {
+                    style: "currency",
+                    currency: listing.currency || "USD",
+                    minimumFractionDigits: 0,
+                  }).format(Number(listing.baseprice))}
+
+                  {listing.transaction_type !== "sale" && displayPricing && (
+                    <span className="text-sm text-gray-600">
+                    {" "}
+                    / {displayPricing}
+                    </span>
+                  )}
                 </p>
 
                 {listing.city && listing.state && (
