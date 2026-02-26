@@ -148,17 +148,17 @@ export default function HomePage() {
                 {/* BADGE LOGIC */}
                 <div
                   className={`absolute top-2 right-2 px-3 py-1 text-xs font-semibold rounded-full text-white shadow ${
-                    listing.transaction_type === "sale"
-                      ? "bg-green-600"
-                      : listing.pricing_type === "per_service"
+                    listing.type === "service"
                       ? "bg-purple-600"
+                      : listing.transaction_type === "sale"
+                      ? "bg-green-600"
                       : "bg-blue-600"
                   }`}
                 >
-                  {listing.transaction_type === "sale"
-                    ? "Sale"
-                    : listing.pricing_type === "per_service"
+                  {listing.type === "service"
                     ? "Service"
+                    : listing.transaction_type === "sale"
+                    ? "Sale"
                     : "Rent"}
                 </div>
               </div>
