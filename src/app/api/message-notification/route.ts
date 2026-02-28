@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     }
 
     await resend.emails.send({
-      from: `Prosperity Hub <no-reply@${process.env.NEXT_PUBLIC_SITE_URL}>`,
+      from: "Prosperity Hub <no-reply@prosperityhub.app>",
       to: profile.email,
       subject: "You have a new message on Prosperity Hub",
       html: `
