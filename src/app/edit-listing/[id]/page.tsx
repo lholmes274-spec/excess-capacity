@@ -291,19 +291,26 @@ export default function EditListingPage() {
       {/* ✅ STAGE 4 — STATUS + PAUSE / RESUME */}
       <div className="mb-6 flex items-center justify-between">
         <span
-          className={`px-3 py-1 rounded-full text-sm font-semibold ${
-            listingStatus === "active"
-              ? "bg-green-100 text-green-700"
-              : "bg-yellow-100 text-yellow-700"
+           className={`px-3 py-1 rounded-full text-sm font-semibold ${
+             listingStatus === "active"
+                ? "bg-green-100 text-green-700"
+                : listingStatus === "paused"
+                ? "bg-yellow-100 text-yellow-700"
+                : listingStatus === "review"
+                ? "bg-orange-100 text-orange-700"
+                : listingStatus === "suspended"
+                ? "bg-red-100 text-red-700"
+                : "bg-gray-100 text-gray-700"
           }`}
         >
           Status: {listingStatus}
         </span>
 
-        <button
-          type="button"
-          onClick={handleToggleStatus}
-          className={`px-4 py-2 rounded-lg font-semibold ${
+        {(listingStatus === "active" || listingStatus === "paused") && (
+          <button
+            type="button"
+            onClick={handleToggleStatus}
+            className={`px-4 py-2 rounded-lg font-semibold ${
             listingStatus === "active"
               ? "bg-yellow-600 text-white hover:bg-yellow-700"
               : "bg-green-600 text-white hover:bg-green-700"
@@ -311,6 +318,7 @@ export default function EditListingPage() {
         >
           {listingStatus === "active" ? "Pause Listing" : "Resume Listing"}
         </button>
+       )}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
