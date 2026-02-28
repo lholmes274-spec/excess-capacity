@@ -413,6 +413,15 @@ export default function ListingDetailPage() {
               return;
             }
 
+            // 🔔 Trigger email notification
+            await fetch("/api/message-notification", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                receiver_id: listing.owner_id,
+              }),
+            });
+          
             alert("Message sent successfully!");
           }}
           className="mt-4 w-full bg-gray-600 text-white py-3 rounded-lg font-semibold hover:bg-gray-700 transition"
