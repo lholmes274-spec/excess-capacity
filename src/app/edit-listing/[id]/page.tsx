@@ -12,6 +12,7 @@ export default function EditListingPage() {
 
   const [loading, setLoading] = useState(true);
   const [listingStatus, setListingStatus] = useState("active");
+  const [statusReason, setStatusReason] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -112,6 +113,7 @@ export default function EditListingPage() {
       });
 
       setListingStatus(data.listing_status || "active");
+      setStatusReason(data.status_reason || null);
       setExistingImages(data.image_urls || []);
       setLoading(false);
     }
@@ -320,6 +322,13 @@ export default function EditListingPage() {
         </button>
        )}
       </div>
+
+      {/* ✅ NEW — STATUS REASON DISPLAY */}
+      {listingStatus !== "active" && statusReason && (
+        <div className="mb-6 p-4 rounded-lg border bg-gray-50 text-sm text-gray-700">
+          <strong>Action Required:</strong> {statusReason}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
 
