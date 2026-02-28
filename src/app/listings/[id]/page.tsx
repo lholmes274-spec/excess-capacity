@@ -391,6 +391,36 @@ export default function ListingDetailPage() {
         </div>
       )}
 
+      {/* MESSAGE PROVIDER BUTTON */}
+      {userId && !isOwner && (
+        <button
+          onClick={async () => {
+            const message = prompt("Enter your message to the provider:");
+
+            if (!message || message.trim() === "") return;
+
+            const { error } = await supabase.from("inquiries").insert([
+              {
+                listing_id: listing.id,
+                sender_id: userId,
+                receiver_id: listing.owner_id,
+                message: message.trim(),
+              },
+            ]);
+
+            if (error) {
+              alert("Unable to send message. Please try again.");
+              return;
+            }
+
+            alert("Message sent successfully!");
+          }}
+          className="mt-4 w-full bg-gray-600 text-white py-3 rounded-lg font-semibold hover:bg-gray-700 transition"
+        >
+          Message Provider
+        </button>
+      )}
+
       {/* CHECKOUT BUTTON */}
 
       {(() => {
