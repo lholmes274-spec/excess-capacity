@@ -112,11 +112,19 @@ export default function ClientLayout({
               <li><Link href="/faq" className="hover:text-blue-300">FAQ</Link></li>
 
               {user && (
+                <>
                 <li>
                   <Link href="/dashboard" className="hover:text-blue-300 font-semibold">
                     Dashboard
                   </Link>
                 </li>
+
+                <li>
+                  <Link href="/inbox" className="hover:text-blue-300 font-semibold">
+                    Inbox
+                  </Link>
+                </li>
+              </>
               )}
 
               <li><Link href="/terms" className="hover:text-blue-300">Terms</Link></li>
