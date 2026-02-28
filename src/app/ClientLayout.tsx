@@ -179,13 +179,23 @@ export default function ClientLayout({
               <Link href="/faq" onClick={() => setMenuOpen(false)}>FAQ</Link>
 
               {user && (
-                <Link
-                  href="/dashboard"
-                  onClick={() => setMenuOpen(false)}
-                  className="font-semibold"
+               <>
+                 <Link
+                   href="/dashboard"
+                   onClick={() => setMenuOpen(false)}
+                   className="font-semibold"
                 >
-                  Dashboard
+                   Dashboard
+                 </Link>
+
+                <Link
+                   href="/inbox"
+                   onClick={() => setMenuOpen(false)}
+                   className="font-semibold"
+                >
+                   Inbox
                 </Link>
+               </>
               )}
 
               <Link href="/terms" onClick={() => setMenuOpen(false)}>Terms</Link>
