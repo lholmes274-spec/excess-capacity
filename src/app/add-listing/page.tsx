@@ -220,6 +220,13 @@ export default function AddListingPage() {
 
     setLoading(true);
 
+    // 🔒 REQUIRE AT LEAST ONE IMAGE
+    if (images.length === 0) {
+      alert("Please upload at least one image before submitting your listing.");
+      setLoading(false);
+      return;
+    }
+
     // 🚫 BLOCK EXTERNAL LINKS IN DESCRIPTION
     const containsExternalLink =
       form.description.includes("http") ||
