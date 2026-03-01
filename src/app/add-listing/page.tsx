@@ -111,6 +111,7 @@ export default function AddListingPage() {
   const [images, setImages] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [policyConfirmed, setPolicyConfirmed] = useState(false);
 
   // 🔒 Stripe payout protection
   const [stripeReady, setStripeReady] = useState(false);
@@ -219,6 +220,15 @@ export default function AddListingPage() {
     if (loading) return; // 🔒 HARD STOP
 
     setLoading(true);
+
+    // 🔒 REQUIRE POLICY CONFIRMATION
+    if (!policyConfirmed) {
+      alert(
+        "You must confirm that your listing does not include prohibited content before submitting."
+      );
+      setLoading(false);
+      return;
+    }
 
     // 🔒 REQUIRE AT LEAST ONE IMAGE
     if (images.length === 0) {
@@ -651,6 +661,20 @@ export default function AddListingPage() {
             ))}
           </div>
         )}
+
+        {/* Policy Confirmation */}
+        <div className="flex items-start space-x-2 bg-gray-50 p-3 rounded-lg border">
+          <input
+            type="checkbox"
+            checked={policyConfirmed}
+            onChange={(e) => setPolicyConfirmed(e.target.checked)}
+            className="mt-1"
+          />
+          <p className="text-sm text-gray-700">
+            I confirm this listing does not include nudity, sexual services, or
+            prohibited content and complies with Prosperity Hub policies.
+          </p>
+        </div>
 
         {/* Submit */}
         <button
