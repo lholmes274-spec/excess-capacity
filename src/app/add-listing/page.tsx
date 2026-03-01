@@ -216,7 +216,9 @@ export default function AddListingPage() {
     }
   };
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageSelect = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     if (!e.target.files) return;
 
     const files = Array.from(e.target.files);
@@ -227,8 +229,44 @@ export default function AddListingPage() {
       return;
     }
 
-    setImages(files);
-    setPreviewUrls(files.map((file) => URL.createObjectURL(file)));
+    const approvedFiles: File[] = [];
+    const approvedPreviews: string[] = [];
+
+     for (const file of files) {
+       const reader = new FileReader();
+
+       const base64 = await new Promise<string>((resolve, reject) => {
+          reader.onload = () => {
+            const result = reader.result as string;
+            resolve(result.split(",")[1]);
+         };
+         reader.onerror = reject;
+         reader.readAsDataURL(file);
+     });
+
+     const res = await fetch("/api/moderate-image", {
+       method: "POST",
+       headers: {
+         "Content-Type": "application/json",
+       },
+       body: JSON.stringify({ image: base64 }),
+     });
+
+     const data = await res.json();
+
+     if (!data.safe) {
+      alert(
+         "One of your images appears to contain prohibited content and cannot be uploaded."
+      );
+      return;
+     }
+
+     approvedFiles.push(file);
+     approvedPreviews.push(URL.createObjectURL(file));
+   }
+
+    setImages(approvedFiles);
+    setPreviewUrls(approvedPreviews);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
