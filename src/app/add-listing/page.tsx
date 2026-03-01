@@ -252,14 +252,28 @@ export default function AddListingPage() {
        body: JSON.stringify({ image: base64 }),
      });
 
-     const data = await res.json();
+     let data: any = null;
 
-     if (!data.safe) {
+     try {
+       data = await res.json();
+     } catch (e) {
+       data = null;
+     }
+
+     // ✅ If the API failed (500, 403, etc.) or returned no safe flag, show a DIFFERENT message
+     if (!res.ok || !data || typeof data.safe !== "boolean") {
       alert(
-         "One of your images appears to contain prohibited content and cannot be uploaded."
+        "Image moderation service could not analyze this image right now. Please try again."
       );
       return;
-     }
+    }
+
+    if (data.safe === false) {
+      alert(
+        "One of your images appears to contain prohibited content and cannot be uploaded."
+      );
+      return;
+    }
 
      approvedFiles.push(file);
      approvedPreviews.push(URL.createObjectURL(file));
