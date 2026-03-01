@@ -29,6 +29,22 @@ const PRICING_INTENT: Record<
   flat_rate: { model: "duration", label: "One-time flat rate" },
 };
 
+// 🚫 PROHIBITED KEYWORDS (Basic Protection Layer)
+  const BANNED_KEYWORDS = [
+    "escort",
+    "hookup",
+    "sex",
+    "sexual", 
+    "nude",
+    "nudity",
+    "onlyfans",
+    "adult service",
+    "massage with extra",
+    "cashapp",
+    "whatsapp only",
+    "snapchat only",
+ ];
+
   const US_STATES = [
     "Alabama",
     "Alaska",
@@ -249,6 +265,26 @@ export default function AddListingPage() {
       setLoading(false);
       return;
     }
+
+    // 🚫 BLOCK PROHIBITED KEYWORDS
+    const containsBannedWord = (text: string): boolean => {
+      return BANNED_KEYWORDS.some((word) =>
+        text.toLowerCase().includes(word)
+      );
+    }
+
+    if (
+      containsBannedWord(form.title || "") ||
+      containsBannedWord(form.description || "") ||
+      containsBannedWord(form.private_instructions || "") ||
+      containsBannedWord(form.pickup_instructions || "")
+    ) {
+      alert(
+        "Your listing contains prohibited content and cannot be submitted."
+      );
+      setLoading(false);
+      return;
+    }  
 
     const { data: userData } = await supabase.auth.getUser();
     const userId = userData?.user?.id;
