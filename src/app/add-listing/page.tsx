@@ -319,9 +319,16 @@ export default function AddListingPage() {
     }
 
     // 🚫 BLOCK PROHIBITED KEYWORDS
+    const normalizeText = (text: string): string => {
+      return text
+        .toLowerCase()
+        .replace(/[^a-z]/g, ""); // remove spaces, punctuation, numbers
+    }
     const containsBannedWord = (text: string): boolean => {
+      const normalizedText = normalizeText(text);
+
       return BANNED_KEYWORDS.some((word) =>
-        text.toLowerCase().includes(word)
+        normalizedText.includes(normalizeText(word))
       );
     }
 
