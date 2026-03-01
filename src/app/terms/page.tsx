@@ -15,8 +15,8 @@ export default function TermsPage() {
 
         <p className="text-sm text-gray-500 text-center mb-6">
           {isES
-            ? "Última actualización: 21 de febrero de 2026"
-            : "Last updated: February 21, 2026"}
+            ? "Última actualización: 1 de marzo de 2026"
+            : "Last updated: March 1, 2026"}
         </p>
 
         <p className="text-gray-700 mb-4">
@@ -174,9 +174,51 @@ export default function TermsPage() {
           )}
         </p>
 
-        {/* 6 */}
+        {/* 6 NEW — PROHIBITED CONTENT */}
+        <h2 className="text-2xl font-semibold mt-8 mb-3 text-red-700">
+          {isES ? "6. Política de Contenido Prohibido" : "6. Prohibited Content Policy"}
+        </h2>
+        <div className="text-gray-700 mb-4">
+          {isES ? (
+            <>
+              <p className="mb-3">
+                Prosperity Hub es una plataforma profesional y prohíbe estrictamente:
+              </p>
+              <ul className="list-disc list-inside space-y-2">
+                <li>Nudidad o imágenes sexualmente explícitas.</li>
+                <li>Servicios sexuales, acompañantes (escort) o “hookups”.</li>
+                <li>Contenido pornográfico o sugerente.</li>
+                <li>Solicitudes de contacto para fines sexuales.</li>
+                <li>Cualquier actividad ilegal o explotación.</li>
+              </ul>
+              <p className="mt-3">
+                Prosperity Hub puede eliminar anuncios y suspender cuentas que violen
+                esta política sin previo aviso.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="mb-3">
+                Prosperity Hub is a professional marketplace platform and strictly prohibits:
+              </p>
+              <ul className="list-disc list-inside space-y-2">
+                <li>Nudity or sexually explicit images.</li>
+                <li>Sexual services, escort services, or hookups.</li>
+                <li>Pornographic or suggestive adult content.</li>
+                <li>Requests for contact for sexual purposes.</li>
+                <li>Any illegal or exploitative activity.</li>
+              </ul>
+              <p className="mt-3">
+                Prosperity Hub may remove listings and suspend accounts that violate
+                this policy without prior notice.
+              </p>
+            </>
+          )}
+        </div>
+
+        {/* 7 */}
         <h2 className="text-2xl font-semibold mt-8 mb-3 text-gray-900">
-          {isES ? "6. Limitación de Responsabilidad" : "6. Limitation of Liability"}
+          {isES ? "7. Limitación de Responsabilidad" : "7. Limitation of Liability"}
         </h2>
         <p className="text-gray-700 mb-4">
           {isES ? (
@@ -196,9 +238,9 @@ export default function TermsPage() {
           )}
         </p>
 
-        {/* 7 */}
+        {/* 8 */}
         <h2 className="text-2xl font-semibold mt-8 mb-3 text-gray-900">
-          {isES ? "7. Terminación" : "7. Termination"}
+          {isES ? "8. Terminación" : "8. Termination"}
         </h2>
         <p className="text-gray-700 mb-4">
           {isES ? (
@@ -216,9 +258,9 @@ export default function TermsPage() {
           )}
         </p>
 
-        {/* 8 */}
+        {/* 9 */}
         <h2 className="text-2xl font-semibold mt-8 mb-3 text-gray-900">
-          {isES ? "8. Actualizaciones de los Términos" : "8. Updates to Terms"}
+          {isES ? "9. Actualizaciones de los Términos" : "9. Updates to Terms"}
         </h2>
         <p className="text-gray-700 mb-4">
           {isES ? (
@@ -235,9 +277,9 @@ export default function TermsPage() {
           )}
         </p>
 
-        {/* 9 */}
+        {/* 10 */}
         <h2 className="text-2xl font-semibold mt-8 mb-3 text-gray-900">
-          {isES ? "9. Contáctanos" : "9. Contact Us"}
+          {isES ? "10. Contáctanos" : "10. Contact Us"}
         </h2>
         <p className="text-gray-700">
           <a
