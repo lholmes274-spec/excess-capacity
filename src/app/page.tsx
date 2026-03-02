@@ -111,7 +111,7 @@ export default function HomePage() {
 
               <Link href="/signup">
                 <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full text-lg font-semibold transition">
-                  {isES ? "Comenzar" : "Get Started"}
+                  {isES ? "Comenzar" : "Start Listing"}
                 </button>
               </Link>
             </>
