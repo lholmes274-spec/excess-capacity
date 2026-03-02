@@ -9,13 +9,24 @@ import { useLanguage } from "./components/LanguageProvider";
 export default function HomePage() {
   const [realListings, setRealListings] = useState([]);
   const [user, setUser] = useState(undefined);
+  const [listingCount, setListingCount] = useState<number>(0);
   const { language } = useLanguage();
   const isES = language === "es";
 
   useEffect(() => {
     async function load() {
       const { data } = await supabase.auth.getUser();
-      setUser(data?.user || null);
+      const currentUser = data?.user || null;
+      setUser(currentUser);
+
+      if (currentUser) {
+        const { count } = await supabase
+          .from("listings")
+          .select("id", { count: "exact", head: true })
+          .eq("owner_id", currentUser.id);
+
+        setListingCount(count || 0);
+      }
 
       const { data: realData } = await supabase
         .from("listings")
@@ -94,7 +105,7 @@ export default function HomePage() {
       <div className="mt-16 px-6">
         <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-md p-10 text-center border border-gray-200">
 
-          {/* Logged Out Users */}
+          {/* LOGGED OUT */}
           {user === null && (
             <>
               <h2 className="text-2xl font-bold text-gray-900 mb-4">
@@ -117,8 +128,29 @@ export default function HomePage() {
             </>
           )}
 
-          {/* Logged In Users */}
-          {user && (
+          {/* LOGGED IN + NO LISTINGS */}
+          {user && listingCount === 0 && (
+            <>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                🚀 {isES ? "Crea tu primer anuncio" : "Create Your First Listing"}
+              </h2>
+
+              <p className="text-gray-600 max-w-2xl mx-auto mb-6">
+                {isES
+                  ? "Comienza a ganar compartiendo artículos, espacios o servicios sin usar."
+                  : "Start earning by sharing unused items, spaces, or services."}
+              </p>
+
+              <Link href="/add-listing">
+                <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full text-lg font-semibold transition">
+                  {isES ? "Crear anuncio" : "Create Listing"}
+                </button>
+              </Link>
+            </>
+          )}
+
+          {/* LOGGED IN + HAS LISTINGS */}
+          {user && listingCount > 0 && (
             <>
               <h2 className="text-2xl font-bold text-gray-900 mb-4">
                 {isES
