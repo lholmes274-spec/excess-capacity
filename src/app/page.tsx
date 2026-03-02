@@ -90,28 +90,58 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* EARLY PROVIDER SECTION */}
+      {/* PROVIDER OPPORTUNITY SECTION */}
       <div className="mt-16 px-6">
         <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-md p-10 text-center border border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            {isES
-              ? "Sé uno de los primeros proveedores en tu área"
-              : "Be One of the First Providers in Your Area"}
-          </h2>
 
-          <p className="text-gray-600 max-w-2xl mx-auto mb-6">
-            {isES
-              ? "Prosperity Hub™ está expandiéndose a nuevas comunidades. Los primeros proveedores reciben máxima visibilidad a medida que la plataforma crece."
-              : "Prosperity Hub™ is expanding into new communities. Early providers receive maximum visibility as the platform grows."}
-          </p>
+          {/* Logged Out Users */}
+          {user === null && (
+            <>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                {isES
+                  ? "Únete como proveedor en tu comunidad"
+                  : "Join as a Provider in Your Community"}
+              </h2>
 
-          <Link href="/add-listing">
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full text-lg font-semibold transition">
-              {isES
-                ? "Crear tu primer anuncio"
-                : "Create Your First Listing"}
-            </button>
-          </Link>
+              <p className="text-gray-600 max-w-2xl mx-auto mb-6">
+                {isES
+                  ? "Prosperity Hub™ está creciendo en nuevas comunidades. Los proveedores que comienzan temprano obtienen mayor visibilidad a medida que la plataforma se expande."
+                  : "Prosperity Hub™ is growing into new communities. Providers who start early gain increased visibility as the platform expands."}
+              </p>
+
+              <Link href="/signup">
+                <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full text-lg font-semibold transition">
+                  {isES ? "Comenzar" : "Get Started"}
+                </button>
+              </Link>
+            </>
+          )}
+
+          {/* Logged In Users */}
+          {user && (
+            <>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                {isES
+                  ? "Haz crecer tu presencia en Prosperity Hub™"
+                  : "Grow Your Presence on Prosperity Hub™"}
+              </h2>
+
+              <p className="text-gray-600 max-w-2xl mx-auto mb-6">
+                {isES
+                  ? "Agrega más anuncios para aumentar tu visibilidad y atraer más reservas."
+                  : "Add more listings to increase visibility and attract more bookings."}
+              </p>
+
+              <Link href="/add-listing">
+                <button className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-full text-lg font-semibold transition">
+                  {isES
+                    ? "Agregar otro anuncio"
+                    : "Add Another Listing"}
+                </button>
+              </Link>
+            </>
+          )}
+
         </div>
       </div>
 
@@ -145,7 +175,6 @@ export default function HomePage() {
                   </div>
                 )}
 
-                {/* BADGE LOGIC */}
                 <div
                   className={`absolute top-2 right-2 px-3 py-1 text-xs font-semibold rounded-full text-white shadow ${
                     listing.type === "service"
