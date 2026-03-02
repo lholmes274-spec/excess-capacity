@@ -10,6 +10,7 @@ export default function HomePage() {
   const [realListings, setRealListings] = useState([]);
   const [user, setUser] = useState(undefined);
   const [listingCount, setListingCount] = useState<number>(0);
+  const [loadingUserData, setLoadingUserData] = useState(true);
   const { language } = useLanguage();
   const isES = language === "es";
 
@@ -37,6 +38,9 @@ export default function HomePage() {
         .limit(6);
 
       setRealListings(realData || []);
+
+      // 🔥 End loading AFTER everything resolves
+      setLoadingUserData(false);
     }
 
     load();
@@ -102,80 +106,82 @@ export default function HomePage() {
       </div>
 
       {/* PROVIDER OPPORTUNITY SECTION */}
-      <div className="mt-16 px-6">
-        <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-md p-10 text-center border border-gray-200">
+      {!loadingUserData && (
+        <div className="mt-16 px-6">
+          <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-md p-10 text-center border border-gray-200">
 
-          {/* LOGGED OUT */}
-          {user === null && (
-            <>
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                {isES
-                  ? "Únete como proveedor en tu comunidad"
-                  : "Join as a Provider in Your Community"}
-              </h2>
-
-              <p className="text-gray-600 max-w-2xl mx-auto mb-6">
-                {isES
-                  ? "Prosperity Hub™ está creciendo en nuevas comunidades. Los proveedores que comienzan temprano obtienen mayor visibilidad a medida que la plataforma se expande."
-                  : "Prosperity Hub™ is growing into new communities. Providers who start early gain increased visibility as the platform expands."}
-              </p>
-
-              <Link href="/signup">
-                <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full text-lg font-semibold transition">
-                  {isES ? "Comenzar" : "Start Listing"}
-                </button>
-              </Link>
-            </>
-          )}
-
-          {/* LOGGED IN + NO LISTINGS */}
-          {user && listingCount === 0 && (
-            <>
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                🚀 {isES ? "Crea tu primer anuncio" : "Create Your First Listing"}
-              </h2>
-
-              <p className="text-gray-600 max-w-2xl mx-auto mb-6">
-                {isES
-                  ? "Comienza a ganar compartiendo artículos, espacios o servicios sin usar."
-                  : "Start earning by sharing unused items, spaces, or services."}
-              </p>
-
-              <Link href="/add-listing">
-                <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full text-lg font-semibold transition">
-                  {isES ? "Crear anuncio" : "Create Listing"}
-                </button>
-              </Link>
-            </>
-          )}
-
-          {/* LOGGED IN + HAS LISTINGS */}
-          {user && listingCount > 0 && (
-            <>
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                {isES
-                  ? "Haz crecer tu presencia en Prosperity Hub™"
-                  : "Grow Your Presence on Prosperity Hub™"}
-              </h2>
-
-              <p className="text-gray-600 max-w-2xl mx-auto mb-6">
-                {isES
-                  ? "Agrega más anuncios para aumentar tu visibilidad y atraer más reservas."
-                  : "Add more listings to increase visibility and attract more bookings."}
-              </p>
-
-              <Link href="/add-listing">
-                <button className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-full text-lg font-semibold transition">
+            {/* LOGGED OUT */}
+            {user === null && (
+              <>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">
                   {isES
-                    ? "Agregar otro anuncio"
-                    : "Add Another Listing"}
-                </button>
-              </Link>
-            </>
-          )}
+                    ? "Únete como proveedor en tu comunidad"
+                    : "Join as a Provider in Your Community"}
+                </h2>
 
+                <p className="text-gray-600 max-w-2xl mx-auto mb-6">
+                  {isES
+                    ? "Prosperity Hub™ está creciendo en nuevas comunidades. Los proveedores que comienzan temprano obtienen mayor visibilidad a medida que la plataforma se expande."
+                    : "Prosperity Hub™ is growing into new communities. Providers who start early gain increased visibility as the platform expands."}
+                </p>
+
+                <Link href="/signup">
+                  <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full text-lg font-semibold transition">
+                    {isES ? "Comenzar" : "Start Listing"}
+                  </button>
+                </Link>
+              </>
+            )}
+
+            {/* LOGGED IN + NO LISTINGS */}
+            {user && listingCount === 0 && (
+              <>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                  🚀 {isES ? "Crea tu primer anuncio" : "Create Your First Listing"}
+                </h2>
+
+                <p className="text-gray-600 max-w-2xl mx-auto mb-6">
+                  {isES
+                    ? "Comienza a ganar compartiendo artículos, espacios o servicios sin usar."
+                    : "Start earning by sharing unused items, spaces, or services."}
+                </p>
+
+                <Link href="/add-listing">
+                  <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full text-lg font-semibold transition">
+                    {isES ? "Crear anuncio" : "Create Listing"}
+                  </button>
+                </Link>
+              </>
+            )}
+
+            {/* LOGGED IN + HAS LISTINGS */}
+            {user && listingCount > 0 && (
+              <>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                  {isES
+                    ? "Haz crecer tu presencia en Prosperity Hub™"
+                    : "Grow Your Presence on Prosperity Hub™"}
+                </h2>
+
+                <p className="text-gray-600 max-w-2xl mx-auto mb-6">
+                  {isES
+                    ? "Agrega más anuncios para aumentar tu visibilidad y atraer más reservas."
+                    : "Add more listings to increase visibility and attract more bookings."}
+                </p>
+
+                <Link href="/add-listing">
+                  <button className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-full text-lg font-semibold transition">
+                    {isES
+                      ? "Agregar otro anuncio"
+                      : "Add Another Listing"}
+                  </button>
+                </Link>
+              </>
+            )}
+
+          </div>
         </div>
-      </div>
+      )}
 
       {/* AVAILABLE LISTINGS */}
       <div className="mt-14 px-4 max-w-5xl mx-auto mb-20">
@@ -252,6 +258,7 @@ export default function HomePage() {
           </Link>
         </div>
       </div>
+
     </div>
   );
 }
