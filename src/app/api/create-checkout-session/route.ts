@@ -252,6 +252,31 @@ export async function POST(req: Request) {
       quantity = Math.max(1, Number(listing.minimum_hours) || 1);
     }
 
+    // HARD AVAILABILITY CHECK
+    if (start_date && end_date) {
+      const { data: overlappingBookings, error: overlapError } = await supabase
+        .from("bookings")
+        .select("id")
+        .eq("listing_id", listing_id)
+        .in("status", ["paid", "completed", "confirmed"])
+        .lte("start_date", end_date)
+        .gte("end_date", start_date);
+
+      if (overlapError) {
+        return NextResponse.json(
+          { error: "Availability check failed" },
+          { status: 500 }
+        );
+      }
+
+      if (overlappingBookings && overlappingBookings.length > 0) {
+         return NextResponse.json(
+           { error: "These dates are no longer available." },
+           { status: 400 }
+         );
+      }
+    }
+
     const unitAmountInCents = Math.round(Number(listing.baseprice) * 100);
     const totalAmountInCents = unitAmountInCents * quantity;
 
