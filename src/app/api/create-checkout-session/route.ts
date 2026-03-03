@@ -60,8 +60,6 @@ export async function POST(req: Request) {
       );
     }
 
-    const safeDays = Math.max(1, Number(days) || 1);
-
     // 🔐 SERVICE ROLE CLIENT
     const supabase = createServerClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -223,14 +221,33 @@ export async function POST(req: Request) {
      */
     let quantity = 1;
 
+    // 🔐 Calculate quantity from dates on the server
     if (
-      listing.pricing_type === "per_day" ||
-      listing.pricing_type === "per_night" ||
-      listing.pricing_type === "per_month"
+      start_date &&
+      end_date &&
+      (
+        listing.pricing_type === "per_day" ||
+        listing.pricing_type === "per_night" ||
+        listing.pricing_type === "per_month"
+      )
     ) {
-      quantity = safeDays;
-    }
+      const start = new Date(start_date);
+      const end = new Date(end_date);
 
+      const diffTime = end.getTime() - start.getTime();
+      const rawDays = Math.floor(
+        diffTime / (1000 * 60 * 60 * 24)
+      );
+
+      quantity = 
+        listing.pricing_type === "per_night"
+          ? rawDays
+          : rawDays + 1;
+
+      quantity = Math.max(1, quantity);
+    }
+    
+    // Per hour override
     if (listing.pricing_type === "per_hour") {
       quantity = Math.max(1, Number(listing.minimum_hours) || 1);
     }
