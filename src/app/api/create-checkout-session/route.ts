@@ -278,7 +278,6 @@ export async function POST(req: Request) {
         transfer_data: {
           destination: listerProfile.stripe_account_id,
         },
-        setup_future_usage: "off_session",
       },
 
       line_items: [
