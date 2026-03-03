@@ -231,8 +231,8 @@ export async function POST(req: Request) {
         listing.pricing_type === "per_month"
       )
     ) {
-      const start = new Date(start_date);
-      const end = new Date(end_date);
+      const start = new Date(start_date + "T00:00:00");
+      const end = new Date(end_date + "T00:00:00");
 
       const diffTime = end.getTime() - start.getTime();
       const rawDays = Math.floor(
