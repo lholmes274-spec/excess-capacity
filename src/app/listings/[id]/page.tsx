@@ -172,17 +172,33 @@ export default function ListingDetailPage() {
       ? Number(listing.baseprice) * Number(days)
       : listing.baseprice;
 
-  const handleCheckout = () => {
+    const handleCheckout = async () => {
     if (!userId) {
       router.push(`/signup?redirect=/listings/${listing.id}`);
       return;
     }
 
     // ➕ START — enforce required booking dates
-    if (!isForSale && (!startDate || !endDate)) {
+    if (!isForSale) {
+      if (!startDate || !endDate) {
       alert("Please select a start and end date for your booking.");
       return;
     }
+
+    // 🔥 NEW — Check availability BEFORE redirecting
+    const { data: overlappingBookings } = await supabase
+      .from("bookings")
+      .select("id")
+      .eq("listing_id", listing.id)
+      .in("status", ["paid", "completed", "confirmed"])
+      .lte("start_date", endDate)
+      .gte("end_date", startDate);
+
+    if (overlappingBookings && overlappingBookings.length > 0) {
+      alert("These dates are already booked. Please select different dates.");
+       return;
+    }
+   }
 
     if (listing.demo_mode) {
       alert("Demo Only – Checkout disabled");
