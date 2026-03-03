@@ -1,6 +1,8 @@
 // @ts-nocheck
 "use client";
 
+import { DayPicker } from "react-day-picker";
+import "react-day-picker/dist/style.css";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
@@ -21,6 +23,9 @@ export default function ListingDetailPage() {
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [estimatedTimeWindow, setEstimatedTimeWindow] = useState<string>("");
+
+  // 🆕 NEW — booked date ranges
+  const [bookedRanges, setBookedRanges] = useState<any[]>([]);
 
   // ➕ START — auto-calculate days from selected dates
   useEffect(() => {
@@ -108,6 +113,30 @@ export default function ListingDetailPage() {
     };
 
     fetchListing();
+  }, [id]);
+
+  // 🆕 NEW — Load booked date ranges
+  useEffect(() => {
+    if (!id) return;
+
+    async function loadBookedDates() {
+      const { data, error } = await supabase
+        .from("bookings")
+        .select("start_date, end_date")
+        .eq("listing_id", id)
+        .in("status", ["paid", "completed", "confirmed"]);
+
+      if (error || !data) return;
+
+      const ranges = data.map((booking) => ({
+        from: new Date(booking.start_date + "T00:00:00"),
+        to: new Date(booking.end_date + "T00:00:00"),
+      }));
+
+      setBookedRanges(ranges);
+    }
+
+    loadBookedDates();
   }, [id]);
 
   // Not found
@@ -322,36 +351,45 @@ export default function ListingDetailPage() {
       {/* ➕ START — REQUIRED BOOKING DATES */}
       {!isForSale && (
         <div className="mt-6 space-y-4">
-          <div>
-            <label className="block font-semibold text-gray-800 mb-1">
-              Start Date *
-            </label>
-            <input
-              type="date"
-              min={new Date().toISOString().split("T")[0]}
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="border rounded-lg px-3 py-2 w-full"
-            />
-          </div>
+          <label className="block font-semibold text-gray-800 mb-2">
+            Select Booking Dates *
+          </label>
+
+          <DayPicker
+            mode="range"
+            selected={
+              startDate && endDate
+                ? {
+                    from: new Date(startDate + "T00:00:00"),
+                    to: new Date(endDate + "T00:00:00"),
+                  }
+                : undefined
+          }
+          onSelect={(range) => {
+            if (!range?.from) return;
+
+            const formatLocal = (date: Date) => {
+              const y = date.getFullYear();
+              const m = String(date.getMonth() + 1).padStart(2, "0");
+              const d = String(date.getDate()).padStart(2, "0");
+              return `${y}-${m}-${d}`;
+            };
+
+            const from = formatLocal(range.from);
+            const to = range.to ? formatLocal(range.to) : from;
+
+            setStartDate(from);
+            setEndDate(to);
+          }}
+          disabled={[
+            { before: new Date() }, // disable past
+            ...bookedRanges,        // disable booked
+          ]}
+          />
 
           <div>
             <label className="block font-semibold text-gray-800 mb-1">
-              End Date *
-            </label>
-            <input
-              type="date"
-              min={startDate || new Date().toISOString().split("T")[0]}
-              value={endDate}
-              disabled={!startDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="border rounded-lg px-3 py-2 w-full"
-            />
-          </div>
-
-          <div>
-            <label className="block font-semibold text-gray-800 mb-1">
-              Estimated Time Window (optional)
+             Estimated Time Window (optional)
             </label>
             <select
               value={estimatedTimeWindow}
@@ -364,8 +402,8 @@ export default function ListingDetailPage() {
               <option value="evening">Evening</option>
             </select>
           </div>
-        </div>
-      )}
+         </div>
+        )}
 
       {/* RENTAL ONLY: QUANTITY + TOTAL */}
       {!isForSale &&
