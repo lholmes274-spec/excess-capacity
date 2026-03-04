@@ -103,13 +103,7 @@ export default function BookingDetailPage() {
       {!isPurchase && (
         <p className="mb-3">
           <strong>Booked Dates:</strong>{" "}
-          {booking.start_date
-            ? new Date(booking.start_date).toLocaleDateString()
-            : "—"}{" "}
-          →{" "}
-          {booking.end_date
-            ? new Date(booking.end_date).toLocaleDateString()
-            : "—"}
+          {booking.start_date || "—"} → {booking.end_date || "—"}
         </p>
       )}
 
