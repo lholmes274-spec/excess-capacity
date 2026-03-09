@@ -201,6 +201,10 @@ export default function ListingDetailPage() {
       ? Number(listing.baseprice) * Number(days)
       : listing.baseprice;
 
+  // 🚫 Prevent booking if price invalid
+  const invalidPrice =  
+    !listing.baseprice || Number(listing.baseprice) <= 0;
+
     const handleCheckout = async () => {
     if (!userId) {
       router.push(`/signup?redirect=/listings/${listing.id}`);
@@ -346,6 +350,13 @@ export default function ListingDetailPage() {
             </p>
           )}
         </>
+      )}
+
+      {invalidPrice && (
+        <div className="mt-3 p-3 bg-yellow-50 border border-yellow-300 rounded-lg text-sm text-yellow-800">
+           ⚠️ This listing does not currently have a valid price set.
+           The host must update pricing before bookings are enabled.
+        </div>
       )}
 
       {/* ➕ START — REQUIRED BOOKING DATES */}
@@ -507,9 +518,13 @@ export default function ListingDetailPage() {
 
          return (
            <button
-             disabled={finalImages.length === 0 || listing.demo_mode}
+             disabled={
+               finalImages.length === 0 ||
+               listing.demo_mode ||
+               invalidPrice
+            }
              className={`mt-6 w-full text-white py-3 rounded-lg font-semibold transition ${
-               finalImages.length === 0 || listing.demo_mode
+               finalImages.length === 0 || listing.demo_mode || invalidPrice
                  ? "bg-gray-400 cursor-not-allowed"
                  : buttonColor
             }`}
@@ -519,6 +534,8 @@ export default function ListingDetailPage() {
               ? "Photo Required Before Booking"
               : listing.demo_mode
               ? "Demo Listing – Checkout Disabled"
+              : invalidPrice
+              ? "Price Not Set – Booking Disabled"
               : buttonText}
           </button>
          );
