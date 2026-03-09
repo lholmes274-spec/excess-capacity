@@ -286,8 +286,16 @@ export default function AddListingPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return; // 🔒 HARD STOP
-
     setLoading(true);
+
+    // 🔒 REQUIRE VALID PRICE
+    const priceNumber = Number(form.baseprice);
+
+    if (!form.baseprice || isNaN(priceNumber) || priceNumber <= 0) {
+      alert("Please enter a valid price greater than 0.");
+      setLoading(false);
+      return;
+    }
 
     // 🔒 REQUIRE POLICY CONFIRMATION
     if (!policyConfirmed) {
@@ -534,6 +542,9 @@ export default function AddListingPage() {
         {/* Base Price + Currency */}
         <div className="grid grid-cols-2 gap-4">
           <input
+            type="number"
+            step="0.01"
+            min="0.01"
             name="baseprice"
             value={form.baseprice}
             onChange={handleChange}
