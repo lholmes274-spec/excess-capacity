@@ -194,12 +194,6 @@ function ListingsContent() {
                   {listing.title}
                 </h2>
 
-                {listing.contact_name && (
-                   <p className="text-gray-500 text-sm">
-                    by {listing.contact_name}
-                   </p>
-                )}
-
                 <p className="text-sm text-gray-600 mb-2 line-clamp-2">
                   {listing.description}
                 </p>
