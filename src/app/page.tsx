@@ -233,12 +233,6 @@ export default function HomePage() {
               <h3 className="text-lg font-semibold mt-3">
                 {listing.title}
               </h3>
-
-              {listing.contact_name && (
-                 <p className="text-gray-500 text-sm">
-                  by {listing.contact_name}
-                 </p>
-              )}
               
               {listing.baseprice !== null && (
                 <p className="text-green-700 font-semibold mt-1">
