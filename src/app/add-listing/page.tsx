@@ -560,6 +560,7 @@ export default function AddListingPage() {
             className="w-full p-3 border rounded-lg bg-white"
           >
             <option value="USD">USD – US Dollar</option>
+            <option value="DOP">DOP – Dominican Peso</option>
             <option value="NGN">NGN – Nigerian Naira</option>
             <option value="INR">INR – Indian Rupee</option>
             <option value="CAD">CAD – Canadian Dollar</option>
