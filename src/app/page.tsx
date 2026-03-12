@@ -234,6 +234,12 @@ export default function HomePage() {
                 {listing.title}
               </h3>
 
+              {listing.contact_name && (
+                 <p className="text-gray-500 text-sm">
+                  by {listing.contact_name}
+                 </p>
+              )}
+              
               {listing.baseprice !== null && (
                 <p className="text-green-700 font-semibold mt-1">
                   {new Intl.NumberFormat(undefined, {
