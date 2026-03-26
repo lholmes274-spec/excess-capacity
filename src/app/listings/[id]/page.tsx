@@ -231,6 +231,12 @@ export default function ListingDetailPage() {
     }
    }
 
+    // 🔥 NEW — Stop guests from going to Stripe
+    if (!userId) {
+      alert("Please enter your details to request this booking.");
+      return;
+    }
+
     if (listing.demo_mode) {
       alert("Demo Only – Checkout disabled");
     } else {
