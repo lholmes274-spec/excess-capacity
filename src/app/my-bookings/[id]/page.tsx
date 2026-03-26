@@ -192,7 +192,7 @@ export default function BookingDetailsPage() {
           <h3 className="font-semibold text-blue-700 mb-2">Customer Information</h3>
 
           <p className="text-gray-700">
-            <strong>Name:</strong> TEST WORKING
+            <strong>Name:</strong> {booking.guest_name || "—"}
           </p>
           <p className="text-gray-700">
             <strong>Email:</strong> {booking.guest_email || booking.user_email || "—"}
