@@ -265,6 +265,15 @@ export default function ListingDetailPage() {
       return;
     }
 
+    // 🔔 Trigger email notification to provider
+    await fetch("/api/message-notification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        receiver_id: listing.owner_id,
+      }),
+    });
+
     alert("Request sent! The provider will contact you.");
     return;
    }
