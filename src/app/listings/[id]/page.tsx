@@ -260,8 +260,8 @@ export default function ListingDetailPage() {
     });
 
     if (error) {
-      console.error(error);
-      alert("Booking failed. Try again.");
+      console.error("FULL ERROR:", error);
+      alert(error.message); 
       return;
     }
 
