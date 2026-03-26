@@ -270,6 +270,7 @@ export default function ListingDetailPage() {
       {
         listing_id: listing.id,
         sender_id: null, // guest
+        guest_email: guestEmail,
         receiver_id: listing.owner_id,
         message: `New booking request from ${guestName}. Please coordinate details here.`,
       },
