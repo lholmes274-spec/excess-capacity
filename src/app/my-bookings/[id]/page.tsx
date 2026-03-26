@@ -180,7 +180,22 @@ export default function BookingDetailsPage() {
         </div>
 
         <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
-          <h3 className="font-semibold text-blue-700 mb-2">Contact</h3>
+          <h3 className="font-semibold text-blue-700 mb-2">Customer Information</h3>
+
+          <p className="text-gray-700">
+            <strong>Name:</strong> {booking.guest_name || "—"}
+          </p>
+          <p className="text-gray-700">
+            <strong>Email:</strong> {booking.guest_email || booking.user_email || "—"}
+          </p>
+          <p className="text-gray-700">
+            <strong>Phone:</strong> {booking.guest_phone || "—"}
+          </p>
+        </div>
+
+        <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg mt-4">
+          <h3 className="font-semibold text-gray-800 mb-2">Provider Information</h3>
+          
           <p className="text-gray-700">
             <strong>Name:</strong> {listing.contact_name || "—"}
           </p>
