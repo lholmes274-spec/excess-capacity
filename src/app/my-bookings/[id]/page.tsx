@@ -202,11 +202,19 @@ export default function BookingDetailsPage() {
           </p>
         </div>
 
-        {/* 🆕 MESSAGE CUSTOMER BUTTON */}
+        {/* 🆕 MESSAGE CUSTOMER UI */}
         {user?.id === booking.owner_id && (
+          <div className="mt-4 space-y-2">
+            <textarea
+              placeholder="Type your message to the customer..."
+              className="w-full border p-3 rounded-lg"
+              id="messageBox"
+            />
+
           <button
             onClick={async () => {
-              const message = prompt("Enter your message to the customer:");
+              const messageInput = document.getElementById("messageBox") as HTMLTextAreaElement;
+              const message = messageInput?.value;
 
               if (!message || message.trim() === "") return;
 
@@ -233,12 +241,15 @@ export default function BookingDetailsPage() {
                 }),
               });
 
+              messageInput.value = "";
+
               alert("Message sent successfully!");
             }}
             className="mt-4 w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
           >
-            Message Customer
+            Send Message
           </button>
+          </div>
          )}
 
         <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg mt-4">
