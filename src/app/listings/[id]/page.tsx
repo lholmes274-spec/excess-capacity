@@ -266,7 +266,7 @@ export default function ListingDetailPage() {
     }
 
     // 🔔 Trigger email notification to provider
-    await fetch("/api/message-notification", {
+    await fetch("/api/booking-notification", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
