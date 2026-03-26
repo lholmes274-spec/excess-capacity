@@ -15,6 +15,7 @@ export default function BookingDetailsPage() {
 
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [messages, setMessages] = useState([]);
 
   useEffect(() => {
     async function load() {
@@ -71,6 +72,18 @@ export default function BookingDetailsPage() {
       // ✅ ONLY SET STATE AFTER PASSING SECURITY
       setBooking(bookingData);
       setListing(listingData);
+
+      // 🔥 LOAD CONVERSATION MESSAGES
+      const { data: messagesData } = await supabase
+        .from("inquiries")
+        .select("*")
+        .eq("listing_id", bookingData.listing_id)
+        .eq("guest_email", bookingData.guest_email)
+        .order("created_at", { ascending: true });
+
+      if (messagesData) {
+         setMessages(messagesData);
+      }
 
       if (!loggedInUser && buyerEmail) {
         localStorage.setItem("guest_email", buyerEmail);
@@ -253,6 +266,31 @@ export default function BookingDetailsPage() {
           </button>
           </div>
          )}
+
+         {/* 🔥 CONVERSATION THREAD */}
+         {messages.length > 0 && (
+           <div className="mt-6 space-y-3">
+             <h3 className="font-semibold text-gray-800">Conversation</h3>
+
+             {messages.map((msg) => {
+               const isProvider = msg.sender_id === booking.owner_id;
+
+               return (
+                 <div
+                   key={msg.id}
+                   className={`p-3 rounded-lg ${
+                     isProvider ? "bg-blue-100 text-right" : "bg-gray-100 text-left"
+                   }`}
+                 >
+                   <p className="text-sm">{msg.message}</p>
+                   <p className="text-xs text-gray-500 mt-1">
+                    {new Date(msg.created_at).toLocaleString()}
+                   </p>
+                 </div>
+             );
+           })}
+         </div>
+       )}
 
         <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg mt-4">
           <h3 className="font-semibold text-gray-800 mb-2">Provider Information</h3>
