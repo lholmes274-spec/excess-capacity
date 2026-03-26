@@ -64,7 +64,8 @@ export default function BookingDetailsPage() {
           ? localStorage.getItem("guest_email") === buyerEmail
           : false;
 
-      if (!isLoggedInBuyer && !isLoggedInEmailMatch && !isGuestEmailMatch) {
+      const isOwner = loggedInUser?.id === bookingData.owner_id;
+      if (!isLoggedInBuyer && !isLoggedInEmailMatch && !isGuestEmailMatch && !isOwner) {
         console.warn("Unauthorized access to booking");
         setBooking(null);
         setLoading(false);
