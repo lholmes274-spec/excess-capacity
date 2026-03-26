@@ -223,6 +223,7 @@ export default function BookingDetailsPage() {
                   listing_id: booking.listing_id,
                   sender_id: user.id,
                   receiver_id: booking.user_id || null,
+                  guest_email: booking.guest_email,
                   message: message.trim(),
                  },
               ]);
