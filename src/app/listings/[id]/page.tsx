@@ -265,6 +265,16 @@ export default function ListingDetailPage() {
       return;
     }
 
+    // 🆕 AUTO-CREATE MESSAGE THREAD FOR BOOKING
+    await supabase.from("inquiries").insert([
+      {
+        listing_id: listing.id,
+        sender_id: null, // guest
+        receiver_id: listing.owner_id,
+        message: `New booking request from ${guestName}. Please coordinate details here.`,
+      },
+    ]);
+
     // 🔔 Trigger email notification to provider
     await fetch("/api/booking-notification", {
       method: "POST",
@@ -274,7 +284,7 @@ export default function ListingDetailPage() {
       }),
     });
 
-    alert("Request sent! The provider will contact you.");
+    alert("Request sent! The provider will contact you through Prosperity Hub or using the contact details provided.");
     return;
    }
 
