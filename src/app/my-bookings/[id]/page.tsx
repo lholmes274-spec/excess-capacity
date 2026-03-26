@@ -202,6 +202,45 @@ export default function BookingDetailsPage() {
           </p>
         </div>
 
+        {/* 🆕 MESSAGE CUSTOMER BUTTON */}
+        {user?.id === booking.owner_id && (
+          <button
+            onClick={async () => {
+              const message = prompt("Enter your message to the customer:");
+
+              if (!message || message.trim() === "") return;
+
+              const { error } = await supabase.from("inquiries").insert([
+                 {
+                  listing_id: booking.listing_id,
+                  sender_id: user.id,
+                  receiver_id: booking.user_id || null,
+                  message: message.trim(),
+                 },
+              ]);
+
+              if (error) {
+                alert("Unable to send message. Please try again.");
+                return;
+              }
+
+              // 🔔 Trigger email notification
+              await fetch("/api/message-notification", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  receiver_id: booking.user_id,
+                }),
+              });
+
+              alert("Message sent successfully!");
+            }}
+            className="mt-4 w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+          >
+            Message Customer
+          </button>
+         )}
+
         <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg mt-4">
           <h3 className="font-semibold text-gray-800 mb-2">Provider Information</h3>
           
