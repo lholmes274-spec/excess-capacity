@@ -245,6 +245,8 @@ export default function ListingDetailPage() {
 
     const { error } = await supabase.from("bookings").insert({
       user_id: null,
+      user_email: guestEmail, 
+      booker_email: guestEmail, 
       guest_name: guestName,
       guest_email: guestEmail,
       guest_phone: guestPhone,
