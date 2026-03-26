@@ -250,6 +250,10 @@ export default function BookingDetailsPage() {
           <p className="text-gray-700">
             <strong>Phone:</strong> {listing.contact_phone || "—"}
           </p>
+          {/* 🔥 NEW — Guide users to messaging first */}
+          <div className="mt-2 text-sm text-gray-600">
+            For best response time, please use the in-app messaging system.
+          </div>
           <p className="text-gray-700">
             <strong>Email:</strong> {listing.contact_email || "—"}
           </p>
