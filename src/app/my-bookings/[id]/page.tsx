@@ -45,10 +45,6 @@ export default function BookingDetailsPage() {
         .eq("id", bookingData.listing_id)
         .single();
 
-      setBooking(bookingData);
-      setListing(listingData);
-      setLoading(false);
-
       // ⭐ SECURITY CHECK
       const buyerId = bookingData.user_id;
       const buyerEmail = bookingData.user_email;
@@ -71,6 +67,10 @@ export default function BookingDetailsPage() {
         setLoading(false);
         return;
       }
+
+      // ✅ ONLY SET STATE AFTER PASSING SECURITY
+      setBooking(bookingData);
+      setListing(listingData);
 
       if (!loggedInUser && buyerEmail) {
         localStorage.setItem("guest_email", buyerEmail);
@@ -192,7 +192,7 @@ export default function BookingDetailsPage() {
           <h3 className="font-semibold text-blue-700 mb-2">Customer Information</h3>
 
           <p className="text-gray-700">
-            <strong>Name:</strong> {booking.guest_name || "—"}
+            <strong>Name:</strong> TEST WORKING
           </p>
           <p className="text-gray-700">
             <strong>Email:</strong> {booking.guest_email || booking.user_email || "—"}
