@@ -25,22 +25,33 @@ export default function BookingDetailsPage() {
       const loggedInUser = auth.data.user || null;
       setUser(loggedInUser);
 
-      // Fetch booking + listing details
-      const { data, error } = await supabase
+      // 1️⃣ Get booking ONLY
+      const { data: bookingData, error } = await supabase
         .from("bookings")
-        .select("*, listings(*)")
+        .select("*")
         .eq("id", id)
         .single();
 
-      if (error || !data) {
-        console.error("Booking not found or blocked by RLS:", error);
+      if (error || !bookingData) {
+        console.error("Booking not found:", error);
         setLoading(false);
         return;
       }
 
+      // 2️⃣ Get listing separately
+      const { data: listingData } = await supabase
+        .from("listings")
+        .select("*")
+        .eq("id", bookingData.listing_id)
+        .single();
+
+      setBooking(bookingData);
+      setListing(listingData);
+      setLoading(false);
+
       // ⭐ SECURITY CHECK
-      const buyerId = data.user_id;
-      const buyerEmail = data.user_email;
+      const buyerId = bookingData.user_id;
+      const buyerEmail = bookingData.user_email;
 
       const isLoggedInBuyer =
         loggedInUser?.id && buyerId === loggedInUser.id;
@@ -63,9 +74,6 @@ export default function BookingDetailsPage() {
       if (!loggedInUser && buyerEmail) {
         localStorage.setItem("guest_email", buyerEmail);
       }
-
-      setBooking(data);
-      setListing(data.listings);
       setLoading(false);
     }
 
