@@ -16,6 +16,11 @@ export default function ListingDetailPage() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
 
+  // 🔥 NEW — Guest fields
+  const [guestName, setGuestName] = useState("");
+  const [guestEmail, setGuestEmail] = useState("");
+  const [guestPhone, setGuestPhone] = useState("");
+
   // quantity for rentals only
   const [days, setDays] = useState<number>(1);
 
@@ -500,6 +505,27 @@ export default function ListingDetailPage() {
       )}
 
       {/* CHECKOUT BUTTON */}
+
+      {/* 🔥 NEW — Guest Info */}
+      {!userId && (
+        <div className="mt-6 space-y-3">
+          <input
+            placeholder="Your Name"
+            className="w-full border p-2 rounded"
+            onChange={(e) => setGuestName(e.target.value)}
+          />
+          <input
+            placeholder="Email"
+            className="w-full border p-2 rounded"
+            onChange={(e) => setGuestEmail(e.target.value)}
+          />
+          <input
+            placeholder="Phone (optional)"
+            className="w-full border p-2 rounded"
+            onChange={(e) => setGuestPhone(e.target.value)}
+          />
+        </div>
+      )}
 
       {(() => {
          const isForSale = listing.transaction_type === "sale";
