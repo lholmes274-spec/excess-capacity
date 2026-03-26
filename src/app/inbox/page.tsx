@@ -15,23 +15,41 @@ export default function InboxPage() {
   useEffect(() => {
     async function loadInbox() {
       const { data: sessionData } = await supabase.auth.getSession();
-      const sessionUser = sessionData?.session?.user;
+      const sessionUser = sessionData?.session?.user || null;
 
-      if (!sessionUser) {
+      const guestEmail = localStorage.getItem("guest_email");
+
+      // Only block if NO user AND NO guest email
+      if (!sessionUser && !guestEmail) {
         router.push("/login");
         return;
       }
 
-      setUserId(sessionUser.id);
+      // Only set userId if logged in
+      if (sessionUser?.id) {
+       setUserId(sessionUser.id);
+      }
 
-      const { data, error } = await supabase
+      // 🔥 NEW — support logged-in users AND guests
+
+      let query = supabase
         .from("inquiries")
         .select(`
           *,
           listings ( title )
-        `)
-        .or(`sender_id.eq.${sessionUser.id},receiver_id.eq.${sessionUser.id}`)
-        .order("created_at", { ascending: false });
+        `);
+
+      // Logged-in user messages
+      if (sessionUser?.id) {
+        query = query.or(`sender_id.eq.${sessionUser.id},receiver_id.eq.${sessionUser.id}`);
+      }
+
+      // Guest messages
+      if (!sessionUser?.id && guestEmail) {
+        query = query.eq("guest_email", guestEmail);
+      }
+
+      const { data, error } = await query.order("created_at", { ascending: false });
 
       if (!error && data) {
         setMessages(data);
