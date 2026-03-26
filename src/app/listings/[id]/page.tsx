@@ -206,10 +206,8 @@ export default function ListingDetailPage() {
     !listing.baseprice || Number(listing.baseprice) <= 0;
 
     const handleCheckout = async () => {
-    if (!userId) {
-      router.push(`/signup?redirect=/listings/${listing.id}`);
-      return;
-    }
+    
+    // Allow guest users — no redirect
 
     // ➕ START — enforce required booking dates
     if (!isForSale) {
