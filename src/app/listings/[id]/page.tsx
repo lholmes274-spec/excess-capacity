@@ -236,11 +236,36 @@ export default function ListingDetailPage() {
     }
    }
 
-    // 🔥 NEW — Stop guests from going to Stripe
+    // 🔥 NEW — Handle guest booking (NO Stripe)
     if (!userId) {
-      alert("Please enter your details to request this booking.");
+      if (!guestName || !guestEmail) {
+       alert("Please enter your name and email.");
       return;
     }
+
+    const { error } = await supabase.from("bookings").insert({
+      user_id: null,
+      guest_name: guestName,
+      guest_email: guestEmail,
+      guest_phone: guestPhone,
+      listing_id: listing.id,
+      start_date: startDate,
+      end_date: endDate,
+      days: days,
+      final_amount: totalPrice,
+      status: "pending",
+      owner_id: listing.owner_id,
+    });
+
+    if (error) {
+      console.error(error);
+      alert("Booking failed. Try again.");
+      return;
+    }
+
+    alert("Request sent! The provider will contact you.");
+    return;
+   }
 
     if (listing.demo_mode) {
       alert("Demo Only – Checkout disabled");
