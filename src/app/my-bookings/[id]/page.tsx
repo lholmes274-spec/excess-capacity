@@ -238,6 +238,7 @@ export default function BookingDetailsPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                   receiver_id: booking.user_id,
+                  receiver_email: booking.guest_email,
                 }),
               });
 
