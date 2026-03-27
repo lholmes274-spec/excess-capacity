@@ -26,7 +26,9 @@ export default function ProviderBookingPage() {
       if (!id) return;
 
       // USER
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       setUser(user);
 
       // BOOKING
@@ -85,7 +87,7 @@ export default function ProviderBookingPage() {
   }, [id]);
 
   async function sendMessage() {
-    if (!newMessage.trim() || !booking || !user) return;
+    if (!newMessage.trim() || !booking || !user || !listing) return;
 
     const receiverId =
       booking.user_id === user.id
@@ -103,30 +105,45 @@ export default function ProviderBookingPage() {
     ]);
 
     if (!error) {
-      // 📧 RESTORE EMAIL NOTIFICATION
-      await fetch("/api/send-message-email", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          to: booking.user_email,
-          message: newMessage,
-          listingTitle: listing.title,
-        }),
-      });
+      // 🔥 DETERMINE RECEIVER EMAIL CORRECTLY
+      let receiverEmail = null;
 
-    setNewMessage("");
+      if (user.id === listing.owner_id) {
+        // provider sending → email booker
+        receiverEmail = booking.user_email;
+      } else {
+        // booker sending → email provider
+        receiverEmail = providerProfile?.email;
+      }
 
-    const { data: msgs } = await supabase
-      .from("inquiries")
-      .select("*")
-      .eq("listing_id", booking.listing_id)
-      .order("created_at", { ascending: true });
+      // ❌ DO NOT EMAIL YOURSELF
+      if (receiverEmail && receiverEmail !== user.email) {
+        await fetch("/api/send-message-email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            to: receiverEmail,
+            message: newMessage,
+            listingTitle: listing.title,
+          }),
+        });
+      }
 
-    setMessages(msgs || []);
+      // CLEAR INPUT
+      setNewMessage("");
+
+      // REFRESH MESSAGES
+      const { data: msgs } = await supabase
+        .from("inquiries")
+        .select("*")
+        .eq("listing_id", booking.listing_id)
+        .order("created_at", { ascending: true });
+
+      setMessages(msgs || []);
+    }
   }
-}
 
   if (!booking || !listing) return <p>Loading...</p>;
 
