@@ -254,8 +254,9 @@ export default function BookingDetailsPage() {
                   sender_id: user.id,
                   receiver_id:
                    user.id === booking.owner_id
-                     ? booking.user_id
+                     ? booking.user_id || null
                      : booking.owner_id, // 🔥 AUTO DETECT RECEIVER
+                  guest_email: booking.guest_email,
                   message: message.trim(),
                  },
               ]);
