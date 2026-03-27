@@ -90,7 +90,7 @@ export default function BookingDetailsPage() {
       const { data: messagesData, error: messageError } = await supabase
         .from("inquiries")
         .select("*")
-        .eq("booking_id", bookingData.id)
+        .eq("booking_id", id)
         .order("created_at", { ascending: true });
 
       if (messageError) {
@@ -248,7 +248,7 @@ export default function BookingDetailsPage() {
 
               const { error } = await supabase.from("inquiries").insert([
                  {
-                  booking_id: booking.id,
+                  booking_id: id,
                   listing_id: booking.listing_id,
                   sender_id: user.id,
                   receiver_id:
