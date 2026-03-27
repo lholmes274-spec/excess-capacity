@@ -11,7 +11,7 @@ const supabase = createClient(
 
 export async function POST(req: Request) {
   try {
-    const { receiver_id, receiver_email } = await req.json();
+    const { receiver_id, receiver_email, booking_id } = await req.json();
 
     let emailToSend = "";
 
@@ -48,15 +48,15 @@ export async function POST(req: Request) {
          <p>You received a new message regarding one of your listings.</p>
 
          <p style="margin:20px 0;">
-          href="${process.env.NEXT_PUBLIC_SITE_URL}/login?redirect=/my-bookings"
-             style="display:inline-block;padding:12px 20px;background:#ea580c;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:bold;">
-             View Your Booking
-          </a>
+           <a href="${process.env.NEXT_PUBLIC_SITE_URL}/login?redirect=/my-bookings${booking_id ? `/${booking_id}` : ""}"
+              style="display:inline-block;padding:12px 20px;background:#ea580c;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:bold;">
+              View Your Booking
+           </a>
         </p>
 
-         <p>For security, message content is only visible inside your account.</p>
-       `,
-      });
+        <p>For security, message content is only visible inside your account.</p>
+      `,
+    });
 
       return NextResponse.json({ success: true });
     } catch (err) {
