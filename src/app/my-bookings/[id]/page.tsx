@@ -90,7 +90,6 @@ export default function BookingDetailsPage() {
       const { data: messagesData, error: messageError } = await supabase
         .from("inquiries")
         .select("*")
-        .eq("listing_id", bookingData.listing_id)
         .eq("booking_id", bookingData.id)
         .order("created_at", { ascending: true });
 
@@ -301,11 +300,13 @@ export default function BookingDetailsPage() {
          )}
 
          {/* 🔥 CONVERSATION THREAD */}
-         {messages.length > 0 && (
            <div className="mt-6 space-y-3">
              <h3 className="font-semibold text-gray-800">Conversation</h3>
-
-             {messages.map((msg) => {
+             
+             {messages.length === 0 ? (
+               <p className="text-gray-500 text-sm">No messages yet.</p>
+             ) : (
+               messages.map((msg) => {
                const isProvider = msg.sender_id === booking.owner_id;
 
                return (
@@ -321,9 +322,9 @@ export default function BookingDetailsPage() {
                    </p>
                  </div>
              );
-           })}
+            })
+           )}
          </div>
-       )}
 
         <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg mt-4">
           <h3 className="font-semibold text-gray-800 mb-2">Provider Information</h3>
