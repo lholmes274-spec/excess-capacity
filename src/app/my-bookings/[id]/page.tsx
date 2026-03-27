@@ -86,26 +86,6 @@ export default function BookingDetailsPage() {
       setBooking(bookingData);
       setListing(listingData);
 
-      // 🔥 LOAD MESSAGES RIGHT AFTER BOOKING IS READY
-      const { data: messagesData, error: messageError } = await supabase
-        .from("inquiries")
-        .select("*")
-        .order("created_at", { ascending: true });
-
-      if (messageError) {
-        console.error("❌ Message fetch error:", messageError);
-      } else {
-        console.log("🔥 ALL MESSAGES FROM DB:", messagesData);
-
-        const filtered = (messagesData || []).filter(
-          (msg) => msg.listing_id === bookingData.listing_id
-        );
-
-        console.log("🔥 FILTERED MESSAGES:", filtered);
-
-        setMessages(filtered);
-      }
-
       if (!loggedInUser && buyerEmail) {
         localStorage.setItem("guest_email", buyerEmail);
       }
@@ -114,6 +94,29 @@ export default function BookingDetailsPage() {
 
     load();
   }, [id]);
+
+  useEffect(() => {
+    async function loadMessages() {
+      if (!booking?.listing_id) return;
+
+      const { data, error } = await supabase
+        .from("inquiries")
+        .select("*")
+        .order("created_at", { ascending: true });
+
+      if (error) {
+        console.error("❌ Message fetch error:", error);
+        return;
+      }
+
+      const filtered = (data || []).filter(
+        (msg) => msg.listing_id === booking.listing_id
+      );
+
+      setMessages(filtered);
+    }
+    loadMessages();
+  }, [booking]);
 
   if (loading)
     return (
