@@ -90,8 +90,10 @@ export default function BookingDetailsPage() {
       const { data: messagesData, error: messageError } = await supabase
         .from("inquiries")
         .select("*")
-        .or(`booking_id.eq.${id},listing_id.eq.${bookingData.listing_id}`)
+        .eq("listing_id", bookingData.listing_id)
         .order("created_at", { ascending: true });
+
+        console.log("🔥 ALL messages:", messagesData);
 
       if (messageError) {
         console.error("❌ Message fetch error:", messageError);
