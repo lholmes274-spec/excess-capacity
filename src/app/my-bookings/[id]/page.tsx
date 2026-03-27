@@ -87,14 +87,18 @@ export default function BookingDetailsPage() {
       setListing(listingData);
 
       // 🔥 LOAD CONVERSATION MESSAGES
-      const { data: messagesData } = await supabase
+      const { data: messagesData, error: messageError } = await supabase
         .from("inquiries")
         .select("*")
-        .eq("booking_id", bookingData.id)
+        .eq("listing_id", bookingData.listing_id)
+        .or(`sender_id.eq.${loggedInUser?.id},receiver_id.eq.${loggedInUser?.id}`)
         .order("created_at", { ascending: true });
 
-      if (messagesData) {
-         setMessages(messagesData);
+      if (messageError) {
+        console.error("❌ Message fetch error:", messageError);
+      } else {
+        console.log("✅ Messages loaded:", messagesData);
+        setMessages(messagesData || []);
       }
 
       if (!loggedInUser && buyerEmail) {
@@ -248,6 +252,10 @@ export default function BookingDetailsPage() {
                   booking_id: booking.id,
                   listing_id: booking.listing_id,
                   sender_id: user.id,
+                  receiver_id:
+                   user.id === booking.owner_id
+                     ? booking.user_id
+                     : booking.owner_id, // 🔥 AUTO DETECT RECEIVER
                   message: message.trim(),
                  },
               ]);
@@ -270,7 +278,19 @@ export default function BookingDetailsPage() {
 
               messageInput.value = "";
 
+              // 🔥 INSTANT UI UPDATE (NO REFRESH)
+              setMessages((prev) => [
+                ...prev,
+                {
+                 id: Date.now(),
+                 message: message.trim(),
+                 sender_id: user.id,
+                 created_at: new Date().toISOString(),
+                },
+              ]);
+
               alert("Message sent successfully!");
+
             }}
             className="mt-4 w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
           >
