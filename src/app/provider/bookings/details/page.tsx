@@ -11,6 +11,7 @@ export default function ProviderBookingDetailsPage() {
   const id = searchParams.get("id");
 
   const [booking, setBooking] = useState(null);
+  const [messages, setMessages] = useState([]);
 
   useEffect(() => {
     async function load() {
@@ -51,6 +52,27 @@ export default function ProviderBookingDetailsPage() {
 
     load();
   }, [id]);
+
+  // ✅ NEW BLOCK (ADD THIS)
+  useEffect(() => {
+    async function loadMessages() {
+      if (!booking?.listings?.id) return;
+
+      const { data, error } = await supabase
+        .from("inquiries")
+        .select("*")
+        .order("created_at", { ascending: true });
+
+      if (error) return;
+      const filtered = (data || []).filter(
+        (msg) => msg.listing_id === booking.listings.id
+      );
+
+      setMessages(filtered);
+    }
+
+     loadMessages();
+   }, [booking]);
 
   if (!booking) return <p className="p-6">Loading...</p>;
 
@@ -187,6 +209,26 @@ export default function ProviderBookingDetailsPage() {
         </p>
       </div>
 
-    </div>
+      {/* 🔥 CONVERSATION */}
+      <div className="mt-6 space-y-3">
+        <h2 className="font-semibold text-gray-800">Conversation</h2>
+         {messages.length === 0 ? (
+           <p className="text-gray-500 text-sm">No messages yet.</p>
+         ) : (
+           messages.map((msg) => (
+            <div
+              key={msg.id}
+              className="p-3 rounded-lg bg-gray-100 border"
+            >
+              <p className="text-sm">{msg.message}</p>
+              <p className="text-xs text-gray-500 mt-1">
+                {new Date(msg.created_at).toLocaleString()}
+              </p>
+            </div>
+          ))
+        )}
+      </div>
+
+   </div>
   );
-}
+ }
