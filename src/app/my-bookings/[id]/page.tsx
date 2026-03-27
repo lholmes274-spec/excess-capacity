@@ -90,7 +90,7 @@ export default function BookingDetailsPage() {
       const { data: messagesData, error: messageError } = await supabase
         .from("inquiries")
         .select("*")
-        .eq("booking_id", id)
+        .or(`booking_id.eq.${id},listing_id.eq.${bookingData.listing_id}`)
         .order("created_at", { ascending: true });
 
       if (messageError) {
