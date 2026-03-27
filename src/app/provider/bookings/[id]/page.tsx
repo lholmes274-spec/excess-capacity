@@ -11,6 +11,7 @@ export default function ProviderBookingPage() {
   const id = Array.isArray(params?.id) ? params.id[0] : params?.id;
 
   const [booking, setBooking] = useState(null);
+  const [listing, setListing] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [user, setUser] = useState(null);
@@ -19,13 +20,12 @@ export default function ProviderBookingPage() {
     async function load() {
       if (!id) return;
 
-      // ✅ get logged in user
       const {
         data: { user },
       } = await supabase.auth.getUser();
       setUser(user);
 
-      // ✅ get booking
+      // ✅ booking
       const { data: bookingData } = await supabase
         .from("bookings")
         .select("*")
@@ -34,22 +34,30 @@ export default function ProviderBookingPage() {
 
       setBooking(bookingData);
 
-      // ✅ load messages (based on listing + users)
-      if (bookingData) {
-        const { data: msgs } = await supabase
-          .from("inquiries")
-          .select("*")
-          .eq("listing_id", bookingData.listing_id)
-          .order("created_at", { ascending: true });
+      if (!bookingData) return;
 
-        setMessages(msgs || []);
-      }
+      // ✅ listing
+      const { data: listingData } = await supabase
+        .from("listings")
+        .select("*")
+        .eq("id", bookingData.listing_id)
+        .single();
+
+      setListing(listingData);
+
+      // ✅ messages
+      const { data: msgs } = await supabase
+        .from("inquiries")
+        .select("*")
+        .eq("listing_id", bookingData.listing_id)
+        .order("created_at", { ascending: true });
+
+      setMessages(msgs || []);
     }
 
     load();
   }, [id]);
 
-  // ✅ send message
   async function sendMessage() {
     if (!newMessage.trim() || !booking || !user) return;
 
@@ -58,7 +66,7 @@ export default function ProviderBookingPage() {
         ? booking.owner_id
         : booking.user_id;
 
-    const { error } = await supabase.from("inquiries").insert([
+    await supabase.from("inquiries").insert([
       {
         listing_id: booking.listing_id,
         sender_id: user.id,
@@ -67,18 +75,15 @@ export default function ProviderBookingPage() {
       },
     ]);
 
-    if (!error) {
-      setNewMessage("");
+    setNewMessage("");
 
-      // reload messages
-      const { data: msgs } = await supabase
-        .from("inquiries")
-        .select("*")
-        .eq("listing_id", booking.listing_id)
-        .order("created_at", { ascending: true });
+    const { data: msgs } = await supabase
+      .from("inquiries")
+      .select("*")
+      .eq("listing_id", booking.listing_id)
+      .order("created_at", { ascending: true });
 
-      setMessages(msgs || []);
-    }
+    setMessages(msgs || []);
   }
 
   if (!booking) return <p>Loading...</p>;
@@ -87,9 +92,37 @@ export default function ProviderBookingPage() {
     <div className="p-6 space-y-6">
       <h1 className="text-xl font-bold">Booking Details</h1>
 
+      {/* 🧾 LISTING INFO */}
+      {listing && (
+        <div className="border p-4 rounded space-y-3">
+          <h2 className="font-semibold">{listing.title}</h2>
+
+          {listing.image_url && (
+            <img
+              src={listing.image_url}
+              className="w-full max-w-md rounded"
+            />
+          )}
+
+          <p className="text-sm text-gray-600">
+            {listing.description}
+          </p>
+
+          <p className="font-medium">
+            Price: ${listing.baseprice}
+          </p>
+        </div>
+      )}
+
+      {/* 💰 BOOKING INFO */}
       <div className="border p-4 rounded">
         <p>Status: {booking.status}</p>
-        <p>Total: ${booking.final_amount || 0}</p>
+        <p>
+          Total: $
+          {booking.final_amount ||
+            listing?.baseprice ||
+            0}
+        </p>
       </div>
 
       {/* 💬 MESSAGES */}
@@ -115,7 +148,6 @@ export default function ProviderBookingPage() {
           ))}
         </div>
 
-        {/* ✍️ INPUT */}
         <div className="flex gap-2">
           <input
             className="border p-2 flex-1 rounded"
