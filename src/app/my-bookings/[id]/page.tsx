@@ -91,7 +91,9 @@ export default function BookingDetailsPage() {
         .from("inquiries")
         .select("*")
         .eq("listing_id", bookingData.listing_id)
-        .eq("guest_email", bookingData.guest_email)
+        .or(
+          `guest_email.eq.${bookingData.guest_email},receiver_id.eq.${bookingData.user_id}`
+         )
         .order("created_at", { ascending: true });
 
       if (messagesData) {
