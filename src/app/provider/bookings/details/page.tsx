@@ -61,7 +61,7 @@ export default function ProviderBookingDetailsPage() {
       const { data, error } = await supabase
         .from("inquiries")
         .select("*")
-        .order("created_at", { ascending: true });
+        .order("created_at", { ascending: false });
 
       if (error) return;
       const filtered = (data || []).filter(
@@ -259,6 +259,8 @@ export default function ProviderBookingDetailsPage() {
                 created_at: new Date().toISOString(),
               },
             ]);
+
+            alert("Message sent successfully!");
           }}
           className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
         >
