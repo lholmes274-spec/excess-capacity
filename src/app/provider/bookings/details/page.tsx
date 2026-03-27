@@ -238,6 +238,16 @@ export default function ProviderBookingDetailsPage() {
               return;
             }
 
+            await fetch("/api/message-notification", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                receiver_id: booking.user_id,
+                receiver_email: booking.user_email,
+                booking_id: booking.id,
+             }),
+            });
+
             input.value = "";
 
             setMessages((prev) => [
