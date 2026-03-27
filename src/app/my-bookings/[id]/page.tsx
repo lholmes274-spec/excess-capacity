@@ -102,7 +102,7 @@ export default function BookingDetailsPage() {
       const { data, error } = await supabase
         .from("inquiries")
         .select("*")
-        .order("created_at", { ascending: true });
+        .order("created_at", { ascending: false });
 
       if (error) {
         console.error("❌ Message fetch error:", error);
