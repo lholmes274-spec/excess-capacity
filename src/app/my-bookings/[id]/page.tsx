@@ -253,6 +253,7 @@ export default function BookingDetailsPage() {
                 body: JSON.stringify({
                   receiver_id: booking.user_id,
                   receiver_email: booking.guest_email,
+                  booking_id: booking.id,
                 }),
               });
 
