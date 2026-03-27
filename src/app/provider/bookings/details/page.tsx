@@ -58,11 +58,28 @@ export default function ProviderBookingDetailsPage() {
   const images = listing.image_urls || [];
   const mainImage = listing.image_url || images[0];
 
+  // ✅ ADDED (helper function)
+  function formatPricingType(type) {
+    if (!type) return "";
+    const map = {
+      per_hour: "hour",
+      per_day: "day",
+      per_night: "night",
+      per_week: "week",
+      per_month: "month",
+      per_service: "service",
+      per_item: "item",
+      per_use: "use",
+      per_trip: "trip",
+    };
+    return map[type] || type.replace("per_", "");
+  }
+
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
 
       {/* 🔹 TITLE */}
-      <h1 className="text-2xl font-bold">
+      <h1 className="text-3xl font-bold text-orange-700">
         {listing.title || "Booking Details"}
       </h1>
 
@@ -70,31 +87,39 @@ export default function ProviderBookingDetailsPage() {
       {mainImage && (
         <img
           src={mainImage}
-          className="w-full max-h-[400px] object-cover rounded-lg"
+          className="w-full h-[420px] object-cover rounded-xl shadow"
         />
       )}
 
       {/* 🔹 GALLERY */}
       {images.length > 1 && (
-        <div className="flex gap-2 overflow-x-auto">
+        <div className="flex gap-2 mt-2">
           {images.map((img, i) => (
             <img
               key={i}
               src={img}
-              className="w-20 h-20 object-cover rounded border"
+              className="w-16 h-16 object-cover rounded-lg border-2 border-gray-200"
             />
           ))}
         </div>
       )}
 
       {/* 🔹 DESCRIPTION */}
-      <p className="text-gray-700">
+      <p className="text-gray-700 leading-relaxed">
         {listing.description}
       </p>
 
       {/* 🔹 LOCATION */}
-      <p className="font-medium">
+      <p className="font-medium text-gray-800">
         📍 {listing.city}, {listing.state}
+      </p>
+
+      {/* ✅ ADDED PRICE (only new UI block) */}
+      <p className="text-2xl font-bold text-green-600">
+        {listing.currency || "$"}{listing.baseprice}{" "}
+        <span className="text-sm font-normal text-gray-500">
+          / {formatPricingType(listing.pricing_type)}
+        </span>
       </p>
 
       {/* 🔹 BOOKING INFO */}
@@ -103,7 +128,8 @@ export default function ProviderBookingDetailsPage() {
 
         <p>
           <strong>Total:</strong>{" "}
-          ${booking.final_amount || booking.amount || listing.baseprice || 0}
+          {listing.currency || "$"}
+          {booking.final_amount || booking.amount || listing.baseprice || 0}
         </p>
 
         {booking.start_date && (
@@ -164,4 +190,3 @@ export default function ProviderBookingDetailsPage() {
     </div>
   );
 }
-
