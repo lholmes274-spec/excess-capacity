@@ -59,106 +59,116 @@ export default function ProviderBookingDetailsPage() {
   const mainImage = listing.image_url || images[0];
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
+    <div className="p-6 max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
 
-      {/* 🔹 TITLE */}
-      <h1 className="text-2xl font-bold">
-        {listing.title || "Booking Details"}
-      </h1>
+      {/* 🔵 LEFT SIDE */}
+      <div className="space-y-6">
 
-      {/* 🔹 IMAGE */}
-      {mainImage && (
-        <img
-          src={mainImage}
-          className="w-full max-h-[400px] object-cover rounded-lg"
-        />
-      )}
+        {/* 🔹 TITLE */}
+        <h1 className="text-2xl font-bold">
+          {listing.title || "Booking Details"}
+        </h1>
 
-      {/* 🔹 GALLERY */}
-      {images.length > 1 && (
-        <div className="flex gap-2 overflow-x-auto">
-          {images.map((img, i) => (
-            <img
-              key={i}
-              src={img}
-              className="w-20 h-20 object-cover rounded border"
-            />
-          ))}
+        {/* 🔹 IMAGE */}
+        {mainImage && (
+          <img
+            src={mainImage}
+            className="w-full max-h-[400px] object-cover rounded-lg"
+          />
+        )}
+
+        {/* 🔹 GALLERY */}
+        {images.length > 1 && (
+          <div className="flex gap-2 overflow-x-auto">
+            {images.map((img, i) => (
+              <img
+                key={i}
+                src={img}
+                className="w-20 h-20 object-cover rounded border"
+              />
+            ))}
+          </div>
+        )}
+
+        {/* 🔹 DESCRIPTION */}
+        <p className="text-gray-700">
+          {listing.description}
+        </p>
+
+        {/* 🔹 LOCATION */}
+        <p className="font-medium">
+          📍 {listing.city}, {listing.state}
+        </p>
+
+      </div>
+
+      {/* 🟢 RIGHT SIDE */}
+      <div className="space-y-6">
+
+        {/* 🔹 BOOKING INFO */}
+        <div className="bg-gray-100 p-4 rounded space-y-2">
+          <p><strong>Status:</strong> {booking.status}</p>
+
+          <p>
+            <strong>Total:</strong>{" "}
+            ${booking.final_amount || booking.amount || listing.baseprice || 0}
+          </p>
+
+          {booking.start_date && (
+            <p>
+              <strong>Start:</strong>{" "}
+              {new Date(booking.start_date).toLocaleDateString()}
+            </p>
+          )}
+
+          {booking.end_date && (
+            <p>
+              <strong>End:</strong>{" "}
+              {new Date(booking.end_date).toLocaleDateString()}
+            </p>
+          )}
         </div>
-      )}
 
-      {/* 🔹 DESCRIPTION */}
-      <p className="text-gray-700">
-        {listing.description}
-      </p>
+        {/* 🔵 CUSTOMER INFO */}
+        <div className="bg-gray-50 p-4 rounded space-y-2">
+          <h2 className="font-semibold">Customer Info</h2>
 
-      {/* 🔹 LOCATION */}
-      <p className="font-medium">
-        📍 {listing.city}, {listing.state}
-      </p>
-
-      {/* 🔹 BOOKING INFO */}
-      <div className="bg-gray-100 p-4 rounded space-y-2">
-        <p><strong>Status:</strong> {booking.status}</p>
-
-        <p>
-          <strong>Total:</strong>{" "}
-          ${booking.final_amount || booking.amount || listing.baseprice || 0}
-        </p>
-
-        {booking.start_date && (
           <p>
-            <strong>Start:</strong>{" "}
-            {new Date(booking.start_date).toLocaleDateString()}
+            <strong>Name:</strong>{" "}
+            {booking.contact_name || "N/A"}
           </p>
-        )}
 
-        {booking.end_date && (
           <p>
-            <strong>End:</strong>{" "}
-            {new Date(booking.end_date).toLocaleDateString()}
+            <strong>Email:</strong>{" "}
+            {booking.user_email || "N/A"}
           </p>
-        )}
-      </div>
 
-      {/* 🔵 CUSTOMER INFO */}
-      <div className="bg-gray-50 p-4 rounded space-y-2">
-        <h2 className="font-semibold">Customer Info</h2>
+          <p>
+            <strong>Phone:</strong>{" "}
+            {booking.contact_phone || "N/A"}
+          </p>
+        </div>
 
-        <p>
-          <strong>Name:</strong>{" "}
-          {booking.contact_name || "N/A"}
-        </p>
+        {/* 🟢 PROVIDER INFO */}
+        <div className="bg-gray-50 p-4 rounded space-y-2">
+          <h2 className="font-semibold">Provider Info</h2>
 
-        <p>
-          <strong>Email:</strong>{" "}
-          {booking.user_email || "N/A"}
-        </p>
+          <p>
+            <strong>Name:</strong>{" "}
+            {listing.contact_name || "N/A"}
+          </p>
 
-        <p>
-          <strong>Phone:</strong>{" "}
-          {booking.contact_phone || "N/A"}
-        </p>
-      </div>
+          <p>
+            <strong>Email:</strong>{" "}
+            {listing.contact_email || "N/A"}
+          </p>
 
-      {/* 🟢 PROVIDER INFO */}
-      <div className="bg-gray-50 p-4 rounded space-y-2">
-        <h2 className="font-semibold">Provider Info</h2>
+          <p>
+            <strong>Phone:</strong>{" "}
+            {listing.contact_phone || "N/A"}
+          </p>
+        </div>
 
-        <p>
-          <strong>Name:</strong>{" "}
-          {listing.contact_name || "N/A"}
-        </p>
-
-        <p>
-          <strong>Email:</strong>{" "}
-          {listing.contact_email || "N/A"}
-        </p>
-
-        <p>
-          <strong>Phone:</strong>{" "}
-          {listing.contact_phone || "N/A"}
-        </p>
       </div>
 
     </div>
