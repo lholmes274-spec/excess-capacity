@@ -12,6 +12,8 @@ export default function ProviderBookingPage() {
 
   const [booking, setBooking] = useState(null);
   const [listing, setListing] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [user, setUser] = useState(null);
@@ -23,9 +25,8 @@ export default function ProviderBookingPage() {
     async function load() {
       if (!id) return;
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      // USER
+      const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
 
       // BOOKING
@@ -46,6 +47,7 @@ export default function ProviderBookingPage() {
         .single();
 
       setListing(listingData);
+      setSelectedImage(listingData?.image_url);
 
       // 👤 BOOKER PROFILE
       if (bookingData.user_id) {
@@ -110,68 +112,92 @@ export default function ProviderBookingPage() {
     setMessages(msgs || []);
   }
 
-  if (!booking) return <p>Loading...</p>;
+  if (!booking || !listing) return <p>Loading...</p>;
+
+  const images = listing.image_urls || [listing.image_url];
 
   return (
-    <div className="p-6 max-w-3xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto p-6 space-y-8">
 
-      {/* 🧾 LISTING */}
-      {listing && (
-        <div className="border rounded-lg overflow-hidden shadow-sm">
-          {listing.image_url && (
-            <img src={listing.image_url} className="w-full h-64 object-cover" />
-          )}
-          <div className="p-4">
-            <h2 className="text-lg font-semibold">{listing.title}</h2>
-            <p className="text-gray-600 text-sm mt-1">
-              {listing.description}
-            </p>
-            <p className="mt-2 font-medium">${listing.baseprice}</p>
-          </div>
+      {/* 🖼️ IMAGE GALLERY */}
+      <div>
+        {selectedImage && (
+          <img
+            src={selectedImage}
+            className="w-full h-[350px] object-cover rounded-xl"
+          />
+        )}
+
+        <div className="flex gap-2 mt-3">
+          {images.map((img, i) => (
+            <img
+              key={i}
+              src={img}
+              onClick={() => setSelectedImage(img)}
+              className="w-20 h-20 object-cover rounded-lg cursor-pointer border"
+            />
+          ))}
         </div>
-      )}
+      </div>
+
+      {/* 🧾 LISTING DETAILS */}
+      <div className="space-y-2">
+        <h1 className="text-2xl font-bold text-orange-700">
+          {listing.title}
+        </h1>
+
+        <p className="text-gray-700 text-sm">
+          {listing.description}
+        </p>
+
+        <p className="text-sm text-gray-500">
+          Location: {listing.city}, {listing.state}
+        </p>
+
+        <p className="text-2xl font-bold text-green-600">
+          ${listing.baseprice}
+        </p>
+      </div>
 
       {/* 📦 BOOKING */}
-      <div className="border rounded-lg p-4 shadow-sm">
-        <h3 className="font-semibold mb-2">Booking Summary</h3>
+      <div className="border rounded-xl p-5 shadow-sm bg-white">
+        <h2 className="font-semibold text-lg mb-2">Booking Summary</h2>
+
         <p>Status: <span className="font-medium">{booking.status}</span></p>
-        <p>Total: <span className="font-medium">${booking.final_amount || listing?.baseprice || 0}</span></p>
+        <p>
+          Total:{" "}
+          <span className="font-medium">
+            ${booking.final_amount || listing.baseprice}
+          </span>
+        </p>
       </div>
 
       {/* 👤 BOOKER */}
-      <div className="border rounded-lg p-4 shadow-sm">
+      <div className="border rounded-xl p-5 shadow-sm bg-white">
         <h3 className="font-semibold mb-2">Booked By</h3>
-        <p>
-          {bookerProfile?.display_name || "Guest User"}
-        </p>
-        <p className="text-sm text-gray-500">
-          {booking.user_email}
-        </p>
+        <p>{bookerProfile?.display_name || "Guest User"}</p>
+        <p className="text-sm text-gray-500">{booking.user_email}</p>
       </div>
 
       {/* 🏢 PROVIDER */}
-      <div className="border rounded-lg p-4 shadow-sm">
+      <div className="border rounded-xl p-5 shadow-sm bg-white">
         <h3 className="font-semibold mb-2">Provider</h3>
-        <p>
-          {providerProfile?.display_name || "Provider"}
-        </p>
-        <p className="text-sm text-gray-500">
-          {providerProfile?.email}
-        </p>
+        <p>{providerProfile?.display_name || "Provider"}</p>
+        <p className="text-sm text-gray-500">{providerProfile?.email}</p>
       </div>
 
       {/* 💬 CHAT */}
-      <div className="border rounded-lg p-4 shadow-sm">
-        <h3 className="font-semibold mb-3">Conversation</h3>
+      <div className="border rounded-xl p-5 shadow-sm bg-white">
+        <h2 className="font-semibold text-lg mb-4">Conversation</h2>
 
-        <div className="space-y-2 max-h-64 overflow-y-auto mb-4">
+        <div className="space-y-3 max-h-64 overflow-y-auto mb-4">
           {messages.map((msg) => (
             <div
               key={msg.id}
-              className={`p-2 rounded text-sm ${
+              className={`max-w-xs p-3 rounded-xl text-sm ${
                 msg.sender_id === user?.id
-                  ? "bg-blue-500 text-white text-right"
-                  : "bg-gray-100 text-left"
+                  ? "bg-blue-600 text-white ml-auto"
+                  : "bg-gray-100"
               }`}
             >
               {msg.message}
@@ -181,14 +207,15 @@ export default function ProviderBookingPage() {
 
         <div className="flex gap-2">
           <input
-            className="border p-2 flex-1 rounded"
+            className="border p-3 flex-1 rounded-lg"
             placeholder="Type your message..."
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
           />
+
           <button
             onClick={sendMessage}
-            className="bg-blue-600 text-white px-4 rounded"
+            className="bg-blue-600 text-white px-5 rounded-lg"
           >
             Send
           </button>
