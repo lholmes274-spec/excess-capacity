@@ -218,13 +218,6 @@ export default function ProviderBookingsPage() {
                       View Booking Details
                     </Link>
 
-                    <Link
-                      href={`/booking/${b.id}/messages`}
-                      className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 transition"
-                    >
-                      View Conversation
-                    </Link>
-
                     <button
                       onClick={() => archiveBooking(b.id)}
                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm hover:bg-gray-300 transition"

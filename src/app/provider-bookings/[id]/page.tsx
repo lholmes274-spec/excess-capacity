@@ -7,7 +7,8 @@ import { supabase } from "@/lib/supabaseClient";
 import { useParams } from "next/navigation";
 
 export default function ProviderBookingPage() {
-  const { id } = useParams();
+  const params = useParams();
+  const id = Array.isArray(params?.id) ? params.id[0] : params?.id;
 
   const [booking, setBooking] = useState(null);
   const [listing, setListing] = useState(null);
