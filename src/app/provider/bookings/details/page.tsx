@@ -208,6 +208,53 @@ export default function ProviderBookingDetailsPage() {
           {listing.contact_phone || "N/A"}
         </p>
       </div>
+      {/* 🔥 MESSAGE INPUT */}
+      <div className="mt-6 space-y-2">
+        <textarea
+          id="providerMessage"
+          placeholder="Type your message..."
+          className="w-full border p-3 rounded-lg"
+        />
+
+        <button
+          onClick={async () => {
+            const input = document.getElementById("providerMessage") as HTMLTextAreaElement;
+            const message = input?.value;
+
+            if (!message || message.trim() === "") return;
+
+            const { error } = await supabase.from("inquiries").insert([
+              {
+                booking_id: booking.id,
+                listing_id: booking.listings.id,
+                sender_id: booking.owner_id,
+                receiver_id: booking.user_id,
+                message: message.trim(),
+              },
+            ]);
+
+            if (error) {
+              alert("Failed to send message");
+              return;
+            }
+
+            input.value = "";
+
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: Date.now(),
+                message: message.trim(),
+                sender_id: booking.owner_id,
+                created_at: new Date().toISOString(),
+              },
+            ]);
+          }}
+          className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+        >
+          Send Message
+        </button>
+      </div>
 
       {/* 🔥 CONVERSATION */}
       <div className="mt-6 space-y-3">
