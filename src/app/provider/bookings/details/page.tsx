@@ -29,15 +29,17 @@ export default function ProviderBookingDetailsPage() {
             city,
             state,
             image_url,
-            image_urls
-          ),
-          profiles (
-            display_name,
-            email
+            image_urls,
+            contact_name,
+            contact_email,
+            contact_phone
           )
         `)
         .eq("id", id)
         .single();
+
+      console.log("BOOKING DATA:", data);
+      console.log("BOOKING ERROR:", error);
 
       if (error) {
         console.error("Error loading booking:", error);
@@ -119,18 +121,43 @@ export default function ProviderBookingDetailsPage() {
         )}
       </div>
 
-      {/* 🔹 CUSTOMER INFO */}
+      {/* 🔵 CUSTOMER INFO */}
       <div className="bg-gray-50 p-4 rounded space-y-2">
         <h2 className="font-semibold">Customer Info</h2>
 
         <p>
           <strong>Name:</strong>{" "}
-          {booking.profiles?.display_name || "N/A"}
+          {booking.contact_name || "N/A"}
         </p>
 
         <p>
           <strong>Email:</strong>{" "}
-          {booking.profiles?.email || booking.user_email || "N/A"}
+          {booking.user_email || "N/A"}
+        </p>
+
+        <p>
+          <strong>Phone:</strong>{" "}
+          {booking.contact_phone || "N/A"}
+        </p>
+      </div>
+
+      {/* 🟢 PROVIDER INFO */}
+      <div className="bg-gray-50 p-4 rounded space-y-2">
+        <h2 className="font-semibold">Provider Info</h2>
+
+        <p>
+          <strong>Name:</strong>{" "}
+          {listing.contact_name || "N/A"}
+        </p>
+
+        <p>
+          <strong>Email:</strong>{" "}
+          {listing.contact_email || "N/A"}
+        </p>
+
+        <p>
+          <strong>Phone:</strong>{" "}
+          {listing.contact_phone || "N/A"}
         </p>
       </div>
 
