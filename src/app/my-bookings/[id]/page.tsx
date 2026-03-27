@@ -22,12 +22,12 @@ export default function BookingDetailsPage() {
     async function load() {
       if (!id) return;
 
-      // Load logged-in user (may be null if guest checkout)
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      // Wait for auth to initialize properly
+      await new Promise((resolve) => setTimeout(resolve, 300));
 
-      const loggedInUser = session?.user || null;
+      // Load logged-in user (may be null if guest checkout)
+      const { data: userData } = await supabase.auth.getUser();
+      const loggedInUser = userData?.user || null;
       setUser(loggedInUser);
 
       // 1️⃣ Get booking ONLY
@@ -75,7 +75,7 @@ export default function BookingDetailsPage() {
 
       // 🔥 TEMP ALLOW if booking email exists (prevents false block after login redirect)
       const isOwner = loggedInUser?.id === bookingData.owner_id;
-      if (!isLoggedInBuyer && !isLoggedInEmailMatch && !isGuestEmailMatch && !isOwner) {
+      if (!isLoggedInBuyer && !isLoggedInEmailMatch && !isOwner) {
         console.warn("Unauthorized access to booking");
         setBooking(null);
         setLoading(false);
