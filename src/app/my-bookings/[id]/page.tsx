@@ -90,14 +90,20 @@ export default function BookingDetailsPage() {
       const { data: messagesData, error: messageError } = await supabase
         .from("inquiries")
         .select("*")
-        .eq("listing_id", bookingData.listing_id)
         .order("created_at", { ascending: true });
 
       if (messageError) {
         console.error("❌ Message fetch error:", messageError);
       } else {
-        console.log("🔥 MESSAGES LOADED:", messagesData);
-        setMessages(messagesData || []);
+        console.log("🔥 ALL MESSAGES FROM DB:", messagesData);
+
+        const filtered = (messagesData || []).filter(
+          (msg) => msg.listing_id === bookingData.listing_id
+        );
+
+        console.log("🔥 FILTERED MESSAGES:", filtered);
+
+        setMessages(filtered);
       }
 
       if (!loggedInUser && buyerEmail) {
