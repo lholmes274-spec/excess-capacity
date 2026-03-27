@@ -309,6 +309,21 @@ export default function BookingDetailsPage() {
           </button>
         </div>
 
+        {/* 🔥 ARCHIVE BUTTON (BOOKER) */}
+        <button
+          onClick={async () => {
+            await supabase
+              .from("bookings")
+              .update({ archived_by_booker: true })
+              .eq("id", booking.id);
+
+            alert("Conversation archived");
+          }}
+          className="text-sm text-gray-500 underline"
+        >
+          Archive Conversation
+        </button>
+
         {/* 🔥 CONVERSATION THREAD */}
         <div className="mt-6 space-y-3">
           <h3 className="font-semibold text-gray-800">Conversation</h3>

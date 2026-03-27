@@ -31,7 +31,7 @@ export default function MyOrdersPage() {
         .or(
           `user_id.eq.${user.id},guest_email.ilike.${user.email}`
         )
-        .eq("hidden_by_booker", false)
+        .eq("archived_by_booker", false)
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -56,7 +56,7 @@ export default function MyOrdersPage() {
 
     const { error } = await supabase
       .from("bookings")
-      .update({ hidden_by_booker: true })
+      .update({ archived_by_booker: true })
       .eq("id", orderId)
       .eq("user_id", userId);
 
@@ -180,7 +180,7 @@ export default function MyOrdersPage() {
                   disabled={deletingId === o.id}
                   className="absolute top-2 right-2 bg-red-600 text-white px-3 py-1 rounded-lg text-sm shadow hover:bg-red-700 transition"
                 >
-                  {deletingId === o.id ? "Removing..." : "Remove"}
+                  {deletingId === o.id ? "Removing..." : "Archive"}
                 </button>
               </div>
             );
