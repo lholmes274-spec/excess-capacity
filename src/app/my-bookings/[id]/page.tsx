@@ -230,14 +230,13 @@ export default function BookingDetailsPage() {
           </p>
         </div>
 
-        {/* 🆕 MESSAGE CUSTOMER UI */}
-        {user?.id === booking.owner_id && (
-          <div className="mt-4 space-y-2">
-            <textarea
-              placeholder="Type your message to the customer..."
-              className="w-full border p-3 rounded-lg"
-              id="messageBox"
-            />
+        {/* 🔥 MESSAGE UI (BOTH SIDES) */}
+        <div className="mt-4 space-y-2">
+          <textarea
+            placeholder="Type your message..."
+            className="w-full border p-3 rounded-lg"
+            id="messageBox"
+          />
 
           <button
             onClick={async () => {
@@ -247,17 +246,17 @@ export default function BookingDetailsPage() {
               if (!message || message.trim() === "") return;
 
               const { error } = await supabase.from("inquiries").insert([
-                 {
+                {
                   booking_id: id,
                   listing_id: booking.listing_id,
                   sender_id: user.id,
                   receiver_id:
-                   user.id === booking.owner_id
-                     ? booking.user_id || null
-                     : booking.owner_id, // 🔥 AUTO DETECT RECEIVER
+                    user.id === booking.owner_id
+                      ? booking.user_id || null
+                      : booking.owner_id,
                   guest_email: booking.guest_email,
                   message: message.trim(),
-                 },
+                },
               ]);
 
               if (error) {
@@ -265,66 +264,68 @@ export default function BookingDetailsPage() {
                 return;
               }
 
-              // 🔔 Trigger email notification
               await fetch("/api/message-notification", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                  receiver_id: booking.user_id,
-                  receiver_email: booking.guest_email,
+                  receiver_id:
+                    user.id === booking.owner_id
+                      ? booking.user_id
+                      : booking.owner_id,
+                  receiver_email:
+                    user.id === booking.owner_id
+                      ? booking.guest_email
+                      : listing.contact_email,
                   booking_id: booking.id,
                 }),
               });
 
               messageInput.value = "";
 
-              // 🔥 INSTANT UI UPDATE (NO REFRESH)
               setMessages((prev) => [
                 ...prev,
                 {
-                 id: Date.now(),
-                 message: message.trim(),
-                 sender_id: user.id,
-                 created_at: new Date().toISOString(),
+                  id: Date.now(),
+                  message: message.trim(),
+                  sender_id: user.id,
+                  created_at: new Date().toISOString(),
                 },
               ]);
 
               alert("Message sent successfully!");
-
             }}
             className="mt-4 w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
           >
             Send Message
           </button>
-          </div>
-         )}
+        </div>
 
-         {/* 🔥 CONVERSATION THREAD */}
-           <div className="mt-6 space-y-3">
-             <h3 className="font-semibold text-gray-800">Conversation</h3>
-             
-             {messages.length === 0 ? (
-               <p className="text-gray-500 text-sm">No messages yet.</p>
-             ) : (
-               messages.map((msg) => {
-               const isProvider = msg.sender_id === booking.owner_id;
+        {/* 🔥 CONVERSATION THREAD */}
+        <div className="mt-6 space-y-3">
+          <h3 className="font-semibold text-gray-800">Conversation</h3>
+          
+          {messages.length === 0 ? (
+            <p className="text-gray-500 text-sm">No messages yet.</p>
+          ) : (
+            messages.map((msg) => {
+              const isProvider = msg.sender_id === booking.owner_id;
 
-               return (
-                 <div
-                   key={msg.id}
-                   className={`p-3 rounded-lg ${
-                     isProvider ? "bg-blue-100 text-right" : "bg-gray-100 text-left"
-                   }`}
-                 >
-                   <p className="text-sm">{msg.message}</p>
-                   <p className="text-xs text-gray-500 mt-1">
+              return (
+                <div
+                  key={msg.id}
+                  className={`p-3 rounded-lg ${
+                    isProvider ? "bg-blue-100 text-right" : "bg-gray-100 text-left"
+                  }`}
+                >
+                  <p className="text-sm">{msg.message}</p>
+                  <p className="text-xs text-gray-500 mt-1">
                     {new Date(msg.created_at).toLocaleString()}
-                   </p>
-                 </div>
-             );
+                  </p>
+                </div>
+              );
             })
-           )}
-         </div>
+          )}
+        </div>
 
         <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg mt-4">
           <h3 className="font-semibold text-gray-800 mb-2">Provider Information</h3>
@@ -335,7 +336,6 @@ export default function BookingDetailsPage() {
           <p className="text-gray-700">
             <strong>Phone:</strong> {listing.contact_phone || "—"}
           </p>
-          {/* 🔥 NEW — Guide users to messaging first */}
           <div className="mt-2 text-sm text-gray-600">
             For best response time, please use the in-app messaging system.
           </div>
