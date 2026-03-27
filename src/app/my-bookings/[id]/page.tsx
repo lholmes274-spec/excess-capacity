@@ -91,7 +91,7 @@ export default function BookingDetailsPage() {
         .from("inquiries")
         .select("*")
         .eq("listing_id", bookingData.listing_id)
-        .or(`sender_id.eq.${loggedInUser?.id},receiver_id.eq.${loggedInUser?.id}`)
+        .eq("booking_id", bookingData.id)
         .order("created_at", { ascending: true });
 
       if (messageError) {
