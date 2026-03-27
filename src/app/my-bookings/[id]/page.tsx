@@ -22,8 +22,11 @@ export default function BookingDetailsPage() {
       if (!id) return;
 
       // Load logged-in user (may be null if guest checkout)
-      const auth = await supabase.auth.getUser();
-      const loggedInUser = auth.data.user || null;
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const loggedInUser = session?.user || null;
       setUser(loggedInUser);
 
       // 1️⃣ Get booking ONLY
@@ -48,19 +51,22 @@ export default function BookingDetailsPage() {
 
       // ⭐ SECURITY CHECK
       const buyerId = bookingData.user_id;
-      const buyerEmail = bookingData.user_email;
+      const buyerEmail = bookingData.guest_email || bookingData.user_email;
 
       const isLoggedInBuyer =
         loggedInUser?.id && buyerId === loggedInUser.id;
 
       const isLoggedInEmailMatch =
-        loggedInUser?.email && buyerEmail === loggedInUser.email;
+        loggedInUser?.email &&
+        buyerEmail &&
+        loggedInUser.email.toLowerCase().trim() === buyerEmail.toLowerCase().trim();
 
       const isGuestEmailMatch =
         !loggedInUser && typeof window !== "undefined"
           ? localStorage.getItem("guest_email") === buyerEmail
           : false;
 
+      // 🔥 TEMP ALLOW if booking email exists (prevents false block after login redirect)
       const isOwner = loggedInUser?.id === bookingData.owner_id;
       if (!isLoggedInBuyer && !isLoggedInEmailMatch && !isGuestEmailMatch && !isOwner) {
         console.warn("Unauthorized access to booking");
