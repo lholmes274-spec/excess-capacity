@@ -16,6 +16,9 @@ export default function ProviderBookingPage() {
   const [newMessage, setNewMessage] = useState("");
   const [user, setUser] = useState(null);
 
+  const [bookerProfile, setBookerProfile] = useState(null);
+  const [providerProfile, setProviderProfile] = useState(null);
+
   useEffect(() => {
     async function load() {
       if (!id) return;
@@ -25,7 +28,7 @@ export default function ProviderBookingPage() {
       } = await supabase.auth.getUser();
       setUser(user);
 
-      // ✅ booking
+      // BOOKING
       const { data: bookingData } = await supabase
         .from("bookings")
         .select("*")
@@ -33,10 +36,9 @@ export default function ProviderBookingPage() {
         .single();
 
       setBooking(bookingData);
-
       if (!bookingData) return;
 
-      // ✅ listing
+      // LISTING
       const { data: listingData } = await supabase
         .from("listings")
         .select("*")
@@ -45,7 +47,29 @@ export default function ProviderBookingPage() {
 
       setListing(listingData);
 
-      // ✅ messages
+      // 👤 BOOKER PROFILE
+      if (bookingData.user_id) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", bookingData.user_id)
+          .single();
+
+        setBookerProfile(data);
+      }
+
+      // 🏢 PROVIDER PROFILE
+      if (listingData?.owner_id) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", listingData.owner_id)
+          .single();
+
+        setProviderProfile(data);
+      }
+
+      // 💬 MESSAGES
       const { data: msgs } = await supabase
         .from("inquiries")
         .select("*")
@@ -63,7 +87,7 @@ export default function ProviderBookingPage() {
 
     const receiverId =
       booking.user_id === user.id
-        ? booking.owner_id
+        ? listing.owner_id
         : booking.user_id;
 
     await supabase.from("inquiries").insert([
@@ -89,57 +113,64 @@ export default function ProviderBookingPage() {
   if (!booking) return <p>Loading...</p>;
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-xl font-bold">Booking Details</h1>
+    <div className="p-6 max-w-3xl mx-auto space-y-6">
 
-      {/* 🧾 LISTING INFO */}
+      {/* 🧾 LISTING */}
       {listing && (
-        <div className="border p-4 rounded space-y-3">
-          <h2 className="font-semibold">{listing.title}</h2>
-
+        <div className="border rounded-lg overflow-hidden shadow-sm">
           {listing.image_url && (
-            <img
-              src={listing.image_url}
-              className="w-full max-w-md rounded"
-            />
+            <img src={listing.image_url} className="w-full h-64 object-cover" />
           )}
-
-          <p className="text-sm text-gray-600">
-            {listing.description}
-          </p>
-
-          <p className="font-medium">
-            Price: ${listing.baseprice}
-          </p>
+          <div className="p-4">
+            <h2 className="text-lg font-semibold">{listing.title}</h2>
+            <p className="text-gray-600 text-sm mt-1">
+              {listing.description}
+            </p>
+            <p className="mt-2 font-medium">${listing.baseprice}</p>
+          </div>
         </div>
       )}
 
-      {/* 💰 BOOKING INFO */}
-      <div className="border p-4 rounded">
-        <p>Status: {booking.status}</p>
+      {/* 📦 BOOKING */}
+      <div className="border rounded-lg p-4 shadow-sm">
+        <h3 className="font-semibold mb-2">Booking Summary</h3>
+        <p>Status: <span className="font-medium">{booking.status}</span></p>
+        <p>Total: <span className="font-medium">${booking.final_amount || listing?.baseprice || 0}</span></p>
+      </div>
+
+      {/* 👤 BOOKER */}
+      <div className="border rounded-lg p-4 shadow-sm">
+        <h3 className="font-semibold mb-2">Booked By</h3>
         <p>
-          Total: $
-          {booking.final_amount ||
-            listing?.baseprice ||
-            0}
+          {bookerProfile?.display_name || "Guest User"}
+        </p>
+        <p className="text-sm text-gray-500">
+          {booking.user_email}
         </p>
       </div>
 
-      {/* 💬 MESSAGES */}
-      <div className="border p-4 rounded">
-        <h2 className="font-semibold mb-3">Conversation</h2>
+      {/* 🏢 PROVIDER */}
+      <div className="border rounded-lg p-4 shadow-sm">
+        <h3 className="font-semibold mb-2">Provider</h3>
+        <p>
+          {providerProfile?.display_name || "Provider"}
+        </p>
+        <p className="text-sm text-gray-500">
+          {providerProfile?.email}
+        </p>
+      </div>
+
+      {/* 💬 CHAT */}
+      <div className="border rounded-lg p-4 shadow-sm">
+        <h3 className="font-semibold mb-3">Conversation</h3>
 
         <div className="space-y-2 max-h-64 overflow-y-auto mb-4">
-          {messages.length === 0 && (
-            <p className="text-sm text-gray-500">No messages yet</p>
-          )}
-
           {messages.map((msg) => (
             <div
               key={msg.id}
               className={`p-2 rounded text-sm ${
                 msg.sender_id === user?.id
-                  ? "bg-blue-100 text-right"
+                  ? "bg-blue-500 text-white text-right"
                   : "bg-gray-100 text-left"
               }`}
             >
