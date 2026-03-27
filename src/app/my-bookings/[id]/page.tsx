@@ -8,8 +8,8 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 
 export default function BookingDetailsPage() {
-  const { id } = useParams();
-  console.log("Booking ID from URL:", id);
+  const params = useParams();
+  const id = Array.isArray(params?.id) ? params.id[0] : params?.id;
 
   const [booking, setBooking] = useState(null);
   const [listing, setListing] = useState(null);
@@ -22,15 +22,12 @@ export default function BookingDetailsPage() {
     async function load() {
       if (!id) return;
 
-      // Wait for auth to initialize properly
-      await new Promise((resolve) => setTimeout(resolve, 300));
-
-      // Load logged-in user (may be null if guest checkout)
       const { data: userData } = await supabase.auth.getUser();
       const loggedInUser = userData?.user || null;
+
       setUser(loggedInUser);
 
-      // 1️⃣ Get booking ONLY
+      // 1️⃣ Get booking 
       const { data: bookingData, error } = await supabase
         .from("bookings")
         .select("*")
@@ -45,7 +42,7 @@ export default function BookingDetailsPage() {
         return;
       }
 
-      // 2️⃣ Get listing separately
+      // 2️⃣ Get listing 
       const { data: listingData } = await supabase
         .from("listings")
         .select("*")
@@ -73,10 +70,13 @@ export default function BookingDetailsPage() {
           ? localStorage.getItem("guest_email") === buyerEmail
           : false;
 
-      // 🔥 TEMP ALLOW if booking email exists (prevents false block after login redirect)
+      // ✅ FINAL ACCESS RULE
       const isOwner = loggedInUser?.id === bookingData.owner_id;
-      if (!isLoggedInBuyer && !isLoggedInEmailMatch && !isOwner) {
-        console.warn("Unauthorized access to booking");
+      console.log("loggedInUser email:", loggedInUser?.email);
+      console.log("buyerEmail:", buyerEmail);
+      console.log("isLoggedInEmailMatch:", isLoggedInEmailMatch);
+      if (!bookingData) {
+        console.warn("Booking not found");
         setBooking(null);
         setLoading(false);
         return;
