@@ -9,6 +9,7 @@ import { useParams } from "next/navigation";
 
 export default function BookingDetailsPage() {
   const { id } = useParams();
+  console.log("Booking ID from URL:", id);
 
   const [booking, setBooking] = useState(null);
   const [listing, setListing] = useState(null);
@@ -36,6 +37,8 @@ export default function BookingDetailsPage() {
         .eq("id", id)
         .single();
 
+      console.log("Fetched booking:", bookingData);
+
       if (error || !bookingData) {
         console.error("Booking not found:", error);
         setLoading(false);
@@ -51,7 +54,11 @@ export default function BookingDetailsPage() {
 
       // ⭐ SECURITY CHECK
       const buyerId = bookingData.user_id;
-      const buyerEmail = bookingData.guest_email || bookingData.user_email;
+      const buyerEmail = 
+        bookingData.guest_email ||
+        bookingData.user_email ||
+        bookingData.email ||
+        null;
 
       const isLoggedInBuyer =
         loggedInUser?.id && buyerId === loggedInUser.id;
