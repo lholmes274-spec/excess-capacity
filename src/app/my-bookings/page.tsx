@@ -28,7 +28,9 @@ export default function MyOrdersPage() {
       const { data, error } = await supabase
         .from("bookings")
         .select("*, listings!left(*)")
-        .or(`user_id.eq.${user.id},guest_email.eq.${user.email}`)
+        .or(
+          `user_id.eq.${user.id},guest_email.ilike.${user.email}`
+        )
         .eq("hidden_by_booker", false)
         .order("created_at", { ascending: false });
 
