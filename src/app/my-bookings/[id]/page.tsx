@@ -86,19 +86,17 @@ export default function BookingDetailsPage() {
       setBooking(bookingData);
       setListing(listingData);
 
-      // 🔥 LOAD CONVERSATION MESSAGES
+      // 🔥 LOAD MESSAGES RIGHT AFTER BOOKING IS READY
       const { data: messagesData, error: messageError } = await supabase
         .from("inquiries")
         .select("*")
         .eq("listing_id", bookingData.listing_id)
         .order("created_at", { ascending: true });
 
-        console.log("🔥 ALL messages:", messagesData);
-
       if (messageError) {
         console.error("❌ Message fetch error:", messageError);
       } else {
-        console.log("✅ Messages loaded:", messagesData);
+        console.log("🔥 MESSAGES LOADED:", messagesData);
         setMessages(messagesData || []);
       }
 
