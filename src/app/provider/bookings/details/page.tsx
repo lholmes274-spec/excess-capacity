@@ -80,7 +80,7 @@ export default function ProviderBookingDetailsPage() {
     }
 
      loadMessages();
-   }, [booking]);
+   }, [booking, showArchived]);
 
   if (!booking) return <p className="p-6">Loading...</p>;
 
@@ -293,7 +293,9 @@ export default function ProviderBookingDetailsPage() {
       {/* 🔘 TOGGLE VIEW */}
       <div className="flex gap-2 mt-4">
         <button
-          onClick={() => setShowArchived(false)}
+          onClick={() => {
+            setShowArchived(false);
+          }}
           className={`px-3 py-1 rounded ${
             !showArchived ? "bg-blue-600 text-white" : "bg-gray-200"
           }`}
@@ -302,7 +304,9 @@ export default function ProviderBookingDetailsPage() {
         </button>
         
         <button
-          onClick={() => setShowArchived(true)}
+          onClick={() => {
+            setShowArchived(true);
+          }}
           className={`px-3 py-1 rounded ${
             showArchived ? "bg-blue-600 text-white" : "bg-gray-200"
           }`}
@@ -373,10 +377,7 @@ export default function ProviderBookingDetailsPage() {
 
                 {/* ✅ FIXED STRUCTURE */}
                 <div className="flex flex-col">
-                  <p className="text-sm">{msg.message}</p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {new Date(msg.created_at).toLocaleString()}
-                  </p>
+
                 </div>
               </div>
             ))}
