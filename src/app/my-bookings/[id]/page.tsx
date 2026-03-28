@@ -18,6 +18,8 @@ export default function BookingDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [messages, setMessages] = useState([]);
 
+  const [showArchived, setShowArchived] = useState(false);
+
   useEffect(() => {
     async function load() {
       if (!id) return;
@@ -387,7 +389,7 @@ export default function BookingDetailsPage() {
 
                     const { error } = await supabase
                       .from("inquiries")
-                      .update({ archived: false }) // default
+                      update({ archived: !showArchived })
                       .in("id", ids);
 
                     if (error) {
@@ -397,21 +399,27 @@ export default function BookingDetailsPage() {
 
                     setSelectedMessages([]);
 
-                    // 🔥 RELOAD MESSAGES
+                    // 🔥 RELOAD + FILTER
                     const { data } = await supabase
                       .from("inquiries")
                       .select("*")
                       .order("created_at", { ascending: false });
 
-                    const filtered = (data || []).filter(
-                      (msg) => msg.listing_id === booking.listing_id
-                  );
+                    const filtered = (data || []).filter((msg) => {
+                      if (msg.listing_id !== booking.listing_id) return false;
+
+                      if (showArchived) {
+                        return msg.archived === true;
+                      } else {
+                         return msg.archived !== true;
+                      }
+                    });
 
                   setMessages(filtered);
                 }}
                 className="text-sm text-red-500 underline mt-2"
                >
-                Archive Selected Messages
+                {showArchived ? "Unarchive Selected" : "Archive Selected Messages"}
                </button>
               )}
             </div>
