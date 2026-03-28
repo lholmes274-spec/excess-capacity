@@ -424,6 +424,15 @@ export default function BookingDetailsPage() {
               {selectedMessages.length > 0 && (
                 <button
                   onClick={async () => {
+
+                    const confirmAction = confirm(
+                      showArchived
+                        ? "Unarchive selected messages?"
+                        : "Archive selected messages?"
+                    );
+
+                    if (!confirmAction) return;
+
                     const ids = selectedMessages.map((id) => String(id));
 
                     const { error } = await supabase
@@ -436,16 +445,27 @@ export default function BookingDetailsPage() {
                       return;
                     }
 
+                      alert(
+                        showArchived
+                          ? "Messages unarchived successfully!"
+                          : "Messages archived successfully!"
+                      );
+
                     setSelectedMessages([]);
 
-                    // 🔥 RELOAD + FILTER
+                    // 🔥 SWITCH TAB AUTOMATICALLY
+                    setShowArchived(!showArchived);
+
+                    // 🔥 RELOAD DATA
                     const { data } = await supabase
                       .from("inquiries")
                       .select("*")
                       .order("created_at", { ascending: false });
 
+                    const listingId = booking?.listing_id || booking?.listings?.id;
+
                     const filtered = (data || []).filter((msg) => {
-                      if (msg.listing_id !== booking.listing_id) return false;
+                      if (msg.listing_id !== listingId) return false;
 
                       if (showArchived) {
                         return msg.archived === true;
