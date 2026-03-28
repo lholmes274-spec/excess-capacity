@@ -108,9 +108,9 @@ export default function BookingDetailsPage() {
   }, [id]);
 
   useEffect(() => {
+    if (!booking?.listing_id) return;
+    
     async function loadMessages() {
-      if (!booking?.listing_id) return;
-
       const { data, error } = await supabase
         .from("inquiries")
         .select("*")
@@ -121,9 +121,9 @@ export default function BookingDetailsPage() {
         return;
       }
 
-      const filtered = (data || []).filter((msg) => {
-        const listingId = booking?.listing_id || booking?.listings?.id;
+      const listingId = booking?.listing_id || booking?.listings?.id;
 
+      const filtered = (data || []).filter((msg) => {       
         if (msg.listing_id !== listingId) return false;
 
         if (showArchived) {
@@ -136,7 +136,26 @@ export default function BookingDetailsPage() {
       setMessages(filtered);
     }
     loadMessages();
-  }, [booking]);
+
+    const channel = supabase
+      .channel("inquiries-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "inquiries",
+        },
+        () => {
+          loadMessages();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [booking, showArchived]);
 
   if (loading)
     return (
