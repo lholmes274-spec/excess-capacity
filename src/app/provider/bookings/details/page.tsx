@@ -405,7 +405,7 @@ export default function ProviderBookingDetailsPage() {
                   alert(showArchived ? "Messages unarchived" : "Messages archived");
 
                   setSelectedMessages([]);
-                  setShowArchived((prev) => prev);
+                  setShowArchived((prev) => !prev);
                  }}
 
                 className="text-sm text-red-500 underline mt-2"
