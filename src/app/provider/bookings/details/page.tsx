@@ -406,10 +406,6 @@ export default function ProviderBookingDetailsPage() {
 
                   setSelectedMessages([]);
                   setShowArchived((prev) => prev);
-                  setTimeout(() => {
-                    setShowArchived((prev) => !prev);
-
-                  }, 50);
                  }}
 
                 className="text-sm text-red-500 underline mt-2"
