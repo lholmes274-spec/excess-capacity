@@ -72,7 +72,7 @@ export default function ProviderBookingDetailsPage() {
         if (showArchived) {
           return msg.archived === true;
         } else {
-          return !msg.archived;
+          return msg.archived !== true;
         }
       });
 
@@ -398,9 +398,8 @@ export default function ProviderBookingDetailsPage() {
 
                    alert(showArchived ? "Messages restored" : "Messages archived");
 
-                  setMessages((prev) =>
-                   prev.filter((msg) => !selectedMessages.includes(msg.id))
-                  );
+                  setSelectedMessages([]);
+                  setShowArchived((prev) => prev);
  
                   setSelectedMessages([]);
                 }}
