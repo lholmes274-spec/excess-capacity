@@ -70,9 +70,9 @@ export default function ProviderBookingDetailsPage() {
         if (msg.listing_id !== booking.listings.id) return false;
 
         if (showArchived) {
-          return msg.archived === true;
+          return msg.archived_by_provider === true;
         } else {
-          return msg.archived !== true;
+          return msg.archived_by_provider !== true;
         }
       });
 
@@ -373,26 +373,38 @@ export default function ProviderBookingDetailsPage() {
               <button
                 onClick={async () => {
 
-                  const ids = selectedMessages.map((id) => String(id));
+                  const confirmAction = confirm(
+                    showArchived
+                      ? "Unarchive selected messages?"
+                      : "Archive selected messages?"
+                  );
 
-                  console.log("Updating IDs:", ids);
+                  if (!confirmAction) return;
+
+                  const ids = selectedMessages.map((id) => String(id));
 
                   const { error } = await supabase
                     .from("inquiries")
-                    .update({ archived: !showArchived })
+                    .update({ archived_by_provider: !showArchived })
                     .in("id", ids); 
 
                   if (error) {
-                   console.error("Update error:", error);
                    alert("Failed to update messages");
                    return;
                   }
 
-                  alert(showArchived ? "Messages unarchived" : "Messages archived");
+                  alert(
+                    showArchived
+                      ? "Messages unarchived successfully!"
+                      : "Messages archived successfully!"
+                  );
 
                   setSelectedMessages([])
 
-                  // 🔥 DIRECT RELOAD (this is the fix)
+                  // 🔥 SWITCH TAB
+                  setShowArchived(!showArchived);
+
+                  // 🔥 RELOAD DATA
                    const { data } = await supabase
                      .from("inquiries")
                      .select("*")
@@ -402,9 +414,9 @@ export default function ProviderBookingDetailsPage() {
                      if (msg.listing_id !== booking.listings.id) return false;
 
                      if (showArchived) {
-                      return msg.archived === true;
+                      return msg.archived_by_provider === true;
                      } else {
-                      return msg.archived !== true;
+                      return msg.archived_by_provider !== true;
                      }
                    });
 
