@@ -23,6 +23,8 @@ export default function BookingDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [messages, setMessages] = useState([]);
 
+  const [selectedMessages, setSelectedMessages] = useState([]);
+
   const [showArchived, setShowArchived] = useState(false);
 
   useEffect(() => {
@@ -397,7 +399,7 @@ export default function BookingDetailsPage() {
 
                     const { error } = await supabase
                       .from("inquiries")
-                      update({ archived: !showArchived })
+                      .update({ archived: !showArchived })
                       .in("id", ids);
 
                     if (error) {
