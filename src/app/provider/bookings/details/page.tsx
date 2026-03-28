@@ -328,7 +328,7 @@ export default function ProviderBookingDetailsPage() {
             }
              onChange={(e) => {
                if (e.target.checked) {
-                setSelectedMessages(messages.map((m) => m.id));
+                setSelectedMessages(messages.map((m) => String(m.id)));
                } else {
                  setSelectedMessages([]);
                }
