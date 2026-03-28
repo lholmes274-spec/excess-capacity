@@ -9,7 +9,12 @@ import { useParams } from "next/navigation";
 
 export default function BookingDetailsPage() {
   const params = useParams();
-  const id = Array.isArray(params?.id) ? params.id[0] : params?.id;
+  const rawId = Array.isArray(params?.id) ? params.id[0] : params?.id;
+  const id = rawId ? String(rawId) : null;
+
+  if (!id) {
+    console.error("❌ Missing booking ID");
+  }
 
   const [booking, setBooking] = useState(null);
   const [listing, setListing] = useState(null);
@@ -22,7 +27,10 @@ export default function BookingDetailsPage() {
 
   useEffect(() => {
     async function load() {
-      if (!id) return;
+      if (!id) {
+        setLoading(false);
+        return;
+      }
 
       const { data: userData } = await supabase.auth.getUser();
       const loggedInUser = userData?.user || null;
