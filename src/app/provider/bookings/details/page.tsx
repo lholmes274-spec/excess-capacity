@@ -394,7 +394,7 @@ export default function ProviderBookingDetailsPage() {
                   const { error } = await supabase
                     .from("inquiries")
                     .update({ archived: true }) 
-                    .in("id", ids);
+                    .eq("listing_id", booking.listings.id);
 
                   if (error) {
                    console.error("Update error:", error);
