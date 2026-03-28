@@ -121,9 +121,15 @@ export default function BookingDetailsPage() {
         return;
       }
 
-      const filtered = (data || []).filter(
-        (msg) => msg.listing_id === booking.listing_id
-      );
+      const filtered = (data || []).filter((msg) => {
+        if (msg.listing_id !== booking.listing_id) return false;
+
+        if (showArchived) {
+          return msg.archived === true;
+        } else {
+          return msg.archived !== true;
+        }
+      });
 
       setMessages(filtered);
     }
@@ -324,6 +330,27 @@ export default function BookingDetailsPage() {
         {/* 🔥 CONVERSATION THREAD */}
         <div className="mt-6 space-y-3">
           <h3 className="font-semibold text-gray-800">Conversation</h3>
+
+          {/* 🔘 TOGGLE VIEW (ADD THIS) */}
+          <div className="flex gap-2 mt-2">
+            <button
+               onClick={() => setShowArchived(false)}
+               className={`px-3 py-1 rounded ${
+                !showArchived ? "bg-blue-600 text-white" : "bg-gray-200"
+               }`}
+            >
+              Active
+            </button>
+
+            <button
+              onClick={() => setShowArchived(true)}
+              className={`px-3 py-1 rounded ${
+                 showArchived ? "bg-blue-600 text-white" : "bg-gray-200"
+              }`}
+            >
+              Archived
+            </button>
+          </div>
         </div>
 
         {/* 🔘 SELECT ALL */}
