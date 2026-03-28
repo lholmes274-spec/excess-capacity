@@ -13,6 +13,7 @@ export default function ProviderBookingDetailsPage() {
   const [booking, setBooking] = useState(null);
   const [messages, setMessages] = useState([]);
   const [selectedMessages, setSelectedMessages] = useState([]);
+  const [showArchived, setShowArchived] = useState(false); 
 
   useEffect(() => {
     async function load() {
@@ -65,9 +66,15 @@ export default function ProviderBookingDetailsPage() {
         .order("created_at", { ascending: false });
 
       if (error) return;
-      const filtered = (data || []).filter(
-        (msg) => msg.listing_id === booking.listings.id
-      );
+      const filtered = (data || []).filter((msg) => {
+        if (msg.listing_id !== booking.listings.id) return false;
+
+        if (showArchived) {
+          return msg.archived === true;
+        } else {
+          return !msg.archived;
+        }
+      });
 
       setMessages(filtered);
     }
@@ -282,10 +289,49 @@ export default function ProviderBookingDetailsPage() {
       >
          Archive Conversation
       </button>
+      
+      {/* 🔘 TOGGLE VIEW */}
+      <div className="flex gap-2 mt-4">
+        <button
+          onClick={() => setShowArchived(false)}
+          className={`px-3 py-1 rounded ${
+            !showArchived ? "bg-blue-600 text-white" : "bg-gray-200"
+          }`}
+        >
+          Active
+        </button>
+        
+        <button
+          onClick={() => setShowArchived(true)}
+          className={`px-3 py-1 rounded ${
+            showArchived ? "bg-blue-600 text-white" : "bg-gray-200"
+          }`}
+        >
+          Archived
+        </button>
+      </div>
 
       {/* 🔥 CONVERSATION */}
       <div className="mt-6 space-y-3">
         <h2 className="font-semibold text-gray-800">Conversation</h2>
+
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={
+              messages.length > 0 &&
+              selectedMessages.length === messages.length
+            }
+             onChange={(e) => {
+               if (e.target.checked) {
+                setSelectedMessages(messages.map((m) => m.id));
+               } else {
+                 setSelectedMessages([]);
+               }
+             }}
+           />
+           <span className="text-sm text-gray-600">Select All</span>
+        </div>
          
          {messages.length === 0 ? (
           <p className="text-gray-500 text-sm">No messages yet.</p>
@@ -311,6 +357,20 @@ export default function ProviderBookingDetailsPage() {
                   }}
                 />
 
+                {/* MESSAGE BUBBLE */}
+                <div
+                  className={`p-3 rounded-2xl ${
+                    msg.sender_id === booking.owner_id
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-200 text-black"
+                  }`}
+                >
+                  <p className="text-sm">{msg.message}</p>
+                  <p className="text-xs mt-1 opacity-70">
+                    {new Date(msg.created_at).toLocaleString()}
+                  </p>
+                </div>
+
                 {/* ✅ FIXED STRUCTURE */}
                 <div className="flex flex-col">
                   <p className="text-sm">{msg.message}</p>
@@ -327,15 +387,15 @@ export default function ProviderBookingDetailsPage() {
                 onClick={async () => {
                   const { error } = await supabase
                     .from("inquiries")
-                    .update({ archived: true })
+                    .update({ archived: !showArchived }) 
                     .in("id", selectedMessages);
 
                   if (error) {
-                   alert("Failed to archive messages");
+                   alert("Failed to update messages");
                    return;
                   }
 
-                  alert("Messages archived");
+                   alert(showArchived ? "Messages restored" : "Messages archived");
 
                   setMessages((prev) =>
                    prev.filter((msg) => !selectedMessages.includes(msg.id))
@@ -345,7 +405,7 @@ export default function ProviderBookingDetailsPage() {
                 }}
                 className="text-sm text-red-500 underline mt-2"
                >
-                Archive Selected Messages
+                 {showArchived ? "Unarchive Selected" : "Archive Selected Messages"} 
                </button>
              )}
            </div>
