@@ -399,7 +399,9 @@ export default function ProviderBookingDetailsPage() {
                    alert(showArchived ? "Messages restored" : "Messages archived");
 
                   setSelectedMessages([]);
+                  setShowArchived((prev) => prev);
 
+               setTimeout(async () => {
                   const { data } = await supabase
                     .from("inquiries")
                     .select("*")
@@ -415,7 +417,8 @@ export default function ProviderBookingDetailsPage() {
                     }
                   });
 
-                   setMessages(filtered);
+                   setShowArchived((prev) => prev);
+                }, 200);
                  }}
 
                 className="text-sm text-red-500 underline mt-2"
