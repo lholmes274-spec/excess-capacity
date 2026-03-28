@@ -386,17 +386,23 @@ export default function ProviderBookingDetailsPage() {
             {selectedMessages.length > 0 && (
               <button
                 onClick={async () => {
+
+                  const ids = selectedMessages.map((id) => String(id));
+
+                  console.log("Updating IDs:", ids);
+
                   const { error } = await supabase
                     .from("inquiries")
-                    .update({ archived: !showArchived }) 
-                    .in("id", selectedMessages);
+                    .update({ archived: true }) 
+                    .in("id", ids);
 
                   if (error) {
+                   console.error("Update error:", error);
                    alert("Failed to update messages");
                    return;
                   }
 
-                   alert(showArchived ? "Messages restored" : "Messages archived");
+                  alert("Messages archived");
 
                   setSelectedMessages([]);
                   setShowArchived((prev) => prev);
