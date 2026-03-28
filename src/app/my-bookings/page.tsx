@@ -116,13 +116,15 @@ export default function MyOrdersPage() {
                 key={o.id}
                 className="relative bg-white border border-gray-200 rounded-xl shadow hover:shadow-lg transition overflow-hidden"
               >
+             {o?.id && (
                 <Link href={`/my-bookings/${o.id}`}>
                   <img
                     src={thumbnail}
                     alt={listing?.title}
-                    className="w-full h-48 object-cover"
+                    className="w-full h-48 object-cover cursor-pointer"
                   />
                 </Link>
+           )}
 
                 <div className="p-4">
                   <h2 className="font-semibold text-lg mb-1">
@@ -168,20 +170,12 @@ export default function MyOrdersPage() {
                   </p>
 
                   <Link
-                    href={`/booking/${o.id}/messages`}
+                    href={`/my-bookings/${o.id}`}
                     className="inline-block mt-4 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium shadow hover:bg-green-700 transition"
                   >
-                    View Conversation
+                    View Booking Details 
                   </Link>
                 </div>
-
-                <button
-                  onClick={() => deleteOrder(o.id)}
-                  disabled={deletingId === o.id}
-                  className="absolute top-2 right-2 bg-red-600 text-white px-3 py-1 rounded-lg text-sm shadow hover:bg-red-700 transition"
-                >
-                  {deletingId === o.id ? "Removing..." : "Archive"}
-                </button>
               </div>
             );
           })}
