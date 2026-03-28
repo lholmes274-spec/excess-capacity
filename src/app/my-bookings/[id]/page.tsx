@@ -309,47 +309,113 @@ export default function BookingDetailsPage() {
           </button>
         </div>
 
-        {/* 🔥 ARCHIVE BUTTON (BOOKER) */}
-        <button
-          onClick={async () => {
-            await supabase
-              .from("bookings")
-              .update({ archived_by_booker: true })
-              .eq("id", booking.id);
-
-            alert("Conversation archived");
-          }}
-          className="text-sm text-gray-500 underline"
-        >
-          Archive Conversation
-        </button>
-
         {/* 🔥 CONVERSATION THREAD */}
         <div className="mt-6 space-y-3">
           <h3 className="font-semibold text-gray-800">Conversation</h3>
-          
-          {messages.length === 0 ? (
-            <p className="text-gray-500 text-sm">No messages yet.</p>
-          ) : (
-            messages.map((msg) => {
-              const isProvider = msg.sender_id === booking.owner_id;
-
-              return (
-                <div
-                  key={msg.id}
-                  className={`p-3 rounded-lg ${
-                    isProvider ? "bg-blue-100 text-right" : "bg-gray-100 text-left"
-                  }`}
-                >
-                  <p className="text-sm">{msg.message}</p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {new Date(msg.created_at).toLocaleString()}
-                  </p>
-                </div>
-              );
-            })
-          )}
         </div>
+
+        {/* 🔘 SELECT ALL */}
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={
+               messages.length > 0 &&
+               selectedMessages.length === messages.length
+            }
+            onChange={() => {
+              if (selectedMessages.length === messages.length) {
+                setSelectedMessages([]);
+              } else {
+                setSelectedMessages(messages.map((m) => String(m.id)));
+              }
+            }}
+          />
+          <span className="text-sm text-gray-600">Select All</span>
+        </div>
+
+        {messages.length === 0 ? (
+          <p className="text-gray-500 text-sm">No messages yet.</p>
+         ) : (
+           <div>
+             {messages.map((msg) => {
+               const isProvider = msg.sender_id === booking.owner_id;
+                return (
+                  <div
+                    key={msg.id}
+                    className="flex items-start gap-3 p-3 border rounded-lg bg-gray-100"
+                  >
+                    {/* ✅ CHECKBOX */}
+                    <input
+                      type="checkbox"
+                      checked={selectedMessages.includes(msg.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedMessages((prev) => [
+                            ...prev,
+                            String(msg.id),
+                         ]);
+                       } else {
+                          setSelectedMessages((prev) =>
+                            prev.filter((id) => id !== String(msg.id))
+                          );
+                       }
+                      }}
+                    />
+
+                    {/* MESSAGE */}
+                    <div
+                      className={`p-3 rounded-2xl ${
+                        isProvider
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-200 text-black"
+                      }`}
+                    >
+                      <p className="text-sm">{msg.message}</p>
+                      <p className="text-xs mt-1 opacity-70">
+                        {new Date(msg.created_at).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* 🔥 ARCHIVE BUTTON */}
+              {selectedMessages.length > 0 && (
+                <button
+                  onClick={async () => {
+                    const ids = selectedMessages.map((id) => String(id));
+
+                    const { error } = await supabase
+                      .from("inquiries")
+                      .update({ archived: false }) // default
+                      .in("id", ids);
+
+                    if (error) {
+                      alert("Failed to update messages");
+                      return;
+                    }
+
+                    setSelectedMessages([]);
+
+                    // 🔥 RELOAD MESSAGES
+                    const { data } = await supabase
+                      .from("inquiries")
+                      .select("*")
+                      .order("created_at", { ascending: false });
+
+                    const filtered = (data || []).filter(
+                      (msg) => msg.listing_id === booking.listing_id
+                  );
+
+                  setMessages(filtered);
+                }}
+                className="text-sm text-red-500 underline mt-2"
+               >
+                Archive Selected Messages
+               </button>
+              )}
+            </div>
+          )}
 
         <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg mt-4">
           <h3 className="font-semibold text-gray-800 mb-2">Provider Information</h3>
