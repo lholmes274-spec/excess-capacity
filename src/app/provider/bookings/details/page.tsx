@@ -394,7 +394,7 @@ export default function ProviderBookingDetailsPage() {
                   const { error } = await supabase
                     .from("inquiries")
                     .update({ archived: !showArchived })
-                    .eq("listing_id", booking.listings.id);
+                    .in("id", ids); 
 
                   if (error) {
                    console.error("Update error:", error);
@@ -402,29 +402,14 @@ export default function ProviderBookingDetailsPage() {
                    return;
                   }
 
-                  alert("Messages archived");
+                  alert(showArchived ? "Messages unarchived" : "Messages archived");
 
                   setSelectedMessages([]);
                   setShowArchived((prev) => prev);
+                  setTimeout(() => {
+                    setShowArchived((prev) => !prev);
 
-               setTimeout(async () => {
-                  const { data } = await supabase
-                    .from("inquiries")
-                    .select("*")
-                    .order("created_at", { ascending: false });
-
-                  const filtered = (data || []).filter((msg) => {
-                    if (msg.listing_id !== booking.listings.id) return false;
-
-                    if (showArchived) {
-                      return msg.archived === true;
-                    } else {
-                      return msg.archived !== true;
-                    }
-                  });
-
-                   setShowArchived((prev) => prev);
-                }, 200);
+                  }, 50);
                  }}
 
                 className="text-sm text-red-500 underline mt-2"
