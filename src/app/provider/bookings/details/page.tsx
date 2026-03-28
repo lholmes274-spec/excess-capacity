@@ -12,6 +12,7 @@ export default function ProviderBookingDetailsPage() {
 
   const [booking, setBooking] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [selectedMessages, setSelectedMessages] = useState([]);
 
   useEffect(() => {
     async function load() {
@@ -285,23 +286,71 @@ export default function ProviderBookingDetailsPage() {
       {/* 🔥 CONVERSATION */}
       <div className="mt-6 space-y-3">
         <h2 className="font-semibold text-gray-800">Conversation</h2>
+         
          {messages.length === 0 ? (
-           <p className="text-gray-500 text-sm">No messages yet.</p>
-         ) : (
-           messages.map((msg) => (
-            <div
-              key={msg.id}
-              className="p-3 rounded-lg bg-gray-100 border"
-            >
-              <p className="text-sm">{msg.message}</p>
-              <p className="text-xs text-gray-500 mt-1">
-                {new Date(msg.created_at).toLocaleString()}
-              </p>
-            </div>
-          ))
-        )}
-      </div>
+          <p className="text-gray-500 text-sm">No messages yet.</p>
+        ) : (
+           <div>
+            {messages.map((msg) => (
+              <div
+                key={msg.id}
+                className="p-3 rounded-lg bg-gray-100 border flex items-start gap-3"
+              >
+                {/* ✅ CHECKBOX */}
+                <input
+                  type="checkbox"
+                  checked={selectedMessages.includes(msg.id)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                     setSelectedMessages((prev) => [...prev, msg.id]);
+                    } else {
+                      setSelectedMessages((prev) =>
+                        prev.filter((id) => id !== msg.id)
+                       );
+                    }
+                  }}
+                />
 
-   </div>
-  );
+                {/* ✅ FIXED STRUCTURE */}
+                <div className="flex flex-col">
+                  <p className="text-sm">{msg.message}</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {new Date(msg.created_at).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            ))}
+ 
+            {/* 🔥 ARCHIVE SELECTED BUTTON */}
+            {selectedMessages.length > 0 && (
+              <button
+                onClick={async () => {
+                  const { error } = await supabase
+                    .from("inquiries")
+                    .update({ archived: true })
+                    .in("id", selectedMessages);
+
+                  if (error) {
+                   alert("Failed to archive messages");
+                   return;
+                  }
+
+                  alert("Messages archived");
+
+                  setMessages((prev) =>
+                   prev.filter((msg) => !selectedMessages.includes(msg.id))
+                  );
+ 
+                  setSelectedMessages([]);
+                }}
+                className="text-sm text-red-500 underline mt-2"
+               >
+                Archive Selected Messages
+               </button>
+             )}
+           </div>
+         )}
+      </div>
+   </div> 
+ );  
  }
