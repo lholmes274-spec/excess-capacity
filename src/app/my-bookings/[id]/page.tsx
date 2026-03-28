@@ -127,9 +127,9 @@ export default function BookingDetailsPage() {
         if (msg.listing_id !== listingId) return false;
 
         if (showArchived) {
-          return msg.archived === true;
+          return msg.archived_by_booker === true;
         } else {
-          return msg.archived !== true;
+          return msg.archived_by_booker !== true;
         }
       });
 
@@ -456,7 +456,7 @@ export default function BookingDetailsPage() {
 
                     const { error } = await supabase
                       .from("inquiries")
-                      .update({ archived: !showArchived })
+                      .update({ archived_by_booker: !showArchived })
                       .in("id", ids);
 
                     if (error) {
@@ -487,9 +487,9 @@ export default function BookingDetailsPage() {
                       if (msg.listing_id !== listingId) return false;
 
                       if (showArchived) {
-                        return msg.archived === true;
+                        return msg.archived_by_booker === true;
                       } else {
-                         return msg.archived !== true;
+                         return msg.archived_by_booker !== true;
                       }
                     });
 
