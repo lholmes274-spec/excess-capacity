@@ -404,8 +404,26 @@ export default function ProviderBookingDetailsPage() {
 
                   alert(showArchived ? "Messages unarchived" : "Messages archived");
 
-                  setSelectedMessages([]);
-                  setShowArchived((prev) => !prev);
+                  setSelectedMessages([])
+
+                  // 🔥 DIRECT RELOAD (this is the fix)
+                   const { data } = await supabase
+                     .from("inquiries")
+                     .select("*")
+                     .order("created_at", { ascending: false });
+
+                   const filtered = (data || []).filter((msg) => {
+                     if (msg.listing_id !== booking.listings.id) return false;
+
+                     if (showArchived) {
+                      return msg.archived === true;
+                     } else {
+                      return msg.archived !== true;
+                     }
+                   });
+
+                   setMessages(filtered);
+                   
                  }}
 
                 className="text-sm text-red-500 underline mt-2"
