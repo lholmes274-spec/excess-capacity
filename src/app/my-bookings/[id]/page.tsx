@@ -122,7 +122,9 @@ export default function BookingDetailsPage() {
       }
 
       const filtered = (data || []).filter((msg) => {
-        if (msg.listing_id !== booking.listing_id) return false;
+        const listingId = booking?.listing_id || booking?.listings?.id;
+
+        if (msg.listing_id !== listingId) return false;
 
         if (showArchived) {
           return msg.archived === true;
