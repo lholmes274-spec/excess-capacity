@@ -205,6 +205,8 @@ export default function ProviderBookingPage() {
         </p>
       </div>
 
+      <div className="bg-white border border-gray-200 rounded-xl shadow p-6 space-y-4">
+
       {/* 👤 BOOKER */}
       <div className="border rounded-xl p-5 shadow-sm bg-white">
         <h3 className="font-semibold mb-2">Booked By</h3>
@@ -222,6 +224,8 @@ export default function ProviderBookingPage() {
         <p>{providerProfile?.display_name || "Provider"}</p>
         <p className="text-sm text-gray-500">{providerProfile?.email}</p>
       </div>
+
+    </div>
 
         <div className="space-y-3 max-h-64 overflow-y-auto mb-4">
           {messages.map((msg) => (
