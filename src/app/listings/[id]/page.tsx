@@ -261,7 +261,7 @@ export default function ListingDetailPage() {
 
     if (error || !newBooking) {
       console.error("Booking insert failed:", error);
-      alert("Failed to create booking.");
+      alert(error?.message || "Unknown error");
       return;
     }
 
