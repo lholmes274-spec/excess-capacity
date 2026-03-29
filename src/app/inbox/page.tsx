@@ -136,6 +136,30 @@ export default function InboxPage() {
     setSelectedIds([]);
   }
 
+  // 🟢 ADDED — bulk unarchive function
+  async function handleBulkUnarchive() {
+    if (!userId || selectedIds.length === 0) return;
+
+    const updates = selectedIds.map((id) => {
+      const msg = messages.find((m) => m.id === id);
+      const isSender = msg.sender_id === userId;
+
+      return supabase
+        .from("inquiries")
+        .update(
+          isSender
+            ? { archived_by_sender: false }
+            : { archived_by_receiver: false }
+        )
+        .eq("id", id);
+    });
+
+    await Promise.all(updates);
+
+    setMessages((prev) => prev.filter((m) => !selectedIds.includes(m.id)));
+    setSelectedIds([]);
+  }
+
   if (loading) {
     return (
       <div className="p-8 text-center text-gray-600">
@@ -167,13 +191,25 @@ export default function InboxPage() {
           <span className="text-sm text-gray-600">Select All</span>
         </div>
 
-        {/* ✅ FIXED BUTTON */}
-        <button
-          onClick={handleBulkArchive}
-          className="text-sm bg-red-500 text-white px-3 py-1 rounded"
-        >
-          Archive Selected
-        </button>
+        {/* ✅ ARCHIVE BUTTON */}
+        {selectedIds.length > 0 && !showArchived && (
+          <button
+            onClick={handleBulkArchive}
+            className="text-sm bg-red-500 text-white px-3 py-1 rounded"
+          >
+            Archive Selected
+          </button>
+        )}
+
+        {/* 🟢 UNARCHIVE BUTTON */}
+        {selectedIds.length > 0 && showArchived && (
+          <button
+            onClick={handleBulkUnarchive}
+            className="text-sm bg-green-600 text-white px-3 py-1 rounded"
+          >
+            Unarchive Selected
+          </button>
+        )}
       </div>
 
       {/* 🔥 TOGGLE */}
