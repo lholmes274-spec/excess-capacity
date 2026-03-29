@@ -178,42 +178,40 @@ export default function ProviderBookingDetailsPage() {
       </div>
 
       {/* 🔵 CUSTOMER INFO */}
-      <div className="bg-gray-50 p-4 rounded space-y-2">
-        <h2 className="font-semibold">Customer Info</h2>
+      <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+        <h3 className="font-semibold text-blue-700 mb-2">
+          Customer Information
+        </h3>
 
-        <p>
-          <strong>Name:</strong>{" "}
-          {booking.contact_name || "N/A"}
+        <p className="text-gray-700">
+          <strong>Name:</strong> {booking.contact_name || "—"}
         </p>
 
-        <p>
-          <strong>Email:</strong>{" "}
-          {booking.user_email || "N/A"}
+        <p className="text-gray-700">
+          <strong>Email:</strong> {booking.user_email || "—"}
         </p>
 
-        <p>
-          <strong>Phone:</strong>{" "}
-          {booking.contact_phone || "N/A"}
+        <p className="text-gray-700">
+          <strong>Phone:</strong> {booking.contact_phone || "—"}
         </p>
       </div>
 
       {/* 🟢 PROVIDER INFO */}
-      <div className="bg-gray-50 p-4 rounded space-y-2">
-        <h2 className="font-semibold">Provider Info</h2>
+      <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg mt-4">
+        <h3 className="font-semibold text-gray-800 mb-2">
+          Provider Information
+        </h3>
 
-        <p>
-          <strong>Name:</strong>{" "}
-          {listing.contact_name || "N/A"}
+        <p className="text-gray-700">
+          <strong>Name:</strong> {listing.contact_name || "—"}
         </p>
 
-        <p>
-          <strong>Email:</strong>{" "}
-          {listing.contact_email || "N/A"}
+        <p className="text-gray-700">
+          <strong>Email:</strong> {listing.contact_email || "—"}
         </p>
 
-        <p>
-          <strong>Phone:</strong>{" "}
-          {listing.contact_phone || "N/A"}
+        <p className="text-gray-700">
+          <strong>Phone:</strong> {listing.contact_phone || "—"}
         </p>
       </div>
       {/* 🔥 MESSAGE INPUT */}
@@ -275,6 +273,11 @@ export default function ProviderBookingDetailsPage() {
           Send Message
         </button>
       </div>
+
+      {/* 🔥 CONVERSATION */}
+      <div className="mt-6 space-y-3">
+        <h2 className="font-semibold text-gray-800">Conversation</h2>
+      </div>
       
       {/* 🔘 TOGGLE VIEW */}
       <div className="flex gap-2 mt-4">
@@ -286,7 +289,7 @@ export default function ProviderBookingDetailsPage() {
             !showArchived ? "bg-blue-600 text-white" : "bg-gray-200"
           }`}
         >
-          Active
+          Archived
         </button>
         
         <button
