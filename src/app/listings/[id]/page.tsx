@@ -38,21 +38,18 @@ export default function ListingDetailPage() {
       const start = new Date(startDate);
       const end = new Date(endDate);
 
-      // Base date difference (used for nights or days)
-      const diffTime = end.getTime() - start.getTime();
-      const rawDays = Math.floor(
-        diffTime / (1000 * 60 * 60 * 24)
+      const rawDays = Math.ceil(
+        (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
       );
+
+      console.log("FINAL DAYS BEFORE CHECKOUT:", rawDays);
+      console.log("START:", startDate, "END:", endDate);
 
       if (rawDays > 0) {
          setDays(rawDays);
       }
-
-      if (calculatedDays > 0) {
-        setDays(calculatedDays);
-      }
     }
-  }, [startDate, endDate, listing?.pricing_type]);
+  }, [startDate, endDate]);
 
   // ✅ FIX — clear end date if it becomes earlier than start date
   useEffect(() => {
