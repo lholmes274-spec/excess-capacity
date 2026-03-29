@@ -45,6 +45,7 @@ function ListingsContent() {
           .from("listings")
           .select("*")
           .eq("demo_mode", false)
+          .eq("listing_status", "active")
           .order("created_at", { ascending: false });
 
         if (error) throw error;
