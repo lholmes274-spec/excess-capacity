@@ -246,13 +246,15 @@ export default function InboxPage() {
           return (
             <div
               key={msg.id}
-              className="border rounded-xl p-4 shadow-sm bg-white"
+              onClick={() => router.push(`/inbox/${msg.listing_id}`)}
+              className="border rounded-xl p-4 shadow-sm bg-white cursor-pointer hover:bg-gray-50"
             >
               <div className="flex justify-between items-center mb-2">
                 <div className="flex items-center gap-2">
                   <input
                     type="checkbox"
                     checked={selectedIds.includes(msg.id)}
+                    onClick={(e) => e.stopPropagation()} 
                     onChange={() => toggleSelect(msg.id)}
                   />
 
