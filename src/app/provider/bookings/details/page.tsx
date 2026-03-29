@@ -23,7 +23,7 @@ export default function ProviderBookingDetailsPage() {
         .from("bookings")
         .select(`
           *,
-          listings (
+          listings!inner (
             id,
             title,
             description,
