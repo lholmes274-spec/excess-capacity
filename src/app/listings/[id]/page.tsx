@@ -234,6 +234,7 @@ export default function ListingDetailPage() {
 
     // 🔥 NEW — Handle guest booking (NO Stripe)
     if (!userId) {
+      console.log("🔥 USING API ROUTE 🔥");
       if (!guestName || !guestEmail) {
        alert("Please enter your name and email.");
       return;
