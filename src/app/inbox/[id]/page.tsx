@@ -36,13 +36,13 @@ export default function InboxChatPage() {
       if (!listingId) return;
 
       const { data, error } = await supabase
-        .from("inquiries" as any) // ✅ bypass type issue
+        .from("inquiries" as any)
         .select("*")
         .eq("listing_id", listingId)
         .order("created_at", { ascending: true });
 
       if (!error && data) {
-        setMessages((data as unknown) as Message[]); // ✅ FIXED ERROR
+        setMessages((data as unknown) as Message[]);
       }
 
       setLoading(false);
@@ -55,25 +55,67 @@ export default function InboxChatPage() {
   async function sendMessage() {
     if (!newMessage.trim() || !userId || !listingId) return;
 
+    // 🔥 STEP 1 — get listing owner
+    const { data: listing } = await supabase
+      .from("listings")
+      .select("owner_id, contact_email")
+      .eq("id", listingId)
+      .single();
+
+    if (!listing) {
+      alert("Listing not found");
+      return;
+    }
+
+    const receiverId =
+      listing.owner_id === userId ? null : listing.owner_id;
+
+    const receiverEmail = listing.contact_email || null;
+
+    // 🔥 STEP 2 — insert message
     const { error } = await supabase.from("inquiries" as any).insert([
       {
         listing_id: listingId,
         sender_id: userId,
+        receiver_id: receiverId,
+        receiver_email: receiverEmail,
         message: newMessage.trim(),
       },
     ]);
 
-    if (!error) {
-      const newMsg: Message = {
-        id: Date.now().toString(),
-        listing_id: listingId,
-        sender_id: userId,
-        message: newMessage.trim(),
-        created_at: new Date().toISOString(),
-      };
+    if (error) {
+      console.error("Message send error:", error);
+      alert(error.message);
+      return;
+    }
 
-      setMessages((prev) => [...prev, newMsg]);
-      setNewMessage("");
+    // 🔥 STEP 3 — update UI
+    const newMsg: Message = {
+      id: Date.now().toString(),
+      listing_id: listingId,
+      sender_id: userId,
+      message: newMessage.trim(),
+      created_at: new Date().toISOString(),
+    };
+
+    setMessages((prev) => [...prev, newMsg]);
+    setNewMessage("");
+
+    // 🔥 STEP 4 — send email (FIXED POSITION)
+    try {
+      await fetch("/api/send-message-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          receiver_email: receiverEmail,
+          message: newMessage,
+          listing_id: listingId,
+        }),
+      });
+    } catch (err) {
+      console.error("Email send failed:", err);
     }
   }
 
@@ -85,7 +127,6 @@ export default function InboxChatPage() {
     <div className="max-w-2xl mx-auto p-6">
       <h1 className="text-xl font-bold mb-4">Conversation</h1>
 
-      {/* 🔥 MESSAGE THREAD */}
       <div className="space-y-3 mb-6">
         {messages.map((msg) => {
           const isMine = msg.sender_id === userId;
@@ -108,7 +149,6 @@ export default function InboxChatPage() {
         })}
       </div>
 
-      {/* 🔥 INPUT */}
       <div className="flex gap-2">
         <input
           value={newMessage}
