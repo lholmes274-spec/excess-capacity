@@ -11,6 +11,7 @@ export default function InboxPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showArchived, setShowArchived] = useState(false); // 🔥 NEW
 
   useEffect(() => {
     async function loadInbox() {
@@ -19,13 +20,11 @@ export default function InboxPage() {
 
       const guestEmail = localStorage.getItem("guest_email");
 
-      // Only block if NO user AND NO guest email
       if (!sessionUser && !guestEmail) {
         router.push("/login");
         return;
       }
 
-      // Only set userId if logged in
       if (sessionUser?.id) {
         setUserId(sessionUser.id);
       }
@@ -37,15 +36,24 @@ export default function InboxPage() {
           listings ( title )
         `);
 
-      // Logged-in user messages (exclude archived)
+      // 🔥 LOGGED-IN USERS
       if (sessionUser?.id) {
-        query = query.or(
-          `and(sender_id.eq.${sessionUser.id},archived_by_sender.eq.false),
-           and(receiver_id.eq.${sessionUser.id},archived_by_receiver.eq.false)`
-        );
+        if (showArchived) {
+          // SHOW archived
+          query = query.or(
+            `and(sender_id.eq.${sessionUser.id},archived_by_sender.eq.true),
+             and(receiver_id.eq.${sessionUser.id},archived_by_receiver.eq.true)`
+          );
+        } else {
+          // SHOW inbox (not archived)
+          query = query.or(
+            `and(sender_id.eq.${sessionUser.id},archived_by_sender.eq.false),
+             and(receiver_id.eq.${sessionUser.id},archived_by_receiver.eq.false)`
+          );
+        }
       }
 
-      // Guest messages (no archive support for guests yet)
+      // 🔥 GUEST (no archive support)
       if (!sessionUser?.id && guestEmail) {
         query = query.eq("guest_email", guestEmail);
       }
@@ -60,12 +68,11 @@ export default function InboxPage() {
     }
 
     loadInbox();
-  }, [router]);
+  }, [router, showArchived]); // 🔥 reload when toggle changes
 
   async function handleArchive(msg) {
     if (!userId) return;
 
-    // Determine role
     const isSender = msg.sender_id === userId;
 
     if (isSender) {
@@ -80,7 +87,26 @@ export default function InboxPage() {
         .eq("id", msg.id);
     }
 
-    // 🔥 Instant UI update (no refresh)
+    setMessages((prev) => prev.filter((m) => m.id !== msg.id));
+  }
+
+  async function handleUnarchive(msg) {
+    if (!userId) return;
+
+    const isSender = msg.sender_id === userId;
+
+    if (isSender) {
+      await supabase
+        .from("inquiries")
+        .update({ archived_by_sender: false })
+        .eq("id", msg.id);
+    } else {
+      await supabase
+        .from("inquiries")
+        .update({ archived_by_receiver: false })
+        .eq("id", msg.id);
+    }
+
     setMessages((prev) => prev.filter((m) => m.id !== msg.id));
   }
 
@@ -95,16 +121,37 @@ export default function InboxPage() {
   if (messages.length === 0) {
     return (
       <div className="p-8 text-center text-gray-600">
-        No messages yet.
+        {showArchived ? "No archived messages." : "No messages yet."}
       </div>
     );
   }
 
   return (
     <div className="max-w-3xl mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-6 text-orange-800">
+      <h1 className="text-3xl font-bold mb-4 text-orange-800">
         Inbox
       </h1>
+
+      {/* 🔥 TOGGLE */}
+      <div className="flex gap-2 mb-6">
+        <button
+          onClick={() => setShowArchived(false)}
+          className={`px-3 py-1 rounded ${
+            !showArchived ? "bg-orange-600 text-white" : "bg-gray-200"
+          }`}
+        >
+          Inbox
+        </button>
+
+        <button
+          onClick={() => setShowArchived(true)}
+          className={`px-3 py-1 rounded ${
+            showArchived ? "bg-orange-600 text-white" : "bg-gray-200"
+          }`}
+        >
+          Archived
+        </button>
+      </div>
 
       <div className="space-y-4">
         {messages.map((msg) => {
@@ -138,14 +185,23 @@ export default function InboxPage() {
                   {isSent ? "Sent" : "Received"}
                 </span>
 
-                {/* 🔥 NEW ARCHIVE BUTTON */}
+                {/* 🔥 ACTION BUTTON */}
                 {userId && (
-                  <button
-                    onClick={() => handleArchive(msg)}
-                    className="text-xs text-gray-500 hover:text-red-600"
-                  >
-                    Archive
-                  </button>
+                  showArchived ? (
+                    <button
+                      onClick={() => handleUnarchive(msg)}
+                      className="text-xs text-gray-500 hover:text-green-600"
+                    >
+                      Unarchive
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleArchive(msg)}
+                      className="text-xs text-gray-500 hover:text-red-600"
+                    >
+                      Archive
+                    </button>
+                  )
                 )}
               </div>
             </div>
