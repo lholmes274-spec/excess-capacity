@@ -27,10 +27,8 @@ export default function InboxPage() {
 
       // Only set userId if logged in
       if (sessionUser?.id) {
-       setUserId(sessionUser.id);
+        setUserId(sessionUser.id);
       }
-
-      // 🔥 NEW — support logged-in users AND guests
 
       let query = supabase
         .from("inquiries")
@@ -39,12 +37,15 @@ export default function InboxPage() {
           listings ( title )
         `);
 
-      // Logged-in user messages
+      // Logged-in user messages (exclude archived)
       if (sessionUser?.id) {
-        query = query.or(`sender_id.eq.${sessionUser.id},receiver_id.eq.${sessionUser.id}`);
+        query = query.or(
+          `and(sender_id.eq.${sessionUser.id},archived_by_sender.eq.false),
+           and(receiver_id.eq.${sessionUser.id},archived_by_receiver.eq.false)`
+        );
       }
 
-      // Guest messages
+      // Guest messages (no archive support for guests yet)
       if (!sessionUser?.id && guestEmail) {
         query = query.eq("guest_email", guestEmail);
       }
@@ -60,6 +61,28 @@ export default function InboxPage() {
 
     loadInbox();
   }, [router]);
+
+  async function handleArchive(msg) {
+    if (!userId) return;
+
+    // Determine role
+    const isSender = msg.sender_id === userId;
+
+    if (isSender) {
+      await supabase
+        .from("inquiries")
+        .update({ archived_by_sender: true })
+        .eq("id", msg.id);
+    } else {
+      await supabase
+        .from("inquiries")
+        .update({ archived_by_receiver: true })
+        .eq("id", msg.id);
+    }
+
+    // 🔥 Instant UI update (no refresh)
+    setMessages((prev) => prev.filter((m) => m.id !== msg.id));
+  }
 
   if (loading) {
     return (
@@ -106,13 +129,25 @@ export default function InboxPage() {
                 {msg.message}
               </p>
 
-              <span
-                className={`text-xs font-semibold ${
-                  isSent ? "text-blue-600" : "text-green-600"
-                }`}
-              >
-                {isSent ? "Sent" : "Received"}
-              </span>
+              <div className="flex justify-between items-center">
+                <span
+                  className={`text-xs font-semibold ${
+                    isSent ? "text-blue-600" : "text-green-600"
+                  }`}
+                >
+                  {isSent ? "Sent" : "Received"}
+                </span>
+
+                {/* 🔥 NEW ARCHIVE BUTTON */}
+                {userId && (
+                  <button
+                    onClick={() => handleArchive(msg)}
+                    className="text-xs text-gray-500 hover:text-red-600"
+                  >
+                    Archive
+                  </button>
+                )}
+              </div>
             </div>
           );
         })}
