@@ -36,21 +36,6 @@ export default function Dashboard() {
 
       setUser(user);
 
-      let currentSession = session;
-
-      if (!currentSession) {
-        const { data } = await supabase.auth.refreshSession();
-        currentSession = data.session;
-      }
-
-      if (!currentSession) {
-        router.push("/login");
-        return;
-      }
-
-      const user = currentSession.user;
-      setUser(user);
-
       // 🔑 FIRST FETCH — may be stale
       const { data: initialProfile } = await supabase
         .from("profiles")
