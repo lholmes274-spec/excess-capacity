@@ -239,25 +239,29 @@ export default function ListingDetailPage() {
       return;
     }
 
-    const { error } = await supabase.from("bookings").insert({
-      user_id: null,
-      user_email: guestEmail, 
-      booker_email: guestEmail, 
-      guest_name: guestName,
-      guest_email: guestEmail,
-      guest_phone: guestPhone,
-      listing_id: listing.id,
-      start_date: startDate,
-      end_date: endDate,
-      days: days,
-      final_amount: totalPrice,
-      status: "pending",
-      owner_id: listing.owner_id,
-    });
+    const { data: newBooking, error } = await supabase
+      .from("bookings")
+      .insert({
+        user_id: null,
+        user_email: guestEmail, 
+        booker_email: guestEmail, 
+        guest_name: guestName,
+        guest_email: guestEmail,
+        guest_phone: guestPhone,
+        listing_id: listing.id,
+        start_date: startDate,
+        end_date: endDate,
+        days: days,
+        final_amount: totalPrice,
+        status: "pending",
+        owner_id: listing.owner_id,
+     })
+     .select()
+     .single();
 
-    if (error) {
-      console.error("FULL ERROR:", error);
-      alert(error.message); 
+    if (error || !newBooking) {
+      console.error("Booking insert failed:", error);
+      alert("Failed to create booking.");
       return;
     }
 
@@ -278,6 +282,8 @@ export default function ListingDetailPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         receiver_id: listing.owner_id,
+        booking_id: newBooking.id, // 🔥 REQUIRED
+        booking_status: "pending", // 🔥 REQUIRED
       }),
     });
 
