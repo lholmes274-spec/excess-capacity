@@ -243,6 +243,7 @@ export default function ListingDetailPage() {
       .from("bookings")
       .insert({
         user_id: null,
+        user_email: null,
         user_email: guestEmail, 
         booker_email: guestEmail, 
         guest_name: guestName,
