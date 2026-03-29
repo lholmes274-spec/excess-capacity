@@ -40,18 +40,12 @@ export default function InboxPage() {
       if (sessionUser?.id) {
         if (showArchived) {
           // SHOW archived
-          query = query.or(
-            `and(sender_id.eq.${sessionUser.id},archived_by_sender.eq.true),
-             and(receiver_id.eq.${sessionUser.id},archived_by_receiver.eq.true)`
-          );
+          query = query.or(`and(sender_id.eq.${sessionUser.id},archived_by_sender.eq.true),and(receiver_id.eq.${sessionUser.id},archived_by_receiver.eq.true)`);
         } else {
           // SHOW inbox (not archived)
-          query = query.or(
-            `and(sender_id.eq.${sessionUser.id},archived_by_sender.eq.false),
-             and(receiver_id.eq.${sessionUser.id},archived_by_receiver.eq.false)`
-          );
-        }
-      }
+           query = query.or(`and(sender_id.eq.${sessionUser.id},archived_by_sender.eq.false),and(receiver_id.eq.${sessionUser.id},archived_by_receiver.eq.false)`);
+        }  
+       }
 
       // 🔥 GUEST (no archive support)
       if (!sessionUser?.id && guestEmail) {
