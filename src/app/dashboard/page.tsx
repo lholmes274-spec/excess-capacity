@@ -106,7 +106,6 @@ export default function Dashboard() {
       const { count, error: countError } = await supabase
         .from("listings")
         .select("id", { count: "exact", head: true })
-        .eq("owner_id", user.id)
 
       if (countError) {
        console.error("Listing count fetch error:", JSON.stringify(countError, null, 2));
