@@ -58,16 +58,9 @@ export default function LoginPage() {
     if (error) {
       alert(error.message);
     } else {
-      const storedRedirect = localStorage.getItem("postLoginRedirect");
+    
+    }};
 
-      if (storedRedirect) {
-        localStorage.removeItem("postLoginRedirect");
-        router.replace(storedRedirect);
-      } else {
-      router.replace("/dashboard");
-     }
-   }
-  };
 
   const handleGoogleLogin = async () => {
     await supabase.auth.signInWithOAuth({
