@@ -226,10 +226,6 @@ export default function BookingDetailsPage() {
           </p>
        )}
 
-        <p>
-          <strong>Stripe Session:</strong> {booking.stripe_session_id}
-        </p>
-
         <hr />
 
         {listing?.pickup_instructions && (
