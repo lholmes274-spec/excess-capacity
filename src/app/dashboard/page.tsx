@@ -27,7 +27,14 @@ export default function Dashboard() {
       const params = new URLSearchParams(window.location.search);
       const fromStripe = params.get("from") === "stripe";
 
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+
+      setUser(user);
 
       let currentSession = session;
 
