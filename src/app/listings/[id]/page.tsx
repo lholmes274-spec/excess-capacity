@@ -239,9 +239,10 @@ export default function ListingDetailPage() {
       return;
     }
 
-    const { data: newBooking, error } = await supabase
-      .from("bookings")
-      .insert({
+    const res = await fetch("/api/create-booking", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
         user_id: null,
         user_email: null,
         user_email: guestEmail, 
@@ -256,9 +257,18 @@ export default function ListingDetailPage() {
         final_amount: totalPrice,
         status: "pending",
         owner_id: listing.owner_id,
-     })
-     .select()
-     .single();
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+       console.error("Booking failed:", data);
+       alert(data.error || "Booking failed");
+       return;
+   }
+
+   const newBooking = data;   
 
     if (error || !newBooking) {
       console.error("Booking insert failed:", error);
