@@ -56,7 +56,7 @@ export default function Dashboard() {
 
       if (!initialProfile?.signup_country) {
        try {
-         await fetch("/api/geo-reconcile", {
+         fetch("/api/geo-reconcile", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -72,9 +72,9 @@ export default function Dashboard() {
 
       // ⭐ ALWAYS reconcile Stripe → Supabase when Stripe is connected
       if (initialProfile?.stripe_account_id) {
-        await fetch("/api/stripe/sync-account", {
+        fetch("/api/stripe/sync-account", {
           method: "POST",
-        });
+        }).catch(() => {});
 
         // Clean URL if returning from Stripe
         if (fromStripe) {
