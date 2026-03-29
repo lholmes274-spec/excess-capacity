@@ -15,6 +15,9 @@ export default function ProviderBookingDetailsPage() {
   const [selectedMessages, setSelectedMessages] = useState([]);
   const [showArchived, setShowArchived] = useState(false); 
 
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+
   useEffect(() => {
     async function load() {
       if (!id) return;
@@ -46,14 +49,13 @@ export default function ProviderBookingDetailsPage() {
 
       if (error) {
         console.error("Error loading booking:", error);
-
-        alert("Booking failed to load: " + error.message);
-
-        setBooking({ error: true }); // 🔥 prevents infinite loading
+        setLoadError(error.message);
+        setLoading(false);
         return;
       }
 
       setBooking(data);
+      setLoading(false);
     }
 
     load();
@@ -85,15 +87,16 @@ export default function ProviderBookingDetailsPage() {
      loadMessages();
    }, [booking, showArchived]);
 
-  if (!booking) {
+  if (loading) {
+     return <p className="p-6">Loading...</p>;
+  }
+
+  if (loadError) {
     return (
       <div className="p-6">
-        <p>Loading...</p>
-        <p className="text-red-500 text-sm mt-2">
-          If this takes too long, booking may not be accessible.
-        </p>
+        <p className="text-red-500">{loadError}</p>
       </div>
-    );
+     );
   }
 
   const listing = booking.listings || {};
