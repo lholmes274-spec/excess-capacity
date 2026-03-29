@@ -109,7 +109,7 @@ export default function Dashboard() {
         .eq("owner_id", user.id)
 
       if (countError) {
-       console.error("Listing count fetch error:", countError);
+       console.error("Listing count fetch error:", JSON.stringify(countError, null, 2));
       }
 
       setListingCount(count || 0);
