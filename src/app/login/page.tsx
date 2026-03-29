@@ -18,10 +18,12 @@ export default function LoginPage() {
   useEffect(() => {
     const checkUser = async () => {
       const { data } = await supabase.auth.getUser();
-      if (data?.user) router.push(redirectPath);
+      if (data?.user && redirectPath) {
+        router.push(redirectPath);
+      } 
     };
     checkUser();
-  }, []);
+  }, [redirectPath, router]);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -48,7 +50,7 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}${redirectPath}` },
+      options: { redirectTo: `${window.location.origin}/login?redirect=${encodeURIComponent(redirectPath)}` },
     });
   };
 
