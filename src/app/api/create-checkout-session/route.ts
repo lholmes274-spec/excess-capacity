@@ -235,16 +235,11 @@ export async function POST(req: Request) {
       const end = new Date(end_date + "T00:00:00");
 
       const diffTime = end.getTime() - start.getTime();
-      const rawDays = Math.floor(
+      const rawDays = Math.ceil(
         diffTime / (1000 * 60 * 60 * 24)
       );
 
-      quantity = 
-        listing.pricing_type === "per_night"
-          ? rawDays
-          : rawDays + 1;
-
-      quantity = Math.max(1, quantity);
+      quantity = Math.max(1, rawDays);
     }
     
     // Per hour override
