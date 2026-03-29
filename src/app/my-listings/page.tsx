@@ -18,15 +18,14 @@ export default function MyListingsPage() {
       try {
         // ✅ SAFE way to get user session (never throws)
         const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
+          data: { user },
+          error: userError,
+          } = await supabase.auth.getUser();
 
-        if (sessionError) {
-          console.error("Session error:", sessionError);
-        }
+          if (userError) {
+            console.error("User error:", userError);
+          }
 
-        const user = session?.user || null;
 
         if (!user) {
           setUserId(null);
