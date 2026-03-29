@@ -78,7 +78,6 @@ export default function InboxChatPage() {
         listing_id: listingId,
         sender_id: userId,
         receiver_id: receiverId,
-        receiver_email: receiverEmail,
         message: newMessage.trim(),
       },
     ]);
