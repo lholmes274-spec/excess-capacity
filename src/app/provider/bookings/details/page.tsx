@@ -20,7 +20,12 @@ export default function ProviderBookingDetailsPage() {
 
   useEffect(() => {
     async function load() {
-      if (!id) return;
+      // 🔥 wait until id is ready
+      if (!id) {
+        return;
+      }
+
+      setLoading(true);
 
       const { data, error } = await supabase
         .from("bookings")
@@ -88,7 +93,11 @@ export default function ProviderBookingDetailsPage() {
    }, [booking, showArchived]);
 
   if (loading) {
-     return null;
+     return (
+      <div className="p-6 text-gray-600">
+        Loading booking details...
+      </div>
+    );
   }
 
   if (loadError) {
@@ -98,6 +107,23 @@ export default function ProviderBookingDetailsPage() {
       </div>
      );
   }
+
+  if (!booking) {
+    return (
+      <div className="p-6">
+        <p className="text-gray-600">
+          Booking not found or still loading.
+        </p>
+
+      <button
+        onClick={() => window.location.href = "/provider/bookings"}
+        className="mt-4 px-4 py-2 bg-blue-600 text-white rounded"
+      >
+        Go to My Booking Requests
+      </button>
+    </div>
+  );
+}
 
   const listing = booking.listings || {};
   const images = listing.image_urls || [];
