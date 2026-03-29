@@ -10,6 +10,12 @@ export async function POST(req: Request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY! // 🔥 important
   );
 
+  // 🔥 DEBUG — confirm key is loaded
+  console.log(
+    "SERVICE KEY:",
+    process.env.SUPABASE_SERVICE_ROLE_KEY?.slice(0, 10)
+  );
+
   const { data, error } = await supabase
     .from("bookings")
     .insert(body)
