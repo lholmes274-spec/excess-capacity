@@ -277,7 +277,6 @@ export default function ProviderBookingDetailsPage() {
       {/* 🔥 CONVERSATION */}
       <div className="mt-6 space-y-3">
         <h2 className="font-semibold text-gray-800">Conversation</h2>
-      </div>
       
       {/* 🔘 TOGGLE VIEW */}
       <div className="flex gap-2 mt-4">
@@ -289,7 +288,7 @@ export default function ProviderBookingDetailsPage() {
             !showArchived ? "bg-blue-600 text-white" : "bg-gray-200"
           }`}
         >
-          Archived
+          Active
         </button>
         
         <button
@@ -304,11 +303,8 @@ export default function ProviderBookingDetailsPage() {
         </button>
       </div>
 
-      {/* 🔥 CONVERSATION */}
-      <div className="mt-6 space-y-3">
-        <h2 className="font-semibold text-gray-800">Conversation</h2>
-
-        <div className="flex items-center gap-2">
+      {/* 🔘 SELECT ALL */}
+      <div className="flex items-center gap-2">
           <input
             type="checkbox"
             checked={
@@ -326,6 +322,7 @@ export default function ProviderBookingDetailsPage() {
            <span className="text-sm text-gray-600">Select All</span>
         </div>
          
+         {/* 🔥 MESSAGES */}
          {messages.length === 0 ? (
           <p className="text-gray-500 text-sm">No messages yet.</p>
         ) : (
