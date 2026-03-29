@@ -144,14 +144,6 @@ export default function InboxPage() {
     );
   }
 
-  if (messages.length === 0) {
-    return (
-      <div className="p-8 text-center text-gray-600">
-        {showArchived ? "No archived messages." : "No messages yet."}
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-3xl mx-auto p-8">
       <h1 className="text-3xl font-bold mb-4 text-orange-800">
@@ -206,6 +198,12 @@ export default function InboxPage() {
       </div>
 
       <div className="space-y-4">
+        {messages.length === 0 && (
+          <div className="p-8 text-center text-gray-600">
+            {showArchived ? "No archived messages." : "No messages yet."}
+          </div>
+        )}
+
         {messages.map((msg) => {
           const isSent = msg.sender_id === userId;
 
