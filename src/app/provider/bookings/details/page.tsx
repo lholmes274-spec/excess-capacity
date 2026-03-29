@@ -39,7 +39,7 @@ export default function ProviderBookingDetailsPage() {
           )
         `)
         .eq("id", id)
-        .single();
+        .maybeSingle();
 
       console.log("BOOKING DATA:", data);
       console.log("BOOKING ERROR:", error);
