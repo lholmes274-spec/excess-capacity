@@ -210,9 +210,12 @@ export default function ListingDetailPage() {
     
     // Allow guest users — no redirect
 
+      console.log("🔥 HANDLE CHECKOUT STARTED 🔥");
+
     // ➕ START — enforce required booking dates
     if (!isForSale) {
       if (!startDate || !endDate) {
+      console.log("❌ STOPPED: missing dates");
       alert("Please select a start and end date for your booking.");
       return;
     }
@@ -227,6 +230,7 @@ export default function ListingDetailPage() {
       .gte("end_date", startDate);
 
     if (overlappingBookings && overlappingBookings.length > 0) {
+      console.log("❌ STOPPED: dates already booked");
       alert("These dates are already booked. Please select different dates.");
        return;
     }
@@ -236,9 +240,12 @@ export default function ListingDetailPage() {
     if (!userId) {
       console.log("🔥 USING API ROUTE 🔥");
       if (!guestName || !guestEmail) {
+       console.log("❌ STOPPED: missing guest info");
        alert("Please enter your name and email.");
       return;
     }
+
+    console.log("🔥 ABOUT TO CALL API 🔥");
 
     const res = await fetch("/api/create-booking", {
       method: "POST",
@@ -266,7 +273,7 @@ export default function ListingDetailPage() {
        console.error("Booking failed:", data);
        alert(data.error || "Booking failed");
        return;
-   }
+    }
 
    const newBooking = data;   
 
