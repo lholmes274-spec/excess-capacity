@@ -1,19 +1,48 @@
+// src/lib/supabaseClient.ts
 // @ts-nocheck
-
-/**
- * Browser Supabase client for Next.js App Router
- * Uses @supabase/ssr which replaced @supabase/auth-helpers-nextjs.
- *
- * - Works with PKCE authentication
- * - Safe for Client Components only
- * - Server Components and API routes must use createRouteHandlerClient()
- */
 
 import { createBrowserClient } from "@supabase/ssr";
 import type { Database } from "@/types/supabase";
 
-// Create a single browser Supabase client instance
+// ✅ REQUIRED for auth to persist
+function getCookies() {
+  return document.cookie;
+}
+
+function setCookie(name: string, value: string, options: any) {
+  let cookie = `${name}=${value}; path=/`;
+
+  if (options?.maxAge) {
+    cookie += `; max-age=${options.maxAge}`;
+  }
+
+  document.cookie = cookie;
+}
+
 export const supabase = createBrowserClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  {
+    cookies: {
+      getAll() {
+        return document.cookie
+          .split("; ")
+          .map((c) => {
+            const [name, ...rest] = c.split("=");
+            return { name, value: rest.join("=") };
+          });
+      },
+      setAll(cookies) {
+        cookies.forEach(({ name, value, options }) => {
+          let cookie = `${name}=${value}; path=/`;
+
+          if (options?.maxAge) {
+            cookie += `; max-age=${options.maxAge}`;
+          }
+
+          document.cookie = cookie;
+        });
+      },
+    },
+  }
 );
