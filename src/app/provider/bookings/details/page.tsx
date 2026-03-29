@@ -417,6 +417,10 @@ export default function ProviderBookingDetailsPage() {
           <strong>Name:</strong> {listing.contact_name || "—"}
         </p>
 
+        <p className="text-sm text-gray-500">
+          For best response time, please use the in-app messaging system.
+        </p>
+
         <p className="text-gray-700">
           <strong>Email:</strong> {listing.contact_email || "—"}
         </p>
