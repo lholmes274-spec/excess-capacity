@@ -30,7 +30,9 @@ export default function Dashboard() {
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
-        router.push("/login");
+        setTimeout(() => {
+         router.push("/login");
+         }, 500);
         return;
       }
 
