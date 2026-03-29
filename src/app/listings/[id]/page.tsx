@@ -554,6 +554,7 @@ export default function ListingDetailPage() {
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 receiver_id: listing.owner_id,
+                receiver_email: listing.contact_email,
               }),
             });
           
