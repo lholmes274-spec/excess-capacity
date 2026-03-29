@@ -88,7 +88,7 @@ export default function ProviderBookingDetailsPage() {
    }, [booking, showArchived]);
 
   if (loading) {
-     return <p className="p-6">Loading...</p>;
+     return null;
   }
 
   if (loadError) {
