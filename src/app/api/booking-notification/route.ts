@@ -45,9 +45,11 @@ export async function POST(req: Request) {
         <p>You have received a new booking request for one of your listings.</p>
 
         <p style="margin:20px 0;">
-          href="${process.env.NEXT_PUBLIC_SITE_URL}/auth-redirect?to=${encodedRedirect}"
-             style="display:inline-block;padding:12px 20px;background:#16a34a;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:bold;">
-             ${buttonText}
+          <a 
+            href="${process.env.NEXT_PUBLIC_SITE_URL}/auth-redirect?to=${encodedRedirect}"
+            style="display:inline-block;padding:12px 20px;background:#16a34a;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:bold;">
+          >
+            ${buttonText}
           </a>
         </p>
 
