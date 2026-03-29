@@ -82,13 +82,27 @@ export async function POST(req: Request) {
       buttonText = "View Inbox";
     }
 
+     // 🔹 Build premium message text
+     let messageText = "You received a new message.";
+
+     if (booking_id && booking) {
+       const ownerId = booking.listings?.[0]?.owner_id;
+       const isProvider = receiver_id === ownerId;
+
+       messageText = isProvider
+         ? "You have a new booking request. Please review the details and respond to proceed."
+         : "Your booking has been updated. Review the details for the latest information.";
+     }
+
     // 🔹 Send email
     await resend.emails.send({
       from: "Prosperity Hub <no-reply@prosperityhub.app>",
       to: emailToSend,
-      subject: "You have a new message on Prosperity Hub",
+      subject: booking_id
+             ? "New booking activity on Prosperity Hub"
+             : "You have a new message on Prosperity Hub",
       html: `
-        <p>You received a new message.</p>
+        <p>${messageText}</p>
 
         <p style="margin:20px 0;">
           <a href="${link}"
@@ -97,7 +111,7 @@ export async function POST(req: Request) {
           </a>
         </p>
 
-        <p>For security, message content is only visible inside your account.</p>
+        <p>Please log in to view full details and take action.</p>
       `,
     });
 
