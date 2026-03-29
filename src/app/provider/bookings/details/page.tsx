@@ -55,7 +55,6 @@ export default function ProviderBookingDetailsPage() {
     load();
   }, [id]);
 
-  // ✅ NEW BLOCK (ADD THIS)
   useEffect(() => {
     async function loadMessages() {
       if (!booking?.listings?.id) return;
@@ -88,7 +87,6 @@ export default function ProviderBookingDetailsPage() {
   const images = listing.image_urls || [];
   const mainImage = listing.image_url || images[0];
 
-  // ✅ ADDED (helper function)
   function formatPricingType(type) {
     if (!type) return "";
     const map = {
@@ -196,24 +194,6 @@ export default function ProviderBookingDetailsPage() {
         </p>
       </div>
 
-      {/* 🟢 PROVIDER INFO */}
-      <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg mt-4">
-        <h3 className="font-semibold text-gray-800 mb-2">
-          Provider Information
-        </h3>
-
-        <p className="text-gray-700">
-          <strong>Name:</strong> {listing.contact_name || "—"}
-        </p>
-
-        <p className="text-gray-700">
-          <strong>Email:</strong> {listing.contact_email || "—"}
-        </p>
-
-        <p className="text-gray-700">
-          <strong>Phone:</strong> {listing.contact_phone || "—"}
-        </p>
-      </div>
       {/* 🔥 MESSAGE INPUT */}
       <div className="mt-6 space-y-2">
         <textarea
@@ -332,7 +312,6 @@ export default function ProviderBookingDetailsPage() {
                 key={msg.id}
                 className="p-3 rounded-lg bg-gray-100 border flex items-start gap-3"
               >
-                {/* ✅ CHECKBOX */}
                 <input
                   type="checkbox"
                   checked={selectedMessages.includes(msg.id)}
@@ -347,7 +326,6 @@ export default function ProviderBookingDetailsPage() {
                   }}
                 />
 
-                {/* MESSAGE BUBBLE */}
                 <div
                   className={`p-3 rounded-2xl ${
                     msg.sender_id === booking.owner_id
@@ -361,14 +339,12 @@ export default function ProviderBookingDetailsPage() {
                   </p>
                 </div>
 
-                {/* ✅ FIXED STRUCTURE */}
                 <div className="flex flex-col">
 
                 </div>
               </div>
             ))}
- 
-            {/* 🔥 ARCHIVE SELECTED BUTTON */}
+
             {selectedMessages.length > 0 && (
               <button
                 onClick={async () => {
@@ -401,26 +377,24 @@ export default function ProviderBookingDetailsPage() {
 
                   setSelectedMessages([])
 
-                  // 🔥 SWITCH TAB
                   setShowArchived(!showArchived);
 
-                  // 🔥 RELOAD DATA
-                   const { data } = await supabase
-                     .from("inquiries")
-                     .select("*")
-                     .order("created_at", { ascending: false });
+                  const { data } = await supabase
+                    .from("inquiries")
+                    .select("*")
+                    .order("created_at", { ascending: false });
 
-                   const filtered = (data || []).filter((msg) => {
-                     if (msg.listing_id !== booking.listings.id) return false;
+                  const filtered = (data || []).filter((msg) => {
+                    if (msg.listing_id !== booking.listings.id) return false;
 
-                     if (showArchived) {
+                    if (showArchived) {
                       return msg.archived_by_provider === true;
-                     } else {
+                    } else {
                       return msg.archived_by_provider !== true;
-                     }
-                   });
+                    }
+                  });
 
-                   setMessages(filtered);
+                  setMessages(filtered);
                    
                  }}
 
@@ -432,6 +406,26 @@ export default function ProviderBookingDetailsPage() {
            </div>
          )}
       </div>
-   </div> 
- );  
- }
+
+      {/* 🟢 PROVIDER INFO (NOW MOVED CORRECTLY) */}
+      <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg mt-4">
+        <h3 className="font-semibold text-gray-800 mb-2">
+          Provider Information
+        </h3>
+
+        <p className="text-gray-700">
+          <strong>Name:</strong> {listing.contact_name || "—"}
+        </p>
+
+        <p className="text-gray-700">
+          <strong>Email:</strong> {listing.contact_email || "—"}
+        </p>
+
+        <p className="text-gray-700">
+          <strong>Phone:</strong> {listing.contact_phone || "—"}
+        </p>
+      </div>
+
+    </div>
+  );
+}
