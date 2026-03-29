@@ -16,13 +16,14 @@ export default function LoginPage() {
 
   // If logged in → redirect to dashboard immediately
   useEffect(() => {
-    const checkUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      if (data?.user && redirectPath) {
-        router.push(redirectPath);
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+         router.replace(redirectPath);
       } 
-    };
-    checkUser();
+    });
+    return () => subscription.unsubscribe();
   }, [redirectPath, router]);
 
   const handleLogin = async () => {
