@@ -48,9 +48,9 @@ export async function POST(req: Request) {
          <p>You received a new message regarding one of your listings.</p>
 
          <p style="margin:20px 0;">
-           <a href="${process.env.NEXT_PUBLIC_SITE_URL}/login?redirect=/my-bookings${booking_id ? `/${booking_id}` : ""}"
-              style="display:inline-block;padding:12px 20px;background:#ea580c;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:bold;">
-              View Your Booking
+           <a href="${process.env.NEXT_PUBLIC_SITE_URL}/login?redirect=/inbox"
+               style="display:inline-block;padding:12px 20px;background:#ea580c;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:bold;">
+              View Inbox
            </a>
         </p>
 
