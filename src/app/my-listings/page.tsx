@@ -13,33 +13,58 @@ export default function MyListingsPage() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
+  // 🔥 UPDATED useEffect ONLY
   useEffect(() => {
     async function load() {
+      setLoading(true);
+
       try {
-        // ✅ SAFE way to get user session (never throws)
         const {
-          data: { user },
-          error: userError,
-          } = await supabase.auth.getUser();
+          data: { session },
+        } = await supabase.auth.getSession();
 
-          if (userError) {
-            console.error("User error:", userError);
-          }
+        const user = session?.user;
 
+        console.log("SESSION USER:", user);
 
         if (!user) {
-          console.warn("No user found → RLS will block data");
-          setUserId(null);
-          setListings([]);
+          await new Promise((r) => setTimeout(r, 300));
+
+          const {
+            data: { session: retrySession },
+          } = await supabase.auth.getSession();
+
+          const retryUser = retrySession?.user;
+
+          console.log("RETRY USER:", retryUser);
+
+          if (!retryUser) {
+            setUserId(null);
+            setListings([]);
+            setLoading(false);
+            return;
+          }
+
+          setUserId(retryUser.id);
+
+          const { data, error } = await supabase
+            .from("listings")
+            .select("*")
+            .eq("owner_id", retryUser.id)
+            .order("created_at", { ascending: false });
+
+          if (error) {
+            console.error("Error fetching listings:", error);
+          } else {
+            setListings(data || []);
+          }
+
           setLoading(false);
           return;
         }
 
-        console.log("AUTH USER ID:", user.id);
-
         setUserId(user.id);
 
-        // ✅ Fetch only authenticated user's listings
         const { data, error } = await supabase
           .from("listings")
           .select("*")
