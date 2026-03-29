@@ -9,10 +9,17 @@ import { supabase } from "@/lib/supabaseClient";
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectPath = searchParams.get("redirect") || "/dashboard";
+  const redirectParam = searchParams.get("redirect");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+   // 🔥 STORE redirect in localStorage
+   useEffect(() => {
+    if (redirectParam) {
+      localStorage.setItem("postLoginRedirect", redirectParam);
+    }
+ }, [redirectParam]);
 
   // If logged in → redirect to dashboard immediately
   useEffect(() => {
@@ -20,11 +27,18 @@ export default function LoginPage() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
-         router.replace(redirectPath);
+         const storedRedirect = localStorage.getItem("postLoginRedirect");
+
+         if (storedRedirect) {
+          localStorage.removeItem("postLoginRedirect");
+           router.replace(storedRedirect);
+           } else {
+            router.replace("/dashboard");
+          }
       } 
     });
     return () => subscription.unsubscribe();
-  }, [redirectPath, router]);
+  }, [router]);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -44,14 +58,21 @@ export default function LoginPage() {
     if (error) {
       alert(error.message);
     } else {
-      router.push(redirectPath);
-    }
+      const storedRedirect = localStorage.getItem("postLoginRedirect");
+
+      if (storedRedirect) {
+        localStorage.removeItem("postLoginRedirect");
+        router.replace(storedRedirect);
+      } else {
+      router.replace("/dashboard");
+     }
+   }
   };
 
   const handleGoogleLogin = async () => {
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/login?redirect=${encodeURIComponent(redirectPath)}` },
+      options: { redirectTo: `${window.location.origin}/login?redirect=${encodeURIComponent(redirectParam || "/dashboard")}` },
     });
   };
 
