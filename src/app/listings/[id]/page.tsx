@@ -44,10 +44,9 @@ export default function ListingDetailPage() {
         diffTime / (1000 * 60 * 60 * 24)
       );
 
-      const calculatedDays =
-        listing?.pricing_type === "per_night"
-          ? rawDays
-          : rawDays + 1;
+      if (rawDays > 0) {
+         setDays(rawDays);
+      }
 
       if (calculatedDays > 0) {
         setDays(calculatedDays);
