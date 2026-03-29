@@ -63,14 +63,13 @@ export async function POST(req: Request) {
     let buttonText = "";
 
     if (booking_id && booking) {
-      // ✅ FIX: listings is an array
       const ownerId = booking.listings?.[0]?.owner_id;
-
       const isProvider = receiver_id === ownerId;
 
-      link = isProvider
-        ? `${baseUrl}/provider/bookings/details?id=${booking_id}`
-        : `${baseUrl}/my-bookings?id=${booking_id}`;
+      const redirectPath = isProvider
+        ? `/provider/bookings/details?id=${booking_id}`
+        : `/my-bookings?id=${booking_id}`;
+      link = `${baseUrl}/auth-redirect?to=${encodeURIComponent(redirectPath)}`;
 
       buttonText = isProvider
         ? "View Booking Request"
