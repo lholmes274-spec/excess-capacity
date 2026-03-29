@@ -34,6 +34,9 @@ export async function POST(req: Request) {
       ? "View Booking Request"
       : "View Booking";
 
+    const redirectUrl = `/provider/bookings/details?id=${booking_id}`;
+    const encodedRedirect = encodeURIComponent(redirectUrl);
+
     await resend.emails.send({
       from: "Prosperity Hub <no-reply@prosperityhub.app>",
       to: profile.email,
@@ -42,7 +45,7 @@ export async function POST(req: Request) {
         <p>You have received a new booking request for one of your listings.</p>
 
         <p style="margin:20px 0;">
-          <a href="${process.env.NEXT_PUBLIC_SITE_URL}/login?redirect=/provider/bookings/details?id=${booking_id}"
+          <a href="${process.env.NEXT_PUBLIC_SITE_URL}/login?redirect=${encodedRedirect}"
              style="display:inline-block;padding:12px 20px;background:#16a34a;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:bold;">
              ${buttonText}
           </a>
