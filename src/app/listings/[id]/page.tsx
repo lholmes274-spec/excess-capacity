@@ -284,7 +284,7 @@ export default function ListingDetailPage() {
         sender_id: null, // guest
         guest_email: guestEmail,
         receiver_id: listing.owner_id,
-        message: `You have a new booking request. Respond above to confirm or coordinate details.`,
+        message: `Booking request received. Respond above to proceed.`,
       },
     ]);
 
