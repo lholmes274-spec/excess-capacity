@@ -46,6 +46,10 @@ export default function ProviderBookingDetailsPage() {
 
       if (error) {
         console.error("Error loading booking:", error);
+
+        alert("Booking failed to load: " + error.message);
+
+        setBooking({ error: true }); // 🔥 prevents infinite loading
         return;
       }
 
@@ -81,7 +85,16 @@ export default function ProviderBookingDetailsPage() {
      loadMessages();
    }, [booking, showArchived]);
 
-  if (!booking) return <p className="p-6">Loading...</p>;
+  if (!booking) {
+    return (
+      <div className="p-6">
+        <p>Loading...</p>
+        <p className="text-red-500 text-sm mt-2">
+          If this takes too long, booking may not be accessible.
+        </p>
+      </div>
+    );
+  }
 
   const listing = booking.listings || {};
   const images = listing.image_urls || [];
