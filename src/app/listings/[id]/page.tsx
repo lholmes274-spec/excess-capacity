@@ -245,7 +245,6 @@ export default function ListingDetailPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         user_id: null,
-        user_email: null,
         user_email: guestEmail, 
         booker_email: guestEmail, 
         guest_name: guestName,
@@ -270,12 +269,6 @@ export default function ListingDetailPage() {
    }
 
    const newBooking = data;   
-
-    if (error || !newBooking) {
-      console.error("Booking insert failed:", error);
-      alert(error?.message || "Unknown error");
-      return;
-    }
 
     // 🆕 AUTO-CREATE MESSAGE THREAD FOR BOOKING
     await supabase.from("inquiries").insert([
