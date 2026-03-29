@@ -28,13 +28,24 @@ export default function MyListingsPage() {
 
 
         if (!user) {
+          console.warn("No user found → RLS will block data");
           setUserId(null);
           setListings([]);
           setLoading(false);
           return;
         }
 
+        console.log("AUTH USER ID:", user.id);
+
         setUserId(user.id);
+
+        const { data, error } = await supabase
+          .from("listings")
+          .select("*")
+          .eq("owner_id", user.id)
+          .order("created_at", { ascending: false });
+
+        console.log("QUERY RESULT:", data);
 
         // ✅ Fetch only authenticated user's listings
         const { data, error } = await supabase
