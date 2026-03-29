@@ -212,16 +212,16 @@ export default function ProviderBookingPage() {
         <p className="text-sm text-gray-500">{booking.user_email}</p>
       </div>
 
+      {/* 💬 CHAT */}
+      <div className="border rounded-xl p-5 shadow-sm bg-white">
+        <h2 className="font-semibold text-lg mb-4">Conversation</h2>
+
       {/* 🏢 PROVIDER */}
       <div className="border rounded-xl p-5 shadow-sm bg-white">
         <h3 className="font-semibold mb-2">Provider</h3>
         <p>{providerProfile?.display_name || "Provider"}</p>
         <p className="text-sm text-gray-500">{providerProfile?.email}</p>
       </div>
-
-      {/* 💬 CHAT */}
-      <div className="border rounded-xl p-5 shadow-sm bg-white">
-        <h2 className="font-semibold text-lg mb-4">Conversation</h2>
 
         <div className="space-y-3 max-h-64 overflow-y-auto mb-4">
           {messages.map((msg) => (
