@@ -105,6 +105,7 @@ export default function ProviderBookingPage() {
       if (booking.user_id) {
         receiverId = booking.user_id;
     } else {
+      receiverId = listing.owner_id; 
       receiverEmail = booking.guest_email;
     }
 
