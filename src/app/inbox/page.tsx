@@ -40,17 +40,29 @@ export default function InboxPage() {
       // 🔥 LOGGED-IN USERS
       if (sessionUser?.id) {
         if (showArchived) {
-          // SHOW archived
-          query = query.or(`and(sender_id.eq.${sessionUser.id},archived_by_sender.eq.true),and(receiver_id.eq.${sessionUser.id},archived_by_receiver.eq.true)`);
-        } else {
-          // SHOW inbox (not archived)
-          query = query.or(`and(sender_id.eq.${sessionUser.id},archived_by_sender.eq.false),and(receiver_id.eq.${sessionUser.id},archived_by_receiver.eq.false)`);
+          query = query.or(`
+            and(sender_id.eq.${sessionUser.id},archived_by_sender.eq.true),
+            and(receiver_id.eq.${sessionUser.id},archived_by_receiver.eq.true),
+            and(sender_email.eq.${sessionUser.email},archived_by_sender.eq.true),
+            and(receiver_email.eq.${sessionUser.email},archived_by_receiver.eq.true)
+          `);
+         } else {
+           query = query.or(`
+            and(sender_id.eq.${sessionUser.id},archived_by_sender.eq.false),
+            and(receiver_id.eq.${sessionUser.id},archived_by_receiver.eq.false),
+            and(sender_email.eq.${sessionUser.email},archived_by_sender.eq.false),
+            and(receiver_email.eq.${sessionUser.email},archived_by_receiver.eq.false)
+          `);
         }
       }
 
       // 🔥 GUEST (no archive support)
       if (!sessionUser?.id && guestEmail) {
-        query = query.eq("guest_email", guestEmail);
+        query = query.or(`
+         guest_email.eq.${guestEmail},
+         sender_email.eq.${guestEmail},
+         receiver_email.eq.${guestEmail}
+       `);
       }
 
       const { data, error } = await query.order("created_at", { ascending: false });

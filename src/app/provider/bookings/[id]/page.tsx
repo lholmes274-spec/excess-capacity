@@ -78,7 +78,12 @@ export default function ProviderBookingPage() {
         .from("inquiries")
         .select("*")
         .eq("listing_id", bookingData.listing_id)
-        .or(`sender_id.eq.${user?.id},receiver_id.eq.${user?.id}`)
+        .or(`
+          sender_id.eq.${user?.id},
+          receiver_id.eq.${user?.id},
+          sender_email.eq.${user?.email},
+          receiver_email.eq.${user?.email}
+     `)
         .order("created_at", { ascending: true });
 
       setMessages(msgs || []);
@@ -93,13 +98,21 @@ export default function ProviderBookingPage() {
     const isProvider = user.id === listing.owner_id;
 
     let receiverId = null;
+    let receiverEmail = null;
      
     if (isProvider) {
       // provider replying → send to booker
-      receiverId = booking.user_id;
+
+      if (booking.user_id) {
+        receiverId = booking.user_id;
+    } else {
+      receiverEmail = booking.guest_email;
+    }
+
     } else {
       // booker sending → send to provider
       receiverId = listing.owner_id;
+      receiverEmail = providerProfile?.email;
     }
 
     console.log("SENDING MESSAGE:", {
@@ -114,7 +127,9 @@ export default function ProviderBookingPage() {
       {
         listing_id: booking.listing_id,
         sender_id: user.id,
+        sender_email: user.email, 
         receiver_id: receiverId,
+        receiver_email: receiverEmail, 
         message: newMessage,
       },
     ]);
@@ -154,7 +169,12 @@ export default function ProviderBookingPage() {
         .from("inquiries")
         .select("*")
         .eq("listing_id", booking.listing_id)
-        .or(`sender_id.eq.${user?.id},receiver_id.eq.${user?.id}`)
+        .or(`
+          sender_id.eq.${user.id},
+          receiver_id.eq.${user.id},
+          sender_email.eq.${user.email},
+          receiver_email.eq.${user.email}
+      `)
         .order("created_at", { ascending: true });
 
       setMessages(msgs || []);
