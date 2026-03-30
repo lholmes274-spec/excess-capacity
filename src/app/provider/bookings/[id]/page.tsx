@@ -118,15 +118,14 @@ export default function ProviderBookingPage() {
 
       // ❌ DO NOT EMAIL YOURSELF
       if (receiverEmail && receiverEmail !== user.email) {
-        await fetch("/api/send-message-email", {
+        await fetch("/api/message-notification", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            to: receiverEmail,
-            message: newMessage,
-            listingTitle: listing.title,
+            receiver_id: receiverId,
+            booking_id: booking.id,
           }),
         });
       }
