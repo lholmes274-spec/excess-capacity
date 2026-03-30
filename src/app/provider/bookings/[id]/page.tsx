@@ -90,10 +90,24 @@ export default function ProviderBookingPage() {
   async function sendMessage() {
     if (!newMessage.trim() || !booking || !user || !listing) return;
 
-    const receiverId =
-      booking.user_id === user.id
-        ? listing.owner_id
-        : booking.user_id;
+    const isProvider = user.id === listing.owner_id;
+
+    let receiverId = null;
+     
+    if (isProvider) {
+      // provider replying → send to booker
+      receiverId = booking.user_id;
+    } else {
+      // booker sending → send to provider
+      receiverId = listing.owner_id;
+    }
+
+    console.log("SENDING MESSAGE:", {
+      sender: user.id,
+      receiver: receiverId,
+      bookingUser: booking.user_id,
+      owner: listing.owner_id,
+    });
 
     // ✅ INSERT MESSAGE
     const { error } = await supabase.from("inquiries").insert([
