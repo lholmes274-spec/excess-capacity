@@ -110,7 +110,7 @@ export default function ProviderBookingPage() {
 
       if (user.id === listing.owner_id) {
         // provider sending → email booker
-        receiverEmail = booking.user_email;
+        receiverEmail = booking.guest_email || booking.user_email;
       } else {
         // booker sending → email provider
         receiverEmail = providerProfile?.email;
@@ -125,6 +125,7 @@ export default function ProviderBookingPage() {
           },
           body: JSON.stringify({
             receiver_id: receiverId,
+            receiver_email: receiverEmail,
             booking_id: booking.id,
           }),
         });
