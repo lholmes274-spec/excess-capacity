@@ -554,7 +554,8 @@ export default function ListingDetailPage() {
             ]);
 
             if (error) {
-              alert("Unable to send message. Please try again.");
+              console.error("MESSAGE INSERT ERROR:", error);
+              alert(error.message || "Unable to send message.");
               return;
             }
 
