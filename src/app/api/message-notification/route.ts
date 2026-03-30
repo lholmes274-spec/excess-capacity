@@ -67,8 +67,8 @@ export async function POST(req: Request) {
       const isProvider = receiver_id === ownerId;
 
       const redirectPath = isProvider
-        ? `/provider/bookings/details?id=${booking_id}`
-        : `/my-bookings?id=${booking_id}`;
+         ? `/provider/bookings/details?id=${booking_id}`
+         : `/my-bookings/${booking_id}`;
       link = `${baseUrl}/auth-redirect?to=${encodeURIComponent(redirectPath)}`;
 
       buttonText = isProvider
