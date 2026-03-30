@@ -537,11 +537,18 @@ export default function ListingDetailPage() {
 
             if (!message || message.trim() === "") return;
 
+            // 🔥 GET USER EMAIL
+            const {
+              data: { user },
+            } = await supabase.auth.getUser();
+
             const { error } = await supabase.from("inquiries").insert([
               {
                 listing_id: listing.id,
                 sender_id: userId,
+                sender_email: user?.email,
                 receiver_id: listing.owner_id,
+                receiver_email: listing.contact_email,
                 message: message.trim(),
               },
             ]);
