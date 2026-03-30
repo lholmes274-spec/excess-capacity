@@ -209,9 +209,22 @@ export default function ProviderBookingPage() {
 
       {/* 👤 BOOKER */}
       <div className="border rounded-xl p-5 shadow-sm bg-white">
-        <h3 className="font-semibold mb-2">Booked By</h3>
-        <p>{bookerProfile?.display_name || "Guest User"}</p>
-        <p className="text-sm text-gray-500">{booking.user_email}</p>
+        <h3 className="font-semibold mb-2">Customer Information</h3>
+
+        <p>
+          <strong>Name:</strong>{" "}
+          {booking.guest_name || bookerProfile?.display_name || "—"}
+        </p>
+
+        <p>
+          <strong>Email:</strong>{" "}
+          {booking.guest_email || booking.user_email || "—"}
+        </p>
+
+        <p>
+          <strong>Phone:</strong>{" "}
+          {booking.guest_phone || "—"}
+        </p>
       </div>
 
       {/* 💬 CHAT */}
