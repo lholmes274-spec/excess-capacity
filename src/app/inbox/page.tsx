@@ -37,24 +37,15 @@ export default function InboxPage() {
           listings ( title )
         `);
 
-      // 🔥 LOGGED-IN USERS
+      // 🔥 LOGGED-IN USERS (SIMPLIFIED — WORKING)
       if (sessionUser?.id) {
-        if (showArchived) {
-          query = query.or(`
-            and(sender_id.eq.${sessionUser.id},archived_by_sender.eq.true),
-            and(receiver_id.eq.${sessionUser.id},archived_by_receiver.eq.true),
-            and(sender_email.eq.${sessionUser.email},archived_by_sender.eq.true),
-            and(receiver_email.eq.${sessionUser.email},archived_by_receiver.eq.true)
-          `);
-         } else {
-           query = query.or(`
-            and(sender_id.eq.${sessionUser.id},archived_by_sender.eq.false),
-            and(receiver_id.eq.${sessionUser.id},archived_by_receiver.eq.false),
-            and(sender_email.eq.${sessionUser.email},archived_by_sender.eq.false),
-            and(receiver_email.eq.${sessionUser.email},archived_by_receiver.eq.false)
-          `);
-        }
-      }
+       query = query.or(`
+        sender_id.eq.${sessionUser.id},
+        receiver_id.eq.${sessionUser.id},
+        sender_email.eq.${sessionUser.email},
+        receiver_email.eq.${sessionUser.email}
+      `);
+     }
 
       // 🔥 GUEST (no archive support)
       if (!sessionUser?.id && guestEmail) {
