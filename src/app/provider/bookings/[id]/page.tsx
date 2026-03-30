@@ -154,6 +154,7 @@ export default function ProviderBookingPage() {
         .from("inquiries")
         .select("*")
         .eq("listing_id", booking.listing_id)
+        .or(`sender_id.eq.${user?.id},receiver_id.eq.${user?.id}`)
         .order("created_at", { ascending: true });
 
       setMessages(msgs || []);
