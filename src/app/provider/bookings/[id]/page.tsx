@@ -98,7 +98,6 @@ export default function ProviderBookingPage() {
     const isProvider = user.id === listing.owner_id;
 
     let receiverId = null;
-    let receiverEmail = null;
      
     if (isProvider) {
       // provider replying → send to booker
@@ -136,15 +135,26 @@ export default function ProviderBookingPage() {
 
     if (!error) {
       // 🔥 DETERMINE RECEIVER EMAIL CORRECTLY
-      let receiverEmail = null;
+      // 🔥 DO NOT redeclare receiverEmail
 
       if (user.id === listing.owner_id) {
         // provider sending → email booker
-        receiverEmail = booking.guest_email || booking.user_email;
-      } else {
-        // booker sending → email provider
-        receiverEmail = providerProfile?.email;
+      if (booking.guest_email) {
+        receiverEmail = booking.guest_email;
+      } else if (booking.user_id) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("email")
+          .eq("id", booking.user_id)
+          .single();
+        receiverEmail = profile?.email;
       }
+      }
+
+      else {
+        // 🔥 booker sending → email provider
+        receiverEmail = providerProfile?.email;
+   }
 
       // ❌ DO NOT EMAIL YOURSELF
       if (receiverEmail && receiverEmail !== user.email) {
