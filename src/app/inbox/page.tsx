@@ -39,14 +39,11 @@ export default function InboxPage() {
 
       // 🔥 LOGGED-IN USERS (SIMPLIFIED — WORKING)
       if (sessionUser?.id) {
-       query = query.or(`
-        sender_id.eq.${sessionUser.id},
-        receiver_id.eq.${sessionUser.id},
-        sender_email.eq.${sessionUser.email},
-        receiver_email.eq.${sessionUser.email}
-      `);
-     }
-
+        query = query.or(
+          `sender_id.eq.${sessionUser.id},receiver_id.eq.${sessionUser.id}`
+       );
+      }
+      
       // 🔥 GUEST (no archive support)
       if (!sessionUser?.id && guestEmail) {
         query = query.or(`
