@@ -35,10 +35,14 @@ export default function InboxChatPage() {
     async function loadMessages() {
       if (!listingId) return;
 
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData?.session?.user;
+
       const { data, error } = await supabase
         .from("inquiries" as any)
         .select("*")
         .eq("listing_id", listingId)
+        .or(`sender_id.eq.${user?.id},receiver_id.eq.${user?.id}`)
         .order("created_at", { ascending: true });
 
       if (!error && data) {
