@@ -102,12 +102,13 @@ export default function ProviderBookingPage() {
     if (isProvider) {
       // provider replying → send to booker
 
-      if (booking.user_id) {
+      if (bookerProfile?.id) {
+        receiverId = bookerProfile.id;
+      } else if (booking.user_id) {
         receiverId = booking.user_id;
-    } else {
-      receiverId = listing.owner_id; 
-      receiverEmail = booking.guest_email;
-    }
+      } else {
+        receiverEmail = booking.guest_email;
+     }
 
     } else {
       // booker sending → send to provider
