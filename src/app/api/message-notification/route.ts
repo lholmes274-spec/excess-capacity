@@ -34,7 +34,12 @@ export async function POST(req: Request) {
     }
 
     // 🔹 Determine recipient email
-    if (receiver_id) {
+    if (receiver_email) {
+       emailToSend = receiver_email;
+    }
+
+    // ✅ FALLBACK: lookup from profiles (logged-in users)
+    else if (receiver_id) {
       const { data: profile, error } = await supabase
         .from("profiles")
         .select("email")
