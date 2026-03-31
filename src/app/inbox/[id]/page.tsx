@@ -71,17 +71,46 @@ export default function InboxChatPage() {
       return;
     }
 
-    const receiverId =
-      listing.owner_id === userId ? null : listing.owner_id;
+    let receiverId = null;
+    let receiverEmail = null;
 
-    const receiverEmail = listing.contact_email || null;
+    // 🔥 PROVIDER OR BOOKER LOGIC
+    if (userId === listing.owner_id) {
+      // provider → find last booker
+
+      const { data: lastMessage } = await supabase
+        .from("inquiries" as any)
+        .select("sender_id, sender_email")
+        .eq("listing_id", listingId)
+        .not("sender_id", "is", null)
+        .neq("sender_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const msg = lastMessage as any;
+
+      receiverId = msg?.sender_id || null;
+      receiverEmail = msg?.sender_email || null;
+
+    } else {
+      // booker → provider
+      receiverId = listing.owner_id;
+      receiverEmail = listing.contact_email;
+    }
 
     // 🔥 STEP 2 — insert message
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     const { error } = await supabase.from("inquiries" as any).insert([
       {
         listing_id: listingId,
         sender_id: userId,
+        sender_email: user?.email,
         receiver_id: receiverId,
+        receiver_email: receiverEmail,
         message: newMessage.trim(),
       },
     ]);
@@ -106,7 +135,7 @@ export default function InboxChatPage() {
 
     // 🔥 STEP 4 — send email (FIXED POSITION)
     try {
-      await fetch("/api/send-message-email", {
+      await fetch("/api/message-notification", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
