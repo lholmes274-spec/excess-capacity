@@ -45,6 +45,7 @@ function formatPricingUnit(type: string) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
+    console.log("🔥 REQUEST BODY:", body);
 
     let listing_id = body.listing_id;
     let days = body.days;
@@ -52,6 +53,34 @@ export async function POST(req: Request) {
     let end_date = body.end_date;
     let transaction_type = body.transaction_type;
     let booking_id = body.booking_id;
+
+
+    if (!booking_id && (!listing_id || !transaction_type)) {
+      return NextResponse.json(
+        { error: "Missing listing_id or transaction_type" },
+        { status: 400 }
+      );
+    }
+
+    if (!booking_id && !["booking", "sale"].includes(transaction_type)) {
+      return NextResponse.json(
+        { error: "Invalid transaction_type" },
+        { status: 400 }
+      );
+    }
+
+    // 🔐 SERVICE ROLE CLIENT
+    const supabase = createServerClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        cookies: {
+          get() {
+            return undefined;
+          },
+        },
+      }
+    );
 
     // 🔥 HANDLE EXISTING BOOKING (guest → logged in flow)
     if (booking_id) {
@@ -75,32 +104,6 @@ export async function POST(req: Request) {
       transaction_type = "booking";
     }
 
-    if (!booking_id && (!listing_id || !transaction_type)) {
-      return NextResponse.json(
-        { error: "Missing listing_id or transaction_type" },
-        { status: 400 }
-      );
-    }
-
-    if (!["booking", "sale"].includes(transaction_type)) {
-      return NextResponse.json(
-        { error: "Invalid transaction_type" },
-        { status: 400 }
-      );
-    }
-
-    // 🔐 SERVICE ROLE CLIENT
-    const supabase = createServerClient<Database>(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        cookies: {
-          get() {
-            return undefined;
-          },
-        },
-      }
-    );
 
     // Fetch listing
     const { data: listing, error: listingError } = await supabase
