@@ -75,6 +75,9 @@ export default function MyOrdersPage() {
 
     // remove from current view instantly
     setOrders((prev) => prev.filter((o) => o.id !== order.id));
+
+    // 🔥 SWITCH VIEW AUTOMATICALLY
+    setView(isHidden ? "active" : "hidden");
     setDeletingId(null);
   }
 
