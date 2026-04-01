@@ -44,7 +44,36 @@ function formatPricingUnit(type: string) {
 
 export async function POST(req: Request) {
   try {
-    const { listing_id, days, start_date, end_date, transaction_type } = await req.json();
+    const body = await req.json();
+
+    let listing_id = body.listing_id;
+    let days = body.days;
+    let start_date = body.start_date;
+    let end_date = body.end_date;
+    let transaction_type = body.transaction_type;
+    let booking_id = body.booking_id;
+
+    // 🔥 HANDLE EXISTING BOOKING (guest → logged in flow)
+    if (booking_id) {
+      const { data: booking, error: bookingError } = await supabase
+         .from("bookings")
+         .select("*")
+         .eq("id", booking_id)
+         .single();
+      
+      if (bookingError || !booking) {
+        return NextResponse.json(
+          { error: "Booking not found" },
+          { status: 404 }
+        );
+      }
+
+      listing_id = booking.listing_id;
+      start_date = booking.start_date;
+      end_date = booking.end_date;
+      days = booking.days || 1;
+      transaction_type = "booking";
+    }
 
     if (!listing_id || !transaction_type) {
       return NextResponse.json(
