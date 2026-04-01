@@ -96,7 +96,17 @@ export default function InboxChatPage() {
     } else {
       // booker → provider
       receiverId = listing.owner_id;
-      receiverEmail = listing.contact_email;
+
+      // 🔥 GET REAL PROVIDER EMAIL FROM PROFILES
+      const { data } = await supabase
+        .from("profiles")
+        .select("email")
+        .eq("id", listing.owner_id!)
+        .single();
+
+      const providerProfile = data as any;
+
+       receiverEmail = providerProfile?.email;
     }
 
     // 🔥 STEP 2 — insert message
