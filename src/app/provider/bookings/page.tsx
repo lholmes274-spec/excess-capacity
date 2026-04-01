@@ -220,19 +220,21 @@ export default function ProviderBookingsPage() {
 
                     <button
                       onClick={async () => {
+                       const newValue = !b.hidden_by_lister;
+
                        const { error } = await supabase
                           .from("bookings")
                           .update({
-                            hidden_by_lister: !b.hidden_by_lister
+                            hidden_by_lister: newValue,
                           })
                           .eq("id", b.id);
 
                         if (!error) {
                           setBookings((prev) =>
-                            prev.map((booking) =>
-                              item.id === b.id
-                                ? { ...item, hidden_by_lister: !b.hidden_by_lister }
-                                : item
+                            prev.map((bookingItem) =>
+                              bookingItem.id === b.id
+                                ? { ...bookingItem, hidden_by_lister: newValue }
+                                : bookingItem
                             )
                           );
                         } else {
