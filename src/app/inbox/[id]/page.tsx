@@ -151,9 +151,8 @@ export default function InboxChatPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          receiver_id: receiverId,
           receiver_email: receiverEmail,
-          message: newMessage,
-          listing_id: listingId,
         }),
       });
     } catch (err) {

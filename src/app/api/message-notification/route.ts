@@ -61,6 +61,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No valid recipient" }, { status: 400 });
     }
 
+    console.log("EMAIL API:", {
+      receiver_id,
+      receiver_email,
+      emailToSend,
+    });
+
     // 🔹 Build link + button
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
 
