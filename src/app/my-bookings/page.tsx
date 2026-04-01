@@ -49,9 +49,13 @@ export default function MyOrdersPage() {
     load();
   }, [view]);
 
-  async function deleteOrder(orderId) {
+  async function toggleOrder(order) {
+    const isHidden = order.archived_by_booker;
+
     const confirmed = confirm(
-      "This will remove this order from your view. You can still access it later if needed."
+        isHidden
+         ? "Restore this order to your active view?"
+         : "Remove this order from your view? You can still access it later."
     );
     if (!confirmed) return;
 
@@ -59,7 +63,7 @@ export default function MyOrdersPage() {
 
     const { error } = await supabase
       .from("bookings")
-      .update({ archived_by_booker: true })
+      .update({ archived_by_booker: !isHidden })
       .eq("id", orderId)
       .eq("user_id", userId);
 
@@ -69,7 +73,8 @@ export default function MyOrdersPage() {
       return;
     }
 
-    setOrders((prev) => prev.filter((o) => o.id !== orderId));
+    // remove from current view instantly
+    setOrders((prev) => prev.filter((o) => o.id !== order.id));
     setDeletingId(null);
   }
 
@@ -243,11 +248,15 @@ export default function MyOrdersPage() {
 
                     {/* 🔥 NEW DELETE BUTTON */}
                     <button
-                      onClick={() => deleteOrder(o.id)}
+                      onClick={() => toggleOrder(o)}
                       disabled={deletingId === o.id}
                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium shadow hover:bg-gray-300 transition disabled:opacity-50"
                     >
-                      {deletingId === o.id ? "Removing..." : "Remove from my view"}
+                      {deletingId === o.id
+                        ? "Updating..."
+                        : o.archived_by_booker
+                        ? "Restore"
+                        : "Remove from my view"}
                     </button>
                   </div>
                 </div>
