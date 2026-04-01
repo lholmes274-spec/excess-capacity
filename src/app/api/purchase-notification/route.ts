@@ -55,6 +55,12 @@ export async function POST(req: Request) {
       );
     }
 
+    console.log("INSERTING PURCHASE:", {
+      listing_id,
+      owner_id: lister_id,
+      user_email,
+    });
+
     const { data: purchaseRecord, error: insertError } = await supabase
       .from("bookings")
       .insert({
@@ -65,11 +71,24 @@ export async function POST(req: Request) {
         status: "paid",
         transaction_type: "sale",
       })
-      .select()
+      .select("*") 
       .single();
+
+      console.log("INSERT RESULT:", {
+        purchaseRecord,
+        insertError,
+      });
 
     if (insertError) {
       console.error("Purchase insert failed:", insertError);
+    }
+
+    if (!purchaseRecord?.id) {
+      console.error("Purchase record ID missing after insert");
+      return NextResponse.json(
+        { error: "Failed to create purchase record" },
+        { status: 500 }
+      );
     }
 
     // 🔥 UPDATED — redirect to provider booking details
