@@ -64,7 +64,7 @@ export default function MyOrdersPage() {
     const { error } = await supabase
       .from("bookings")
       .update({ archived_by_booker: !isHidden })
-      .eq("id", orderId)
+      .eq("id", order.id)
       .eq("user_id", userId);
 
     if (error) {
