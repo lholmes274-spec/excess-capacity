@@ -30,8 +30,11 @@ function SuccessPurchaseContent() {
   useEffect(() => {
     async function notifyProvider() {
       if (!session_id) return;
+
+      console.log("CALLING PURCHASE API:", session_id);
+
       try {
-        await fetch("/api/purchase-notification", {
+         const res = await fetch("/api/purchase-notification", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -41,7 +44,14 @@ function SuccessPurchaseContent() {
           }),
        });
 
-       console.log("PURCHASE EMAIL TRIGGERED");
+       const data = await res.json();
+       console.log("PURCHASE API RESPONSE:", data);
+
+       if (!res.ok) {
+        console.error("Purchase API error:", data);
+       } else {
+        console.log("PURCHASE EMAIL SENT SUCCESSFULLY");
+       }
     } catch (err) {
        console.error("Purchase notification failed:", err);
    }
