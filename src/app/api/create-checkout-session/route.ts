@@ -75,7 +75,7 @@ export async function POST(req: Request) {
       transaction_type = "booking";
     }
 
-    if (!listing_id || !transaction_type) {
+    if (!booking_id && (!listing_id || !transaction_type)) {
       return NextResponse.json(
         { error: "Missing listing_id or transaction_type" },
         { status: 400 }
