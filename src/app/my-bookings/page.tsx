@@ -10,6 +10,7 @@ export default function MyOrdersPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState(null);
+  const [userEmail, setUserEmail] = useState(null); // ✅ ADDED
   const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
@@ -24,6 +25,7 @@ export default function MyOrdersPage() {
       }
 
       setUserId(user.id);
+      setUserEmail(user.email); // ✅ ADDED
 
       const { data, error } = await supabase
         .from("bookings")
@@ -68,6 +70,32 @@ export default function MyOrdersPage() {
 
     setOrders((prev) => prev.filter((o) => o.id !== orderId));
     setDeletingId(null);
+  }
+
+  // ✅ NEW FUNCTION (CORRECT PLACEMENT)
+  async function handleCompletePayment(order) {
+    try {
+      const res = await fetch("/api/create-checkout-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          booking_id: order.id,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert("Failed to start checkout.");
+      }
+    } catch (err) {
+      console.error("Checkout error:", err);
+      alert("Something went wrong.");
+    }
   }
 
   if (loading)
@@ -116,15 +144,15 @@ export default function MyOrdersPage() {
                 key={o.id}
                 className="relative bg-white border border-gray-200 rounded-xl shadow hover:shadow-lg transition overflow-hidden"
               >
-             {o?.id && (
-                <Link href={`/my-bookings/${o.id}`}>
-                  <img
-                    src={thumbnail}
-                    alt={listing?.title}
-                    className="w-full h-48 object-cover cursor-pointer"
-                  />
-                </Link>
-           )}
+                {o?.id && (
+                  <Link href={`/my-bookings/${o.id}`}>
+                    <img
+                      src={thumbnail}
+                      alt={listing?.title}
+                      className="w-full h-48 object-cover cursor-pointer"
+                    />
+                  </Link>
+                )}
 
                 <div className="p-4">
                   <h2 className="font-semibold text-lg mb-1">
@@ -169,12 +197,25 @@ export default function MyOrdersPage() {
                     </span>
                   </p>
 
-                  <Link
-                    href={`/my-bookings/${o.id}`}
-                    className="inline-block mt-4 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium shadow hover:bg-green-700 transition"
-                  >
-                    View Booking Details 
-                  </Link>
+                  {/* ✅ UPDATED BUTTON SECTION */}
+                  <div className="flex gap-2 mt-4 flex-wrap">
+                    <Link
+                      href={`/my-bookings/${o.id}`}
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium shadow hover:bg-green-700 transition"
+                    >
+                      View Booking Details
+                    </Link>
+
+                    {o.status === "pending" &&
+                      userEmail === o.guest_email && (
+                        <button
+                          onClick={() => handleCompletePayment(o)}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium shadow hover:bg-blue-700 transition"
+                        >
+                          Complete Payment
+                        </button>
+                      )}
+                  </div>
                 </div>
               </div>
             );
