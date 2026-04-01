@@ -255,13 +255,8 @@ export default function ProviderBookingsPage() {
                           .eq("id", b.id);
 
                         if (!error) {
-                          setBookings((prev) =>
-                            prev.map((bookingItem) =>
-                              bookingItem.id === b.id
-                                ? { ...bookingItem, hidden_by_lister: newValue }
-                                : bookingItem
-                            )
-                          );
+                          // ✅ REMOVE FROM UI INSTANTLY
+                          setBookings((prev) => prev.filter((item) => item.id !== b.id));
                         } else {
                           alert("Unable to update archive status.");
                         }
