@@ -219,10 +219,29 @@ export default function ProviderBookingsPage() {
                     </Link>
 
                     <button
-                      onClick={() => archiveBooking(b.id)}
-                       className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm hover:bg-gray-300 transition"
+                      onClick={async () => {
+                       const { error } = await supabase
+                          .from("bookings")
+                          .update({
+                            hidden_by_lister: !b.hidden_by_lister
+                          })
+                          .eq("id", b.id);
+
+                        if (!error) {
+                          setBookings((prev) =>
+                            prev.map((booking) =>
+                              item.id === b.id
+                                ? { ...item, hidden_by_lister: !b.hidden_by_lister }
+                                : item
+                            )
+                          );
+                        } else {
+                          alert("Unable to update archive status.");
+                        }
+                      }}
+                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm hover:bg-gray-300 transition"
                     >
-                      Archive
+                      {b.hidden_by_lister ? "Unarchive" : "Archive"}
                     </button>
                   </div>
 
