@@ -12,6 +12,7 @@ export default function MyOrdersPage() {
   const [userId, setUserId] = useState(null);
   const [userEmail, setUserEmail] = useState(null); // ✅ ADDED
   const [deletingId, setDeletingId] = useState(null);
+  const [view, setView] = useState("active"); 
 
   useEffect(() => {
     async function load() {
@@ -33,7 +34,7 @@ export default function MyOrdersPage() {
         .or(
           `user_id.eq.${user.id},guest_email.ilike.${user.email}`
         )
-        .eq("archived_by_booker", false)
+        .eq("archived_by_booker", view === "hidden")
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -46,11 +47,11 @@ export default function MyOrdersPage() {
     }
 
     load();
-  }, []);
+  }, [view]);
 
   async function deleteOrder(orderId) {
     const confirmed = confirm(
-      "This will remove the order from your view only. Continue?"
+      "This will remove this order from your view. You can still access it later if needed."
     );
     if (!confirmed) return;
 
@@ -123,6 +124,30 @@ export default function MyOrdersPage() {
   return (
     <div className="container mx-auto px-6 py-10">
       <h1 className="text-3xl font-bold mb-6 text-center">My Orders</h1>
+
+      <div className="flex justify-center gap-4 mb-6">
+         <button
+           onClick={() => setView("active")}
+           className={`px-5 py-2 rounded-full text-sm font-semibold transition shadow ${
+            view === "active"
+              ? "bg-green-600 text-white shadow-md"
+              : "bg-green-100 text-green-700 hover:bg-green-200"
+         }`}
+         >
+          🟢 Active
+         </button>
+
+         <button
+            onClick={() => setView("hidden")}
+            className={`px-5 py-2 rounded-full text-sm font-semibold transition shadow ${
+              view === "hidden"
+                ? "bg-gray-600 text-white shadow-md"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+         >
+          🗑️ Hidden
+         </button>
+      </div>
 
       {orders.length === 0 ? (
         <p className="text-center text-gray-600">
@@ -220,9 +245,9 @@ export default function MyOrdersPage() {
                     <button
                       onClick={() => deleteOrder(o.id)}
                       disabled={deletingId === o.id}
-                       className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium shadow hover:bg-red-700 transition disabled:opacity-50"
+                       className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium shadow hover:bg-gray-300 transition disabled:opacity-50"
                     >
-                      {deletingId === o.id ? "Removing..." : "Remove"}
+                      {deletingId === o.id ? "Removing..." : "Remove from my view"}
                     </button>
                   </div>
                 </div>
