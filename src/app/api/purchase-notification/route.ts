@@ -40,60 +40,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Provider not found" }, { status: 404 });
     }
 
-    // 🔥 NEW — create booking-style record for purchase
-    const listing_id = session.metadata?.listing_id;
-    const user_email = session.metadata?.user_email;
-
-    if (!listing_id || !lister_id) {
-      console.error("Missing required metadata:", {
-        listing_id,
-        lister_id,
-      });
-      return NextResponse.json(
-        { error: "Missing required metadata" },
-        { status: 400 }
-      );
-    }
-
-    console.log("INSERTING PURCHASE:", {
-      listing_id,
-      owner_id: lister_id,
-      user_email,
-    });
-
-    const { data: purchaseRecord, error: insertError } = await supabase
-      .from("bookings")
-      .insert({
-        listing_id,
-        owner_id: lister_id,
-        user_email,
-        guest_email: user_email,
-        status: "paid",
-        transaction_type: "sale",
-      })
-      .select("*") 
-      .single();
-
-      console.log("INSERT RESULT:", {
-        purchaseRecord,
-        insertError,
-      });
-
-    if (insertError) {
-      console.error("Purchase insert failed:", insertError);
-    }
-
-    if (!purchaseRecord?.id) {
-      console.error("Purchase record ID missing after insert");
-      return NextResponse.json(
-        { error: "Failed to create purchase record" },
-        { status: 500 }
-      );
-    }
-
-    // 🔥 UPDATED — redirect to provider booking details
-    const redirectUrl = `/provider/bookings/details?id=${purchaseRecord?.id}`;
+    // 🔥 SIMPLE WORKING REDIRECT
+    const redirectUrl = `/dashboard`;
     const encodedRedirect = encodeURIComponent(redirectUrl);
+
+    console.log("SENDING PURCHASE EMAIL TO:", profile.email);
 
     await resend.emails.send({
       from: "Prosperity Hub <no-reply@prosperityhub.app>",
@@ -110,13 +61,13 @@ export async function POST(req: Request) {
           </a>
         </p>
 
-        <p>Please log in to view details.</p>
+        <p>After logging in, go to <strong>Orders on My Listings</strong> to view details.</p>
       `,
     });
 
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error(err);
+    console.error("PURCHASE EMAIL ERROR:", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
