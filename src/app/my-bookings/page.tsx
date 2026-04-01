@@ -59,7 +59,7 @@ export default function MyOrdersPage() {
     );
     if (!confirmed) return;
 
-    setDeletingId(orderId);
+    setDeletingId(order.id);
 
     const { error } = await supabase
       .from("bookings")
