@@ -12,6 +12,7 @@ export default function ProviderBookingsPage() {
   const [userId, setUserId] = useState(null);
   const [finalizingId, setFinalizingId] = useState(null);
   const [finalHours, setFinalHours] = useState({});
+  const [view, setView] = useState("active");
 
   useEffect(() => {
     async function load() {
@@ -30,7 +31,7 @@ export default function ProviderBookingsPage() {
         .from("bookings")
         .select("*, listings(*)")
         .eq("owner_id", user.id)
-        .eq("hidden_by_lister", false) // ← NEW
+        .eq("hidden_by_lister", view === "archived")
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -43,7 +44,7 @@ export default function ProviderBookingsPage() {
     }
 
     load();
-  }, []);
+  }, [view]);
 
   async function archiveBooking(bookingId) {
   const confirmed = confirm(
@@ -147,6 +148,30 @@ export default function ProviderBookingsPage() {
       <h1 className="text-3xl font-bold mb-6 text-center">
         Bookings on My Listings
       </h1>
+
+      <div className="flex justify-center gap-4 mb-6">
+         <button
+         onClick={() => setView("active")}
+         className={`px-5 py-2 rounded-full text-sm font-semibold transition shadow ${
+            view === "active"
+            ? "bg-green-600 text-white shadow-md"
+            : "bg-green-100 text-green-700 hover:bg-green-200"
+          }`}
+         >
+          🟢 Active
+         </button>
+
+         <button
+           onClick={() => setView("archived")}
+           className={`px-5 py-2 rounded-full text-sm font-semibold transition shadow ${
+             view === "archived"
+             ? "bg-purple-600 text-white shadow-md"
+             : "bg-purple-100 text-purple-700 hover:bg-purple-200"
+           }`}
+         >
+          📦 Archived
+         </button>
+      </div>
 
       {bookings.length === 0 ? (
         <p className="text-center text-gray-600">
