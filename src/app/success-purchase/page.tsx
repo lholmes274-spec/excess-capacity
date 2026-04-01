@@ -1,7 +1,8 @@
 // @ts-nocheck
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
@@ -23,6 +24,31 @@ function Loading({ message }) {
    Success Content
 ------------------------------*/
 function SuccessPurchaseContent() {
+  const searchParams = useSearchParams();
+  const session_id = searchParams.get("session_id");
+
+  useEffect(() => {
+    async function notifyProvider() {
+      if (!session_id) return;
+      try {
+        await fetch("/api/purchase-notification", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            session_id,
+          }),
+       });
+
+       console.log("PURCHASE EMAIL TRIGGERED");
+    } catch (err) {
+       console.error("Purchase notification failed:", err);
+   }
+  }
+
+  notifyProvider();
+ }, [session_id]);
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-green-50 to-green-100 p-6 text-center">
 
