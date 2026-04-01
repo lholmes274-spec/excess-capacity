@@ -126,7 +126,7 @@ export default function MyOrdersPage() {
 
       {orders.length === 0 ? (
         <p className="text-center text-gray-600">
-          You haven’t placed any orders yet.
+          You have not placed any orders yet.
         </p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -215,6 +215,15 @@ export default function MyOrdersPage() {
                           Complete Payment
                         </button>
                       )}
+
+                    {/* 🔥 NEW DELETE BUTTON */}
+                    <button
+                      onClick={() => deleteOrder(o.id)}
+                      disabled={deletingId === o.id}
+                       className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium shadow hover:bg-red-700 transition disabled:opacity-50"
+                    >
+                      {deletingId === o.id ? "Removing..." : "Remove"}
+                    </button>
                   </div>
                 </div>
               </div>
