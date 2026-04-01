@@ -249,6 +249,30 @@ export default function ProviderBookingPage() {
             ${booking.final_amount || listing.baseprice}
           </span>
         </p>
+
+        {/* 🔥 ONLY CHANGE ADDED */}
+        <button
+          onClick={async () => {
+            const { error } = await supabase
+              .from("bookings")
+              .update({
+                archived_by_provider: !booking.archived_by_provider,
+              })
+              .eq("id", booking.id);
+
+            if (!error) {
+              setBooking({
+                ...booking,
+                archived_by_provider: !booking.archived_by_provider,
+              });
+            } else {
+              alert("Failed to update archive status");
+            }
+          }}
+          className="mt-4 px-4 py-2 rounded-lg text-sm font-medium shadow bg-gray-200 hover:bg-gray-300"
+        >
+          {booking.archived_by_provider ? "Unarchive" : "Archive"}
+        </button>
       </div>
 
       <div className="bg-white border border-gray-200 rounded-xl shadow p-6 space-y-4">
