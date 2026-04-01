@@ -40,7 +40,26 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Provider not found" }, { status: 404 });
     }
 
-    const redirectUrl = `/dashboard`;
+    // 🔥 NEW — create booking-style record for purchase
+    const { data: purchaseRecord, error: insertError } = await supabase
+      .from("bookings")
+      .insert({
+        listing_id: session.metadata?.listing_id,
+        owner_id: lister_id,
+        user_email: session.metadata?.user_email,
+        guest_email: session.metadata?.user_email,
+        status: "paid",
+        transaction_type: "sale",
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error("Purchase insert failed:", insertError);
+    }
+
+    // 🔥 UPDATED — redirect to provider booking details
+    const redirectUrl = `/provider/bookings/details?id=${purchaseRecord?.id}`;
     const encodedRedirect = encodeURIComponent(redirectUrl);
 
     await resend.emails.send({
