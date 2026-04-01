@@ -41,13 +41,27 @@ export async function POST(req: Request) {
     }
 
     // 🔥 NEW — create booking-style record for purchase
+    const listing_id = session.metadata?.listing_id;
+    const user_email = session.metadata?.user_email;
+
+    if (!listing_id || !lister_id) {
+      console.error("Missing required metadata:", {
+        listing_id,
+        lister_id,
+      });
+      return NextResponse.json(
+        { error: "Missing required metadata" },
+        { status: 400 }
+      );
+    }
+
     const { data: purchaseRecord, error: insertError } = await supabase
       .from("bookings")
       .insert({
-        listing_id: session.metadata?.listing_id,
+        listing_id,
         owner_id: lister_id,
-        user_email: session.metadata?.user_email,
-        guest_email: session.metadata?.user_email,
+        user_email,
+        guest_email: user_email,
         status: "paid",
         transaction_type: "sale",
       })
