@@ -197,13 +197,16 @@ function SuccessBookingContent() {
             <h2 className="text-lg font-semibold text-green-700 mb-2">
               👤 Provider
             </h2>
-            <p className="mb-3">{provider?.full_name || "Listing Provider"}</p>
+            <p className="mb-2">{provider?.full_name || "Listing Provider"}</p>
+            <p className="text-sm text-gray-600">
+              To message the provider, go to <span className="font-semibold">My Orders</span> from your dashboard and open this booking.
+            </p>
 
             <Link
-              href={`/booking/${booking.id}/messages`}
-              className="inline-block px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+              href="/my-bookings"
+              className="inline-block mt-3 px-5 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition"
             >
-              Message Provider
+              View My Orders
             </Link>
           </div>
         </div>
