@@ -98,22 +98,17 @@ export async function POST() {
     // ✅ FINAL, CORRECT STRIPE RULE
     const isFullyActive =
       charges_enabled &&
-      payouts_enabled &&
-      details_submitted &&
-      !hasRequirements &&
-      !hasRestriction;
+      payouts_enabled;
 
     // 🔥 NEW — More precise Stripe status
     let stripeStatus = "pending";
 
-    if (isFullyActive) {
+    if (charges_enabled && payouts_enabled) {
       stripeStatus = "active";
-    } else if (hasRestriction) {
-      stripeStatus = "restricted";
-    } else if (!details_submitted || requirements_due.length > 0) {
+    } else if (charges_enabled && !payouts_enabled) {
       stripeStatus = "incomplete";
     } else {
-      stripeStatus = "reviewing";
+      stripeStatus = "restricted";
     }
 
     // 4️⃣ Sync Supabase with Stripe truth
