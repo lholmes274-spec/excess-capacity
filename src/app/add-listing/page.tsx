@@ -279,12 +279,32 @@ export default function AddListingPage() {
       return;
     }
 
-     approvedFiles.push(file);
-     approvedPreviews.push(URL.createObjectURL(file));
+    // ✅ Upload immediately to Supabase
+    const ext = file.name.split(".").pop();
+    const fileName = `${crypto.randomUUID()}.${ext}`;
+
+    const { error } = await supabase.storage
+      .from("listing-images")
+      .upload(fileName, file);
+
+    if (error) {
+      alert("Image upload failed.");
+      continue;
    }
 
-    setImages(approvedFiles);
-    setPreviewUrls(approvedPreviews);
+    const { data: publicUrlData } = supabase.storage
+     .from("listing-images")
+     .getPublicUrl(fileName);
+
+    if (publicUrlData?.publicUrl) {
+       approvedUrls.push(publicUrlData.publicUrl);
+       previews.push(URL.createObjectURL(file));
+    }
+    } 
+
+    setUploadedImageUrls(approvedUrls);
+    setPreviewUrls(previews);
+    setUploading(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
