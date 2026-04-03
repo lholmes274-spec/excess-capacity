@@ -444,6 +444,16 @@ export default function AddListingPage() {
     // ✅ GA4 — Listing Created (fires ONLY on success)
     if (typeof window !== "undefined" && typeof gtag === "function") {
       gtag("event", "listing_created");
+
+    // Google Ads Conversion (Enhanced)
+    gtag("event", "conversion", {
+      send_to: "AW-17728116849/BrKcCJrBr5UcEPGwtoVC",
+      value: 10.0,
+      currency: "USD",
+      user_data: {
+        email: userData?.user?.email,
+      },
+    });
     }
 
     alert("Listing added successfully!");
