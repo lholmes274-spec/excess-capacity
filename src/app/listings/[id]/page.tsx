@@ -6,7 +6,7 @@ import "react-day-picker/dist/style.css";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import { useLanguage } from "@/context/LanguageProvider";
+import { useLanguage } from "../../components/LanguageProvider";
 
 export default function ListingDetailPage() {
   const { id } = useParams();
@@ -585,17 +585,17 @@ export default function ListingDetailPage() {
       {!userId && (
         <div className="mt-6 space-y-3">
           <input
-            placeholder="Your Name"
+            placeholder={isES ? "Tu Nombre" : "Your Name"}
             className="w-full border p-2 rounded"
             onChange={(e) => setGuestName(e.target.value)}
           />
           <input
-            placeholder="Email"
+            placeholder={isES ? "Correo Electrónico" : "Email"}
             className="w-full border p-2 rounded"
             onChange={(e) => setGuestEmail(e.target.value)}
           />
           <input
-            placeholder="Phone (optional)"
+            placeholder={isES ? "Teléfono (opcional)" : "Phone (optional)"}
             className="w-full border p-2 rounded"
             onChange={(e) => setGuestPhone(e.target.value)}
           />
