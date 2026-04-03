@@ -128,6 +128,8 @@ export default function AddListingPage() {
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [policyConfirmed, setPolicyConfirmed] = useState(false);
+  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
 
   // 🔒 Stripe payout protection
   const [stripeReady, setStripeReady] = useState(false);
@@ -229,8 +231,10 @@ export default function AddListingPage() {
       return;
     }
 
-    const approvedFiles: File[] = [];
-    const approvedPreviews: string[] = [];
+    setUploading(true);
+  
+    const approvedUrls: string[] = [];
+    const previews: string[] = [];
 
      for (const file of files) {
        const reader = new FileReader();
@@ -307,7 +311,7 @@ export default function AddListingPage() {
     }
 
     // 🔒 REQUIRE AT LEAST ONE IMAGE
-    if (images.length === 0) {
+    if (uploadedImageUrls.length === 0) {
       alert("Please upload at least one image before submitting your listing.");
       setLoading(false);
       return;
@@ -362,30 +366,8 @@ export default function AddListingPage() {
       return;
     }
 
-    let uploadedUrls: string[] = [];
-
-    for (const image of images) {
-      const ext = image.name.split(".").pop();
-      const fileName = `${crypto.randomUUID()}.${ext}`;
-      const filePath = fileName;
-
-      const { error: uploadError } = await supabase.storage
-        .from("listing-images")
-        .upload(filePath, image, { upsert: true });
-
-      if (uploadError) {
-        alert("Image upload failed.");
-        console.error(uploadError);
-        setLoading(false);
-        return;
-      }
-
-      const { data } = supabase.storage
-        .from("listing-images")
-        .getPublicUrl(filePath);
-
-      if (data?.publicUrl) uploadedUrls.push(data.publicUrl);
-    }
+    // Images already uploaded during selection
+    const uploadedUrls = uploadedImageUrls;
 
     const primaryImage = uploadedUrls[0] || null;
 
@@ -416,8 +398,8 @@ export default function AddListingPage() {
         pickup_instructions: form.pickup_instructions,
         private_instructions: form.private_instructions,
         demo_mode: form.demo_mode,
-        image_url: primaryImage,
-        image_urls: uploadedUrls,
+        image_url: uploadedImageUrls[0] || null,
+        image_urls: uploadedImageUrls,
        },
     ])
     .select()
@@ -754,6 +736,10 @@ export default function AddListingPage() {
             onChange={handleImageSelect}
             className="w-full p-2 border rounded-lg bg-white"
           />
+
+          {uploading && (
+            <p className="text-sm text-gray-500 mt-2">Uploading image...</p>
+         )}
         </div>
 
         {/* Preview */}
@@ -786,7 +772,7 @@ export default function AddListingPage() {
         {/* Submit */}
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || uploading}
           className="w-full bg-orange-600 hover:bg-orange-700 text-white p-3 rounded-lg font-semibold transition disabled:opacity-50"
         >
           {loading ? "Submitting..." : "Add Listing"}
