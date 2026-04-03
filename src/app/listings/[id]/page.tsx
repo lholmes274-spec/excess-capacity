@@ -383,7 +383,9 @@ export default function ListingDetailPage() {
       </h1>
 
       {/* DESCRIPTION */}
-      <p className="text-gray-700 mb-4">{listing.description}</p>
+      <p className="text-gray-700 mb-4 break-words whitespace-pre-wrap">
+        {listing.description}
+      </p>
 
       {/* LOCATION */}
       {(listing.city || listing.location) && (
@@ -439,6 +441,9 @@ export default function ListingDetailPage() {
             Select Booking Dates *
           </label>
 
+        <div className="w-full overflow-hidden">
+          <div className="w-full">
+            <div className="scale-[0.95] sm:scale-100 origin-top">
           <DayPicker
             mode="range"
             selected={
@@ -470,6 +475,9 @@ export default function ListingDetailPage() {
             ...bookedRanges,        // disable booked
           ]}
           />
+        </div>
+      </div>
+    </div>
 
           <div>
             <label className="block font-semibold text-gray-800 mb-1">
