@@ -11,7 +11,6 @@ import { useLanguage } from "../../components/LanguageProvider";
 export default function ListingDetailPage() {
   const { id } = useParams();
   const router = useRouter();
-  const isSpanishListing = listing?.title?.match(/[áéíóúñ]/i);
 
   const [listing, setListing] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -189,6 +188,10 @@ export default function ListingDetailPage() {
   const finalImages = buildImageList(listing);
   const formattedPricing =
     listing.pricing_type ? listing.pricing_type.replace("_", " ") : "per unit";
+
+  const isSpanishListing = listing?.title
+    ? listing.title.match(/[áéíóúñ]/i)
+    : false;
 
   const isForSale = listing.transaction_type === "sale";
   const formatCurrency = (amount: number, currency: string) => {
