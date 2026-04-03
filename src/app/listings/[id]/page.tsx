@@ -636,11 +636,11 @@ export default function ListingDetailPage() {
             onClick={handleCheckout}
           >
             {finalImages.length === 0
-              ? "Photo Required Before Booking"
+              ? (isES ? "Se requiere foto antes de reservar" : "Photo Required Before Booking")
               : listing.demo_mode
-              ? "Demo Listing – Checkout Disabled"
+              ? (isES ? "Demo – Reserva deshabilitada" : "Demo Listing – Checkout Disabled")
               : invalidPrice
-              ? "Price Not Set – Booking Disabled"
+              ? (isES ? "Precio no establecido – Reserva deshabilitada" : "Price Not Set – Booking Disabled")
               : buttonText}
           </button>
          );
