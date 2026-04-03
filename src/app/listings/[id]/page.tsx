@@ -11,7 +11,7 @@ import { useLanguage } from "../../components/LanguageProvider";
 export default function ListingDetailPage() {
   const { id } = useParams();
   const router = useRouter();
-  const { isES } = useLanguage();
+  const isSpanishListing = listing?.title?.match(/[áéíóúñ]/i);
 
   const [listing, setListing] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -585,17 +585,17 @@ export default function ListingDetailPage() {
       {!userId && (
         <div className="mt-6 space-y-3">
           <input
-            placeholder={isES ? "Tu Nombre" : "Your Name"}
+            placeholder={(isES || isSpanishListing) ? "Tu Nombre" : "Your Name"}
             className="w-full border p-2 rounded"
             onChange={(e) => setGuestName(e.target.value)}
           />
           <input
-            placeholder={isES ? "Correo Electrónico" : "Email"}
+            placeholder={(isES || isSpanishListing) ? "Correo Electrónico" : "Email"}
             className="w-full border p-2 rounded"
             onChange={(e) => setGuestEmail(e.target.value)}
           />
           <input
-            placeholder={isES ? "Teléfono (opcional)" : "Phone (optional)"}
+            placeholder={(isES || isSpanishListing) ? "Teléfono (opcional)" : "Phone (optional)"}
             className="w-full border p-2 rounded"
             onChange={(e) => setGuestPhone(e.target.value)}
           />
@@ -614,7 +614,9 @@ export default function ListingDetailPage() {
           buttonText = "Purchase Now";
           buttonColor = "bg-green-600 hover:bg-green-700"
          } else if (isService) {
-           buttonText = isES ? "Reservar Servicio" : "Book Service";
+           buttonText = (isES || isSpanishListing)
+              ? "Reservar Servicio"
+              : "Book Service";
            buttonColor = "bg-purple-600 hover:bg-purple-700";
          } else {
            buttonText = "Reserve Now";
@@ -636,11 +638,17 @@ export default function ListingDetailPage() {
             onClick={handleCheckout}
           >
             {finalImages.length === 0
-              ? (isES ? "Se requiere foto antes de reservar" : "Photo Required Before Booking")
+              ? ((isES || isSpanishListing)
+                ? "Se requiere foto antes de reservar"
+                : "Photo Required Before Booking")
               : listing.demo_mode
-              ? (isES ? "Demo – Reserva deshabilitada" : "Demo Listing – Checkout Disabled")
+              ? ((isES || isSpanishListing)
+                ? "Demo – Reserva deshabilitada"
+                 : "Demo Listing – Checkout Disabled")
               : invalidPrice
-              ? (isES ? "Precio no establecido – Reserva deshabilitada" : "Price Not Set – Booking Disabled")
+              ? ((isES || isSpanishListing)
+                ? "Precio no establecido – Reserva deshabilitada"
+                : "Price Not Set – Booking Disabled")
               : buttonText}
           </button>
          );
