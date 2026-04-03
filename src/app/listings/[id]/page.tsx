@@ -6,7 +6,6 @@ import "react-day-picker/dist/style.css";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import { useLanguage } from "../../components/LanguageProvider";
 
 export default function ListingDetailPage() {
   const { id } = useParams();
@@ -188,10 +187,6 @@ export default function ListingDetailPage() {
   const finalImages = buildImageList(listing);
   const formattedPricing =
     listing.pricing_type ? listing.pricing_type.replace("_", " ") : "per unit";
-
-  const isSpanishListing = listing?.title
-    ? listing.title.match(/[áéíóúñ]/i)
-    : false;
 
   const isForSale = listing.transaction_type === "sale";
   const formatCurrency = (amount: number, currency: string) => {
@@ -588,17 +583,17 @@ export default function ListingDetailPage() {
       {!userId && (
         <div className="mt-6 space-y-3">
           <input
-            placeholder={(isES || isSpanishListing) ? "Tu Nombre" : "Your Name"}
+            placeholder="Your Name"
             className="w-full border p-2 rounded"
             onChange={(e) => setGuestName(e.target.value)}
           />
           <input
-            placeholder={(isES || isSpanishListing) ? "Correo Electrónico" : "Email"}
+            placeholder="Email"
             className="w-full border p-2 rounded"
             onChange={(e) => setGuestEmail(e.target.value)}
           />
           <input
-            placeholder={(isES || isSpanishListing) ? "Teléfono (opcional)" : "Phone (optional)"}
+            placeholder="Phone (optional)"
             className="w-full border p-2 rounded"
             onChange={(e) => setGuestPhone(e.target.value)}
           />
@@ -617,9 +612,7 @@ export default function ListingDetailPage() {
           buttonText = "Purchase Now";
           buttonColor = "bg-green-600 hover:bg-green-700"
          } else if (isService) {
-           buttonText = (isES || isSpanishListing)
-              ? "Reservar Servicio"
-              : "Book Service";
+           buttonText = "Book Service";
            buttonColor = "bg-purple-600 hover:bg-purple-700";
          } else {
            buttonText = "Reserve Now";
@@ -641,17 +634,11 @@ export default function ListingDetailPage() {
             onClick={handleCheckout}
           >
             {finalImages.length === 0
-              ? ((isES || isSpanishListing)
-                ? "Se requiere foto antes de reservar"
-                : "Photo Required Before Booking")
+              ? "Photo Required Before Booking"
               : listing.demo_mode
-              ? ((isES || isSpanishListing)
-                ? "Demo – Reserva deshabilitada"
-                 : "Demo Listing – Checkout Disabled")
+              ? "Demo Listing – Checkout Disabled"
               : invalidPrice
-              ? ((isES || isSpanishListing)
-                ? "Precio no establecido – Reserva deshabilitada"
-                : "Price Not Set – Booking Disabled")
+              ? "Price Not Set – Booking Disabled"
               : buttonText}
           </button>
          );
