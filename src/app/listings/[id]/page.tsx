@@ -6,10 +6,12 @@ import "react-day-picker/dist/style.css";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { useLanguage } from "@/context/LanguageProvider";
 
 export default function ListingDetailPage() {
   const { id } = useParams();
   const router = useRouter();
+  const { isES } = useLanguage();
 
   const [listing, setListing] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -612,7 +614,7 @@ export default function ListingDetailPage() {
           buttonText = "Purchase Now";
           buttonColor = "bg-green-600 hover:bg-green-700"
          } else if (isService) {
-           buttonText = "Book Service";
+           buttonText = isES ? "Reservar Servicio" : "Book Service";
            buttonColor = "bg-purple-600 hover:bg-purple-700";
          } else {
            buttonText = "Reserve Now";
