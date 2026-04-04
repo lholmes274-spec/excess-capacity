@@ -13,7 +13,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ Get Geo from Vercel headers (Next 14 compatible)
+    // 🌍 Geo from Vercel headers
     const signup_country =
       req.headers.get("x-vercel-ip-country") || null;
 
@@ -33,6 +33,7 @@ export async function POST(req: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
+    // ✅ Create auth user
     const { data: authData, error: authError } =
       await supabase.auth.signUp({
         email,
@@ -51,26 +52,22 @@ export async function POST(req: Request) {
 
     const userId = authData.user.id;
 
-    const { error: profileError } = await supabaseAdmin
-      .from("profiles")
-      .upsert(
-        {
-          id: userId,
-          email: email,
-          display_name: displayName?.trim() || null,
-          signup_country,
-          signup_region,
-          signup_city,
-        },
-        { onConflict: "id" }
-      );
+    // 🟢 IMPORTANT: DO NOT INSERT PROFILE HERE
+    // Trigger already creates it
 
-    if (profileError) {
-      return NextResponse.json(
-        { error: profileError.message },
-        { status: 500 }
-      );
-    }
+    // ✅ OPTIONAL: safely update profile AFTER creation
+    // Small delay ensures trigger finished
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    await supabaseAdmin
+      .from("profiles")
+      .update({
+        display_name: displayName?.trim() || null,
+        signup_country,
+        signup_region,
+        signup_city,
+      })
+      .eq("id", userId);
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
