@@ -33,12 +33,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const isUnsafe =
-      safeSearch.adult === "LIKELY" ||
-      safeSearch.adult === "VERY_LIKELY" ||
-      safeSearch.violence === "LIKELY" ||
-      safeSearch.violence === "VERY_LIKELY" ||
-      safeSearch.racy === "VERY_LIKELY";
+    const isUnsafe = safeSearch.violence === "VERY_LIKELY";
 
     return NextResponse.json({
       safe: !isUnsafe,
