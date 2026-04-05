@@ -460,7 +460,7 @@ export default function AddListingPage() {
 
     // ⏳ WAIT so event can send
     setTimeout(() => {
-      router.push("/listing-success");
+      router.push("/");
     }, 1500);
   }
 
