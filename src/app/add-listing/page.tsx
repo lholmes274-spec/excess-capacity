@@ -457,8 +457,26 @@ export default function AddListingPage() {
     }
 
     alert("Listing added successfully!");
-    router.push("/");
-  };
+
+    // 🔥 Fire tracking BEFORE redirect
+    if (typeof window !== "undefined" && typeof gtag === "function") {
+      gtag("event", "listing_created");
+
+      gtag("event", "conversion", {
+        send_to: "AW-17728116849/BrKcCJrBr5UcEPGwtoVC",
+        value: 10.0,
+        currency: "USD",
+        user_data: {
+          email: userData?.user?.email,
+        },
+       });
+    }
+
+    // ⏳ WAIT so event can send
+    setTimeout(() => {
+      router.push("/listing-success");
+    }, 1500);
+  }
 
   if (checkingStripe) {
     return (
