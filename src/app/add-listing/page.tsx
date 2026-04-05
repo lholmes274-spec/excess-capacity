@@ -577,11 +577,7 @@ export default function AddListingPage() {
           >
             <option value="USD">USD – US Dollar</option>
             <option value="DOP">DOP – Dominican Peso</option>
-            <option value="NGN">NGN – Nigerian Naira</option>
-            <option value="INR">INR – Indian Rupee</option>
             <option value="CAD">CAD – Canadian Dollar</option>
-            <option value="MXN">MXN – Mexican Peso</option>
-            <option value="EUR">EUR – Euro</option>
           </select>
         </div>
 
@@ -647,8 +643,8 @@ export default function AddListingPage() {
             className="w-full p-3 border rounded-lg bg-white"
           >
             <option value="United States">United States</option>
+            <option value="Dominican Republic">Dominican Republic</option>
             <option value="Canada">Canada</option>
-            <option value="Other">Other Country</option>
           </select>
 
           <input
