@@ -460,7 +460,7 @@ export default function AddListingPage() {
 
     // ⏳ WAIT so event can send
     setTimeout(() => {
-      router.push("/");
+       window.location.href = "/";
     }, 1500);
   }
 
