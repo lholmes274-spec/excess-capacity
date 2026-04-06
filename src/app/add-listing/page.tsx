@@ -268,17 +268,21 @@ export default function AddListingPage() {
 
      // ✅ If the API failed (500, 403, etc.) or returned no safe flag, show a DIFFERENT message
      if (!res.ok || !data || typeof data.safe !== "boolean") {
-      alert(
-        "Image moderation service could not analyze this image right now. Please try again."
-      );
-      return;
-    }
+       console.warn("Moderation failed, skipping image");
+
+       processed++; // ✅ IMPORTANT
+       setUploadProgress(Math.round((processed / files.length) * 100));
+
+        continue; // ✅ DO NOT EXIT LOOP
+     }
 
     if (data.safe === false) {
-      alert(
-        "One of your images appears to contain prohibited content and cannot be uploaded."
-      );
-      return;
+      alert("One image contains prohibited content and was skipped.");
+
+      processed++; // ✅ IMPORTANT
+      setUploadProgress(Math.round((processed / files.length) * 100));
+
+      continue;
     }
 
     // ✅ Upload immediately to Supabase
