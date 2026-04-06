@@ -20,30 +20,38 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // 🔥 Call Google Vision
     const [result] = await client.safeSearchDetection({
       image: { content: image },
     });
 
-    const safeSearch = result.safeSearchAnnotation;
+    const safeSearch = result?.safeSearchAnnotation;
 
+    // ✅ FAIL-OPEN: if Vision fails or returns nothing → allow
     if (!safeSearch) {
-      return NextResponse.json(
-        { error: "Unable to analyze image" },
-        { status: 500 }
-      );
+      console.warn("⚠️ No SafeSearch result, allowing image");
+      return NextResponse.json({
+        safe: true,
+        reason: "No analysis returned",
+      });
     }
 
-    const isUnsafe = safeSearch.violence === "VERY_LIKELY";
+    // 🔒 Only block VERY_LIKELY harmful content
+    const isUnsafe =
+      safeSearch.adult === "VERY_LIKELY" ||
+      safeSearch.violence === "VERY_LIKELY";
 
     return NextResponse.json({
       safe: !isUnsafe,
       details: safeSearch,
     });
   } catch (error) {
-    console.error("Vision error:", error);
-    return NextResponse.json(
-      { error: "Moderation failed" },
-      { status: 500 }
-    );
+    console.error("🔥 Vision error (allowing image):", error);
+
+    // ✅ FAIL-OPEN: if API crashes → still allow image
+    return NextResponse.json({
+      safe: true,
+      reason: "Moderation service failed",
+    });
   }
 }
