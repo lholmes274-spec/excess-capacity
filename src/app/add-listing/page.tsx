@@ -130,6 +130,7 @@ export default function AddListingPage() {
   const [policyConfirmed, setPolicyConfirmed] = useState(false);
   const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   // 🔒 Stripe payout protection
   const [stripeReady, setStripeReady] = useState(false);
@@ -236,6 +237,7 @@ export default function AddListingPage() {
     const approvedUrls: string[] = [];
     const previews: string[] = [];
 
+     let processed = 0;
      for (const file of files) {
        const reader = new FileReader();
 
@@ -299,12 +301,16 @@ export default function AddListingPage() {
     if (publicUrlData?.publicUrl) {
        approvedUrls.push(publicUrlData.publicUrl);
        previews.push(URL.createObjectURL(file));
+
+       processed++;
+       setUploadProgress(Math.round((processed / files.length) * 100));
     }
     } 
 
     setUploadedImageUrls(approvedUrls);
     setPreviewUrls(previews);
     setUploading(false);
+    setUploadProgress(0);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -770,9 +776,20 @@ export default function AddListingPage() {
           />
 
           {uploading && (
-            <p className="text-sm text-gray-500 mt-2">Uploading image...</p>
+            <div className="mt-2">
+              <p className="text-sm text-gray-500">
+                Uploading images... {uploadProgress}%
+              </p>
+
+              <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                <div
+                className="bg-orange-600 h-2 rounded-full transition-all"
+                 style={{ width: `${uploadProgress}%` }}
+               ></div>
+              </div>
+          </div>
          )}
-        </div>
+       </div>
 
         {/* Preview */}
         {previewUrls.length > 0 && (
