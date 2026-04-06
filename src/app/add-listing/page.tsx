@@ -313,7 +313,8 @@ export default function AddListingPage() {
     setLoading(true);
 
     // 🔒 REQUIRE VALID PRICE
-    const priceNumber = Number(form.baseprice);
+    const cleanedPrice = form.baseprice.replace(/,/g, "").replace(/\s/g, "");
+    const priceNumber = Number(cleanedPrice);
 
     if (!form.baseprice || isNaN(priceNumber) || priceNumber <= 0) {
       alert("Please enter a valid price greater than 0.");
@@ -401,7 +402,7 @@ export default function AddListingPage() {
         owner_id: userId,
         title: form.title,
         description: form.description,
-        baseprice: Number(form.baseprice),
+        baseprice: priceNumber,
         currency: form.currency, 
         pricing_type: form.pricing_type,
         transaction_type: transactionType,
@@ -558,7 +559,8 @@ export default function AddListingPage() {
         {/* Base Price + Currency */}
         <div className="grid grid-cols-2 gap-4">
           <input
-            type="number"
+            type="text"
+            inputMode="decimal"
             step="0.01"
             min="0.01"
             name="baseprice"
