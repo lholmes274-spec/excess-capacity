@@ -98,8 +98,8 @@ export default function HomePage() {
             <Link href="/demo">
               <button className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-full text-lg font-semibold transition">
                 {isES
-                  ? "Ver anuncios de demostración"
-                  : "View Demo Listings"}
+                  ? "Ver anuncios de ejemplo"
+                  : "See Example Listings"}
               </button>
             </Link>
           </div>
