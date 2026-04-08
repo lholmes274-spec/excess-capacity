@@ -28,9 +28,9 @@ export default function DemoListingsPage() {
 
       {/* HEADER */}
       <div className="text-center mt-10 px-4">
-        <h1 className="text-3xl font-bold text-gray-900">Demo Listings</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Example Listings</h1>
         <p className="text-gray-600 mt-3 max-w-xl mx-auto">
-          Explore example listings to see how Prosperity Hub™ works.
+           Discover services, rentals, and items you can find on Prosperity Hub™.
         </p>
       </div>
 
