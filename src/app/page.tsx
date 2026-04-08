@@ -66,8 +66,8 @@ export default function HomePage() {
 
           <p className="text-xl mt-4 font-semibold opacity-95">
             {isES
-              ? "Plataforma dinámica para compartir capacidad excedente"
-              : "Dynamic Excess Capacity Sharing Platform"}
+              ? "Encuentra servicios, alquila artículos y gana en tu área"
+              : "Find Services, Rent Items, and Earn in Your Area"}
           </p>
         </div>
       </div>
@@ -76,21 +76,28 @@ export default function HomePage() {
       <div className="text-center mt-10 px-4">
         <h1 className="text-3xl font-bold text-gray-900">
           {isES
-            ? "Desbloquea tu prosperidad local"
-            : "Unlock Your Local Prosperity"}
+            ? "Encuentra o gana en tu comunidad"
+            : "Find Services or Earn in Your Community"}
         </h1>
 
         <p className="text-gray-600 mt-3 max-w-xl mx-auto">
           {isES
-            ? "Publica artículos sin usar, alquila a vecinos y descubre oportunidades dentro de tu comunidad local."
-            : "List unused items, rent from neighbors, and discover opportunities within your local community."}
+            ? "Explora servicios locales, alquila lo que necesitas o comienza a ganar ofreciendo lo que ya tienes."
+            : "Browse local services, rent what you need, or start earning by offering what you already have."}
         </p>
 
         {user === null && (
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
+            <Link href="/listings">
+              <button className="bg-gray-900 hover:bg-black text-white px-6 py-3 rounded-full text-lg font-semibold transition">
+                {isES ? "Ver anuncios" : "Browse Listings"}
+              </button>
+            </Link>
+
             <Link href="/signup">
               <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full text-lg font-semibold transition">
-                {isES ? "Comenzar" : "Get Started"}
+                {isES ? "Comenzar" : "Start Listing"}
               </button>
             </Link>
 
@@ -115,14 +122,14 @@ export default function HomePage() {
               <>
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">
                   {isES
-                    ? "Únete como proveedor en tu comunidad"
-                    : "Join as a Provider in Your Community"}
+                    ? "¿Tienes algo para ofrecer?"
+                    : "Have Something to Offer?"}
                 </h2>
 
                 <p className="text-gray-600 max-w-2xl mx-auto mb-6">
                   {isES
-                    ? "Prosperity Hub™ está creciendo en nuevas comunidades. Los proveedores que comienzan temprano obtienen mayor visibilidad a medida que la plataforma se expande."
-                    : "Prosperity Hub™ is growing into new communities. Providers who start early gain increased visibility as the platform expands."}
+                    ? "Los proveedores que comienzan temprano obtienen más visibilidad y oportunidades a medida que la plataforma crece."
+                    : "Providers who start early gain more visibility and opportunities as the platform grows."}
                 </p>
 
                 <Link href="/signup">
