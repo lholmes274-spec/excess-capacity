@@ -95,12 +95,6 @@ export default function HomePage() {
               </button>
             </Link>
 
-            <Link href="/signup">
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full text-lg font-semibold transition">
-                {isES ? "Comenzar" : "Start Listing"}
-              </button>
-            </Link>
-
             <Link href="/demo">
               <button className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-full text-lg font-semibold transition">
                 {isES
@@ -256,16 +250,7 @@ export default function HomePage() {
             </Link>
           ))}
         </div>
-
-        <div className="text-center mt-10">
-          <Link href="/listings">
-            <button className="bg-gray-900 hover:bg-black text-white px-8 py-3 rounded-full font-semibold transition">
-              {isES ? "Ver todos los anuncios" : "View All Listings"}
-            </button>
-          </Link>
-        </div>
       </div>
-
     </div>
   );
 }
