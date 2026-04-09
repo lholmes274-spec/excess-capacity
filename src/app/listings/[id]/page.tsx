@@ -330,7 +330,7 @@ export default function ListingDetailPage() {
           <img
             src={selectedImage}
             alt={listing.title}
-            className="w-full max-h-[650px] object-cover rounded-xl shadow border"
+            className="w-full max-h-[650px] object-contain rounded-xl shadow border bg-white"
           />
         ) : (
           <div className="w-full h-[500px] rounded-xl flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 text-gray-500 shadow border">
@@ -366,7 +366,7 @@ export default function ListingDetailPage() {
                 key={idx}
                 src={img}
                 onClick={() => setSelectedImage(img)}
-                className={`w-20 h-20 object-cover rounded-lg border cursor-pointer transition ${
+                className={`w-20 h-20 object-contain bg-white rounded-lg border cursor-pointer transition ${
                   selectedImage === img
                     ? "border-4 border-orange-600"
                     : "border-gray-300"
