@@ -221,7 +221,7 @@ function ListingsContent() {
                     <img
                       src={thumbnail}
                       alt={listing.title}
-                      className="w-full h-48 object-cover object-top rounded-lg"
+                      className="w-full h-48 object-cover rounded-lg"
                     />
                   ) : (
                     <div className="w-full h-48 rounded-lg flex items-center justify-center bg-gray-100 text-gray-500">
