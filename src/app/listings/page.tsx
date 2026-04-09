@@ -27,7 +27,6 @@ type Listing = {
   demo_mode?: boolean;
   listing_status?: string | null;
   transaction_type?: string | null;
-  currency?: string | null;
 };
 
 function ListingsContent() {
@@ -35,7 +34,6 @@ function ListingsContent() {
   const [filteredListings, setFilteredListings] = useState<Listing[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [sortOption, setSortOption] = useState("newest");
 
   const searchParams = useSearchParams();
   const selectedType = searchParams.get("type");
@@ -47,7 +45,8 @@ function ListingsContent() {
           .from("listings")
           .select("*")
           .eq("demo_mode", false)
-          .eq("listing_status", "active");
+          .eq("listing_status", "active")
+          .order("created_at", { ascending: false });
 
         if (error) throw error;
         setListings(data || []);
@@ -63,7 +62,6 @@ function ListingsContent() {
   useEffect(() => {
     let filtered = [...listings];
 
-    // Type filter
     if (selectedType) {
       filtered = filtered.filter(
         (listing) =>
@@ -71,7 +69,6 @@ function ListingsContent() {
       );
     }
 
-    // Search filter
     if (search.trim()) {
       filtered = filtered.filter((listing) =>
         [listing.title, listing.description, listing.city, listing.state]
@@ -82,21 +79,8 @@ function ListingsContent() {
       );
     }
 
-    // 🔥 SORTING LOGIC
-    if (sortOption === "newest") {
-      filtered.sort(
-        (a, b) =>
-          new Date(b.created_at).getTime() -
-          new Date(a.created_at).getTime()
-      );
-    } else if (sortOption === "price_low") {
-      filtered.sort((a, b) => (a.baseprice || 0) - (b.baseprice || 0));
-    } else if (sortOption === "price_high") {
-      filtered.sort((a, b) => (b.baseprice || 0) - (a.baseprice || 0));
-    }
-
     setFilteredListings(filtered);
-  }, [listings, search, selectedType, sortOption]);
+  }, [listings, search, selectedType]);
 
   if (loading) {
     return (
@@ -116,8 +100,8 @@ function ListingsContent() {
           : "Explore Available Listings"}
       </h1>
 
-      {/* Search + Sort Row */}
-      <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-8">
+      {/* Search Box */}
+      <div className="flex justify-center mb-8">
         <input
           type="text"
           placeholder="Search listings by keyword, city, or state..."
@@ -125,16 +109,6 @@ function ListingsContent() {
           onChange={(e) => setSearch(e.target.value)}
           className="w-full sm:w-2/3 lg:w-1/2 p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-
-        <select
-          value={sortOption}
-          onChange={(e) => setSortOption(e.target.value)}
-          className="p-3 border border-gray-300 rounded-lg shadow-sm"
-        >
-          <option value="newest">Newest</option>
-          <option value="price_low">Price: Low to High</option>
-          <option value="price_high">Price: High to Low</option>
-        </select>
       </div>
 
       {filteredListings.length === 0 ? (
@@ -152,7 +126,7 @@ function ListingsContent() {
             if (listing.type === "service") {
               displayPricing = "per service";
             } else if (listing.transaction_type === "sale") {
-              displayPricing = "for sale";
+               displayPricing = "for sale";
             } else if (listing.pricing_type) {
               displayPricing = listing.pricing_type.replace("_", " ");
             }
@@ -163,6 +137,7 @@ function ListingsContent() {
                 href={`/listings/${listing.id}`}
                 className="block bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition p-4"
               >
+                {/* Image + Badge Wrapper */}
                 <div className="relative mb-3">
                   {thumbnail ? (
                     <img
@@ -172,8 +147,26 @@ function ListingsContent() {
                     />
                   ) : (
                     <div className="w-full h-48 rounded-lg flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 text-gray-500">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-8 w-8 mb-2 opacity-60"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={1.5}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M3 16l4-4a3 3 0 014 0l4 4m0 0l2-2a3 3 0 014 0l3 3M4 19h16"
+                        />
+                      </svg>
+
                       <p className="text-sm font-semibold">
                         Image Coming Soon
+                      </p>
+                      <p className="text-xs opacity-70">
+                        Submitted by Seller
                       </p>
                     </div>
                   )}
@@ -206,11 +199,18 @@ function ListingsContent() {
                 </p>
 
                 <p className="text-blue-700 font-medium mb-2">
-                  {new Intl.NumberFormat(undefined, {
+                   {new Intl.NumberFormat(undefined, {
                     style: "currency",
                     currency: listing.currency || "USD",
                     minimumFractionDigits: 0,
                   }).format(Number(listing.baseprice))}
+
+                  {listing.transaction_type !== "sale" && displayPricing && (
+                    <span className="text-sm text-gray-600">
+                    {" "}
+                    / {displayPricing}
+                    </span>
+                  )}
                 </p>
 
                 {listing.city && listing.state && (
@@ -234,3 +234,4 @@ export default function ListingsPage() {
     </Suspense>
   );
 }
+
