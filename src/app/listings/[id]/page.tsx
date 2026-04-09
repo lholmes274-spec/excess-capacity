@@ -366,7 +366,7 @@ export default function ListingDetailPage() {
                 key={idx}
                 src={img}
                 onClick={() => setSelectedImage(img)}
-                className={`w-20 h-20 object-contain bg-white rounded-lg border cursor-pointer transition ${
+                className={`w-20 h-20 object-cover bg-white rounded-lg border cursor-pointer transition ${
                   selectedImage === img
                     ? "border-4 border-orange-600"
                     : "border-gray-300"
