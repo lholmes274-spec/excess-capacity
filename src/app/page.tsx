@@ -35,7 +35,7 @@ export default function HomePage() {
         .eq("demo_mode", false)
         .eq("listing_status", "active")
         .order("created_at", { ascending: false })
-        .limit(6);
+        .limit(12);
 
       setRealListings(realData || []);
 
