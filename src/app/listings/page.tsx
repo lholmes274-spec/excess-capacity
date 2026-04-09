@@ -1,6 +1,6 @@
 // @ts-nocheck
 "use client";
-console.log("🔥 VERSION TEST 2 🔥");
+console.log("🔥 VERSION TEST 3 🔥");
 export const dynamic = "force-dynamic";
 
 import { Suspense, useEffect, useState } from "react";
@@ -21,7 +21,7 @@ type Listing = {
   type?: string | null;
   city?: string | null;
   state?: string | null;
-  country?: string | null; // ✅ IMPORTANT
+  country?: string | null;
   image_url?: string | null;
   image_urls?: string[] | null;
   pricing_type?: string | null;
@@ -63,25 +63,41 @@ function ListingsContent() {
     fetchListings();
   }, []);
 
-  // 🔥 COUNTRY-AWARE LOCATION DISPLAY
+  // 🔥 NORMALIZE LOCATION (KEY FIX)
+  const getNormalizedLocation = (l: Listing) => {
+    if (!l.city) return null;
+
+    const city = l.city.trim().toLowerCase();
+    const country = l.country?.toLowerCase();
+
+    if (country === "united states" || country === "usa") {
+      return `${city},${l.state?.trim().toLowerCase()}`;
+    }
+
+    if (country === "dominican republic") {
+      return `${city},rd`;
+    }
+
+    return `${city},${l.state?.trim().toLowerCase() || ""}`;
+  };
+
+  // 🔥 FORMAT FOR DISPLAY (CLEAN UI)
+  const formatLocationDisplay = (loc: string) => {
+    const [city, state] = loc.split(",");
+
+    const formattedCity =
+      city.charAt(0).toUpperCase() + city.slice(1);
+
+    const formattedState = state?.toUpperCase();
+
+    return `${formattedCity}, ${formattedState}`;
+  };
+
+  // 🔥 UNIQUE LOCATIONS (FIX DUPLICATES)
   const uniqueLocations = Array.from(
     new Set(
       listings
-        .map((l) => {
-          if (!l.city) return null;
-
-          const country = l.country?.toLowerCase();
-
-          if (country === "united states" || country === "usa") {
-            return `${l.city}, ${l.state}`;
-          }
-
-          if (country === "dominican republic") {
-            return `${l.city}, RD`;
-          }
-
-          return `${l.city}, ${l.state || ""}`;
-        })
+        .map((l) => getNormalizedLocation(l))
         .filter(Boolean)
     )
   );
@@ -108,23 +124,12 @@ function ListingsContent() {
       );
     }
 
-    // 📍 LOCATION FILTER (UPDATED)
+    // 📍 LOCATION FILTER (FIXED)
     if (locationFilter !== "all") {
-      filtered = filtered.filter((listing) => {
-        const country = listing.country?.toLowerCase();
-
-        let locationString = "";
-
-        if (country === "united states" || country === "usa") {
-          locationString = `${listing.city}, ${listing.state}`;
-        } else if (country === "dominican republic") {
-          locationString = `${listing.city}, RD`;
-        } else {
-          locationString = `${listing.city}, ${listing.state || ""}`;
-        }
-
-        return locationString === locationFilter;
-      });
+      filtered = filtered.filter(
+        (listing) =>
+          getNormalizedLocation(listing) === locationFilter
+      );
     }
 
     // 🔥 SORTING
@@ -161,7 +166,7 @@ function ListingsContent() {
           : "Explore Available Listings"}
       </h1>
 
-      {/* 🔥 SEARCH + SORT + LOCATION */}
+      {/* SEARCH + SORT + LOCATION */}
       <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-8">
         <input
           type="text"
@@ -189,7 +194,7 @@ function ListingsContent() {
           <option value="all">All Locations</option>
           {uniqueLocations.map((loc) => (
             <option key={loc} value={loc}>
-              {loc}
+              {formatLocationDisplay(loc)}
             </option>
           ))}
         </select>
