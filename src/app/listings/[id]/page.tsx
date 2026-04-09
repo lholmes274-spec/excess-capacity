@@ -330,7 +330,7 @@ export default function ListingDetailPage() {
           <img
             src={selectedImage}
             alt={listing.title}
-            className="w-full max-h-[650px] object-cover object-top rounded-xl shadow border"
+            className="w-full max-h-[650px] object-cover rounded-xl shadow border"
           />
         ) : (
           <div className="w-full h-[500px] rounded-xl flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 text-gray-500 shadow border">
