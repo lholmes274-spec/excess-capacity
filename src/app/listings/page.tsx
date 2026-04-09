@@ -28,6 +28,7 @@ type Listing = {
   listing_status?: string | null;
   transaction_type?: string | null;
   currency?: string | null;
+  created_at?: string;
 };
 
 function ListingsContent() {
@@ -36,6 +37,7 @@ function ListingsContent() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [sortOption, setSortOption] = useState("newest");
+  const [locationFilter, setLocationFilter] = useState("all");
 
   const searchParams = useSearchParams();
   const selectedType = searchParams.get("type");
@@ -60,10 +62,19 @@ function ListingsContent() {
     fetchListings();
   }, []);
 
+  // 🔥 UNIQUE LOCATIONS
+  const uniqueLocations = Array.from(
+    new Set(
+      listings
+        .map((l) => (l.city && l.state ? `${l.city}, ${l.state}` : null))
+        .filter(Boolean)
+    )
+  );
+
   useEffect(() => {
     let filtered = [...listings];
 
-    // Type filter
+    // TYPE FILTER
     if (selectedType) {
       filtered = filtered.filter(
         (listing) =>
@@ -71,7 +82,7 @@ function ListingsContent() {
       );
     }
 
-    // Search filter
+    // SEARCH FILTER
     if (search.trim()) {
       filtered = filtered.filter((listing) =>
         [listing.title, listing.description, listing.city, listing.state]
@@ -82,12 +93,20 @@ function ListingsContent() {
       );
     }
 
-    // 🔥 SORTING LOGIC
+    // 📍 LOCATION FILTER
+    if (locationFilter !== "all") {
+      filtered = filtered.filter(
+        (listing) =>
+          `${listing.city}, ${listing.state}` === locationFilter
+      );
+    }
+
+    // 🔥 SORTING
     if (sortOption === "newest") {
       filtered.sort(
         (a, b) =>
-          new Date(b.created_at).getTime() -
-          new Date(a.created_at).getTime()
+          new Date(b.created_at || "").getTime() -
+          new Date(a.created_at || "").getTime()
       );
     } else if (sortOption === "price_low") {
       filtered.sort((a, b) => (a.baseprice || 0) - (b.baseprice || 0));
@@ -96,7 +115,7 @@ function ListingsContent() {
     }
 
     setFilteredListings(filtered);
-  }, [listings, search, selectedType, sortOption]);
+  }, [listings, search, selectedType, sortOption, locationFilter]);
 
   if (loading) {
     return (
@@ -116,7 +135,7 @@ function ListingsContent() {
           : "Explore Available Listings"}
       </h1>
 
-      {/* Search + Sort Row */}
+      {/* 🔥 SEARCH + SORT + LOCATION */}
       <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-8">
         <input
           type="text"
@@ -135,6 +154,19 @@ function ListingsContent() {
           <option value="price_low">Price: Low to High</option>
           <option value="price_high">Price: High to Low</option>
         </select>
+
+        <select
+          value={locationFilter}
+          onChange={(e) => setLocationFilter(e.target.value)}
+          className="p-3 border border-gray-300 rounded-lg shadow-sm"
+        >
+          <option value="all">All Locations</option>
+          {uniqueLocations.map((loc) => (
+            <option key={loc} value={loc}>
+              {loc}
+            </option>
+          ))}
+        </select>
       </div>
 
       {filteredListings.length === 0 ? (
@@ -146,16 +178,6 @@ function ListingsContent() {
           {filteredListings.map((listing) => {
             const thumbnail =
               listing.image_urls?.[0] || listing.image_url || null;
-
-            let displayPricing = "";
-
-            if (listing.type === "service") {
-              displayPricing = "per service";
-            } else if (listing.transaction_type === "sale") {
-              displayPricing = "for sale";
-            } else if (listing.pricing_type) {
-              displayPricing = listing.pricing_type.replace("_", " ");
-            }
 
             return (
               <Link
@@ -171,16 +193,14 @@ function ListingsContent() {
                       className="w-full h-48 object-cover rounded-lg"
                     />
                   ) : (
-                    <div className="w-full h-48 rounded-lg flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 text-gray-500">
-                      <p className="text-sm font-semibold">
-                        Image Coming Soon
-                      </p>
+                    <div className="w-full h-48 rounded-lg flex items-center justify-center bg-gray-100 text-gray-500">
+                      Image Coming Soon
                     </div>
                   )}
 
                   {(listing.type || listing.transaction_type) && (
                     <div
-                      className={`absolute top-2 right-2 px-3 py-1 text-xs font-semibold rounded-full text-white shadow-sm ${
+                      className={`absolute top-2 right-2 px-3 py-1 text-xs font-semibold rounded-full text-white ${
                         listing.type === "service"
                           ? "bg-purple-600"
                           : listing.transaction_type === "sale"
