@@ -21,6 +21,7 @@ type Listing = {
   type?: string | null;
   city?: string | null;
   state?: string | null;
+  country?: string | null; // ✅ IMPORTANT
   image_url?: string | null;
   image_urls?: string[] | null;
   pricing_type?: string | null;
@@ -62,11 +63,25 @@ function ListingsContent() {
     fetchListings();
   }, []);
 
-  // 🔥 UNIQUE LOCATIONS
+  // 🔥 COUNTRY-AWARE LOCATION DISPLAY
   const uniqueLocations = Array.from(
     new Set(
       listings
-        .map((l) => (l.city && l.state ? `${l.city}, ${l.state}` : null))
+        .map((l) => {
+          if (!l.city) return null;
+
+          const country = l.country?.toLowerCase();
+
+          if (country === "united states" || country === "usa") {
+            return `${l.city}, ${l.state}`;
+          }
+
+          if (country === "dominican republic") {
+            return `${l.city}, RD`;
+          }
+
+          return `${l.city}, ${l.state || ""}`;
+        })
         .filter(Boolean)
     )
   );
@@ -93,12 +108,23 @@ function ListingsContent() {
       );
     }
 
-    // 📍 LOCATION FILTER
+    // 📍 LOCATION FILTER (UPDATED)
     if (locationFilter !== "all") {
-      filtered = filtered.filter(
-        (listing) =>
-          `${listing.city}, ${listing.state}` === locationFilter
-      );
+      filtered = filtered.filter((listing) => {
+        const country = listing.country?.toLowerCase();
+
+        let locationString = "";
+
+        if (country === "united states" || country === "usa") {
+          locationString = `${listing.city}, ${listing.state}`;
+        } else if (country === "dominican republic") {
+          locationString = `${listing.city}, RD`;
+        } else {
+          locationString = `${listing.city}, ${listing.state || ""}`;
+        }
+
+        return locationString === locationFilter;
+      });
     }
 
     // 🔥 SORTING
