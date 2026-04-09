@@ -108,8 +108,8 @@ export default function HomePage() {
 
       {/* PROVIDER OPPORTUNITY SECTION */}
       {!loadingUserData && (
-        <div className="mt-16 px-6">
-          <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-md py-6 px-6 text-center border border-gray-200">
+        <div className="mt-12 px-6">
+          <div className="max-w-4xl mx-auto bg-white/95 rounded-2xl shadow-lg py-6 px-6 text-center border border-gray-200">
 
             {/* LOGGED OUT */}
             {user === null && (
@@ -185,7 +185,7 @@ export default function HomePage() {
       )}
 
       {/* AVAILABLE LISTINGS */}
-      <div className="mt-14 px-4 max-w-5xl mx-auto mb-20">
+      <div className="mt-10 px-4 max-w-5xl mx-auto mb-20">
         <h2 className="text-2xl font-semibold mb-4">
           {isES ? "Anuncios disponibles" : "Available Listings"}
         </h2>
