@@ -201,7 +201,7 @@ export default function HomePage() {
                 {listing.image_url ? (
                   <img
                     src={listing.image_url}
-                    className="w-full h-48 object-contain bg-gray-50 rounded-lg"
+                    className="w-full h-40 object-cover rounded-lg"
                   />
                 ) : (
                   <div className="w-full h-40 rounded-lg flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 text-gray-500">
