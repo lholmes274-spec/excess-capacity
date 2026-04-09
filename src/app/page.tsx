@@ -109,7 +109,7 @@ export default function HomePage() {
       {/* PROVIDER OPPORTUNITY SECTION */}
       {!loadingUserData && (
         <div className="mt-16 px-6">
-          <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-md p-10 text-center border border-gray-200">
+          <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-md py-6 px-6 text-center border border-gray-200">
 
             {/* LOGGED OUT */}
             {user === null && (
@@ -120,7 +120,7 @@ export default function HomePage() {
                     : "Have Something to Offer?"}
                 </h2>
 
-                <p className="text-gray-600 max-w-2xl mx-auto mb-6">
+                <p className="text-gray-600 max-w-2xl mx-auto mb-4">
                   {isES
                     ? "Los proveedores que comienzan temprano obtienen más visibilidad y oportunidades a medida que la plataforma crece."
                     : "Providers who start early gain more visibility and opportunities as the platform grows."}
