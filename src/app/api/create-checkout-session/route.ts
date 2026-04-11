@@ -101,7 +101,8 @@ export async function POST(req: Request) {
       start_date = booking.start_date;
       end_date = booking.end_date;
       days = booking.days || 1;
-      transaction_type = "booking";
+      transaction_type = 
+        booking.transaction_type === "sale" ? "sale" : "booking";
     }
 
 
