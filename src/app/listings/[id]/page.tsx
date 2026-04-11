@@ -304,7 +304,7 @@ export default function ListingDetailPage() {
       }),
     });
 
-    alert("Request submitted! Check your email shortly for a payment link to complete your booking.");
+    alert("Booking request submitted! Create an account, then go to 'My Orders' in your dashboard to complete payment.");
     router.push("/listings");
     return;
    }
