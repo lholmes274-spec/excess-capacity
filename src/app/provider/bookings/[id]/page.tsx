@@ -38,7 +38,7 @@ export default function ProviderBookingPage() {
         .from("bookings")
         .select("*")
         .eq("id", id)
-        .single();
+        .maybeSingle();
 
       console.log("BOOKING DATA:", bookingData);
 
@@ -50,7 +50,7 @@ export default function ProviderBookingPage() {
         .from("listings")
         .select("*")
         .eq("id", bookingData.listing_id)
-        .single();
+        .maybeSingle();
 
       setListing(listingData);
       setSelectedImage(listingData?.image_url);
