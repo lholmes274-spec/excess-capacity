@@ -54,6 +54,18 @@ export async function POST(req: Request) {
     let transaction_type = body.transaction_type;
     let booking_id = body.booking_id;
 
+    // 🔐 CREATE SUPABASE CLIENT FIRST
+    const supabase = createServerClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        cookies: {
+          get() {
+            return undefined;
+         },
+       },
+     }
+   );
 
     if (!booking_id && (!listing_id || !transaction_type)) {
       return NextResponse.json(
