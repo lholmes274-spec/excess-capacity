@@ -314,7 +314,7 @@ export default function ListingDetailPage() {
     } else {
       router.push(
         isForSale
-          ? `/checkout?listing_id=${listing.id}&transaction_type=sale`
+          ? `/checkout?listing_id=${listing.id}&transaction_type=sale&guest=true`
           : `/checkout?listing_id=${listing.id}` +
               `&transaction_type=booking` +
               `&start_date=${startDate}` +
