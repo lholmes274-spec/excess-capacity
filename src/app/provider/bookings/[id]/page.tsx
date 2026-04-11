@@ -277,19 +277,29 @@ export default function ProviderBookingPage() {
         {/* 🔥 ONLY CHANGE ADDED */}
         <button
           onClick={async () => {
-            const { error } = await supabase
+            const newValue = !booking.archived_by_provider;
+
+            const { error: bookingError } = await supabase
               .from("bookings")
               .update({
-                archived_by_provider: !booking.archived_by_provider,
+                archived_by_provider: newValue,
               })
               .eq("id", booking.id);
 
-            if (!error) {
+            const { error: messageError } = await supabase
+              .from("inquiries")
+              .update({
+                hidden_by_lister: newValue,
+              })
+              .eq("listing_id", booking.listing_id);
+
+            if (!bookingError && !messageError) {
               setBooking({
                 ...booking,
-                archived_by_provider: !booking.archived_by_provider,
+                 archived_by_provider: newValue,
               });
             } else {
+              console.error("Archive error:", bookingError || messageError);
               alert("Failed to update archive status");
             }
           }}
