@@ -214,9 +214,8 @@ export default function ProviderBookingPage() {
       setMessages(msgs || []);
     }
   }
-
-  if (!booking) return <p>❌ Booking not found or failed to load</p>;
-  if (!listing) return <p>❌ Listing not found or failed to load</p>;
+  
+  if (!booking || !listing) return <p>Loading...</p>;
 
   const images = listing.image_urls || [listing.image_url];
 
