@@ -47,10 +47,10 @@ export default function ProviderBookingPage() {
       if (!bookingData) return;
 
       // LISTING
-      const { data: listingData } = await supabase
+      const { data: listingData, error: listingError } = await supabase
         .from("listings")
         .select("*")
-        .eq("uuid", bookingData.listing_id)
+        .eq("id", bookingData.listing_id)
         .maybeSingle();
 
       console.log("LISTING ERROR:", listingError);
