@@ -622,6 +622,8 @@ export default function ListingDetailPage() {
             className="w-full border p-2 rounded"
             onChange={(e) => setGuestPhone(e.target.value)}
           />
+        </div>
+      )}
 
           {/* ✅ NEW — SHIPPING (ONLY FOR SALES) */}
           {isForSale && (
@@ -655,8 +657,6 @@ export default function ListingDetailPage() {
              />
            </div>
          )}
-      </div>
-    )}
 
       {(() => {
          const isForSale = listing.transaction_type === "sale";
