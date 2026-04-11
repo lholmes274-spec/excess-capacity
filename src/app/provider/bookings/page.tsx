@@ -237,7 +237,7 @@ export default function ProviderBookingsPage() {
                   {/* ✅ ONLY CHANGE IS HERE */}
                   <div className="mt-4 flex flex-wrap gap-2">
                     <Link
-                      href={`/provider/bookings/details?id=${b.id}`}
+                      href={`/my-bookings/${b.id}`}
                       className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 transition"
                     >
                       View Booking Details
