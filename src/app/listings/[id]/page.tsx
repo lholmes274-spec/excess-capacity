@@ -304,7 +304,8 @@ export default function ListingDetailPage() {
       }),
     });
 
-    alert("Request sent! The provider will contact you through Prosperity Hub or using the contact details provided.");
+    alert("Request submitted! Check your email shortly for a payment link to complete your booking.");
+    router.push("/");
     return;
    }
 
