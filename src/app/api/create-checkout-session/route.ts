@@ -81,19 +81,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // 🔐 SERVICE ROLE CLIENT
-    const supabase = createServerClient<Database>(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        cookies: {
-          get() {
-            return undefined;
-          },
-        },
-      }
-    );
-
     // 🔥 HANDLE EXISTING BOOKING (guest → logged in flow)
     if (booking_id) {
       const { data: booking, error: bookingError } = await supabase
