@@ -237,7 +237,7 @@ export default function ListingDetailPage() {
    }
 
     // 🔥 NEW — Handle guest booking (NO Stripe)
-    if (!userId) {
+    if (!userId && !isForSale) {
       console.log("🔥 USING API ROUTE 🔥");
 
       console.log("GUEST DATA:", guestName, guestEmail, guestPhone);
