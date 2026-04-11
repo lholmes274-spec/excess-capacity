@@ -250,6 +250,40 @@ export default function ProviderBookingPage() {
           </span>
         </p>
 
+        {/* 💰 SEND PAYMENT LINK */}
+        {booking.status !== "paid" && (
+          <button
+            onClick={async () => {
+              try {
+                const res = await fetch("/api/create-payment-link", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    booking_id: booking.id,
+                  }),
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                  alert(data.error || "Failed to create payment link");
+                  return;
+                 }
+
+                 // 🔥 Open Stripe Checkout
+                 window.open(data.url, "_blank");
+
+              } catch (err) {
+                console.error(err);
+                alert("Something went wrong");
+              }
+            }}
+            className="mt-4 px-5 py-3 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700"
+           >
+            Send Payment Link 💳
+           </button>
+         )}
+
         {/* 🔥 ONLY CHANGE ADDED */}
         <button
           onClick={async () => {
