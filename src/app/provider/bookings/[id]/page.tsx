@@ -23,14 +23,26 @@ export default function ProviderBookingPage() {
   const [providerProfile, setProviderProfile] = useState(null);
 
   useEffect(() => {
-    async function load() {
-      console.log("BOOKING ID:", id);
-      if (!id) return;
+    if (!id) {
+      console.log("ID NOT READY YET");
+      return;
+    }
+
+      async function load() {
+      console.log("LOADING BOOKING WITH ID:", id);
 
       // USER
       const {
         data: { user },
       } = await supabase.auth.getUser();
+
+      console.log("USER:", user);
+
+      if (!user) {
+        console.log("NO USER FOUND");
+        return;
+      }
+
       setUser(user);
 
       // BOOKING
@@ -40,11 +52,15 @@ export default function ProviderBookingPage() {
         .eq("id", id)
         .maybeSingle();
 
-      console.log("BOOKING ERROR:", bookingError);
-      console.log("BOOKING DATA:", bookingData);
+      console.log("BOOKING RESULT:", bookingData, bookingError);
+
+      if (!bookingData) {
+       console.log("BOOKING NOT FOUND IN DB");
+       setBooking(null);
+       return;
+      }
 
       setBooking(bookingData);
-      if (!bookingData) return;
 
       // LISTING
       const { data: listingData, error: listingError } = await supabase
@@ -53,8 +69,7 @@ export default function ProviderBookingPage() {
         .eq("id", bookingData.listing_id)
         .maybeSingle();
 
-      console.log("LISTING ERROR:", listingError);
-      console.log("LISTING DATA:", listingData);
+      console.log("LISTING RESULT:", listingData, listingError);
 
       setListing(listingData);
       setSelectedImage(listingData?.image_url);
