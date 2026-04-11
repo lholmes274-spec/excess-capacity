@@ -208,7 +208,12 @@ export async function POST(req: Request) {
         payment_method_types: ["card"],
         billing_address_collection: "required",
         customer: stripeCustomerId,
-        customer_email: stripeCustomerId ? undefined : userEmail,
+        customer_email:
+          stripeCustomerId
+           ? undefined
+           : userEmail !== "unknown"
+           ? userEmail
+           : undefined,
 
         metadata: {
           listing_id: String(listing_id),
