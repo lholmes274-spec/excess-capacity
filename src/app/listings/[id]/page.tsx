@@ -21,6 +21,12 @@ export default function ListingDetailPage() {
   const [guestEmail, setGuestEmail] = useState("");
   const [guestPhone, setGuestPhone] = useState("");
 
+  // ✅ NEW — SHIPPING
+  const [shippingAddress, setShippingAddress] = useState("");
+  const [shippingCity, setShippingCity] = useState("");
+  const [shippingState, setShippingState] = useState("");
+  const [shippingZip, setShippingZip] = useState("");
+
   // quantity for rentals only
   const [days, setDays] = useState<number>(1);
 
@@ -211,6 +217,14 @@ export default function ListingDetailPage() {
     // Allow guest users — no redirect
 
       console.log("🔥 HANDLE CHECKOUT STARTED 🔥");
+
+      // ✅ REQUIRE SHIPPING FOR SALES (ADD HERE)
+      if (isForSale) {
+        if (!shippingAddress || !shippingCity || !shippingState || !shippingZip) {
+          alert("Please fill out all shipping information.");
+          return;
+        }
+       }
 
     // ➕ START — enforce required booking dates
     if (!isForSale) {
@@ -608,8 +622,41 @@ export default function ListingDetailPage() {
             className="w-full border p-2 rounded"
             onChange={(e) => setGuestPhone(e.target.value)}
           />
-        </div>
-      )}
+
+          {/* ✅ NEW — SHIPPING (ONLY FOR SALES) */}
+          {isForSale && (
+            <div className="space-y-3 pt-4">
+              <h3 className="font-semibold text-gray-800">
+                Shipping Information
+              </h3>
+
+             <input
+               placeholder="Address"
+               className="w-full border p-2 rounded"
+               onChange={(e) => setShippingAddress(e.target.value)}
+             />
+
+             <input
+               placeholder="City"
+               className="w-full border p-2 rounded"
+               onChange={(e) => setShippingCity(e.target.value)}
+             />
+
+             <input
+               placeholder="State"
+               className="w-full border p-2 rounded"
+               onChange={(e) => setShippingState(e.target.value)}
+             />
+
+             <input
+               placeholder="Zip Code"
+               className="w-full border p-2 rounded"
+               onChange={(e) => setShippingZip(e.target.value)}
+             />
+           </div>
+         )}
+      </div>
+    )}
 
       {(() => {
          const isForSale = listing.transaction_type === "sale";
