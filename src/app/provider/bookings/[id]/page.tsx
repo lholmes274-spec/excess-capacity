@@ -101,6 +101,7 @@ export default function ProviderBookingPage() {
         .from("inquiries")
         .select("*")
         .eq("listing_id", bookingData.listing_id)
+        .eq("hidden_by_lister", false)
         .or(`
           sender_id.eq.${user?.id},
           receiver_id.eq.${user?.id},
