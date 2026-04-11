@@ -261,9 +261,11 @@ export default function ListingDetailPage() {
         guest_email: guestEmail,
         guest_phone: guestPhone,
         listing_id: listing.id,
-        start_date: startDate,
-        end_date: endDate,
-        days: days,
+
+        // ✅ FIX — handle sale vs booking properly
+        start_date: isForSale ? null : startDate,
+        end_date: isForSale ? null : endDate,
+        days: isForSale ? null : days,
         final_amount: totalPrice,
         status: "pending",
         owner_id: listing.owner_id,
