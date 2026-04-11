@@ -76,9 +76,6 @@ export default function RootLayout({
               function gtag(){dataLayer.push(arguments);}
               gtag('js', new Date());
 
-              // Google Ads
-              gtag('config', 'AW-17728116849');
-
               // Google Analytics 4
               gtag('config', 'G-9BJEGLTDSK', {
                 page_path: window.location.pathname,
