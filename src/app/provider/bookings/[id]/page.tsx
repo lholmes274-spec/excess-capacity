@@ -8,8 +8,8 @@ import { useParams } from "next/navigation";
 
 export default function ProviderBookingPage() {
   const params = useParams();
-  const id = params?.id;
-  console.log("BOOKING ID:", id);
+  const id = Array.isArray(params?.id) ? params.id[0] : params?.id;
+  console.log("FINAL BOOKING ID:", id, typeof id);
 
   const [booking, setBooking] = useState(null);
   const [listing, setListing] = useState(null);
