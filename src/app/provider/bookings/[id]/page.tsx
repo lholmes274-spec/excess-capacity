@@ -271,7 +271,7 @@ export default function ProviderBookingPage() {
                  }
 
                  // 🔥 Open Stripe Checkout
-                 window.location.href = data.url;
+                 alert("Payment link sent to customer successfully!");
 
               } catch (err) {
                 console.error(err);

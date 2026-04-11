@@ -305,7 +305,7 @@ export default function ListingDetailPage() {
     });
 
     alert("Request submitted! Check your email shortly for a payment link to complete your booking.");
-    router.push("/");
+    router.push("/listings");
     return;
    }
 
