@@ -34,7 +34,7 @@ export async function POST(req: Request) {
       ? "View Booking Request"
       : "View Booking";
 
-    const redirectUrl = `/provider/bookings/details?id=${booking_id}`;
+    const redirectUrl = `/provider/bookings/${booking_id}`;
     const encodedRedirect = encodeURIComponent(redirectUrl);
 
     await resend.emails.send({
