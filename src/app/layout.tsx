@@ -63,12 +63,6 @@ export default function RootLayout({
         />
         {/* End Google Tag Manager */}
 
-        {/* ✅ Google Tag (Ads + GA4 shared loader) */}
-        <script
-          async
-          src="https://www.googletagmanager.com/gtag/js?id=AW-17728116849"
-        ></script>
-
         <script
           dangerouslySetInnerHTML={{
             __html: `
