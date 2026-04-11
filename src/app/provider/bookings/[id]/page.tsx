@@ -34,12 +34,13 @@ export default function ProviderBookingPage() {
       setUser(user);
 
       // BOOKING
-      const { data: bookingData } = await supabase
+      const { data: bookingData, error: bookingError } = await supabase
         .from("bookings")
         .select("*")
         .eq("id", id)
         .maybeSingle();
 
+      console.log("BOOKING ERROR:", bookingError);
       console.log("BOOKING DATA:", bookingData);
 
       setBooking(bookingData);
@@ -51,6 +52,9 @@ export default function ProviderBookingPage() {
         .select("*")
         .eq("id", bookingData.listing_id)
         .maybeSingle();
+
+      console.log("LISTING ERROR:", listingError);
+      console.log("LISTING DATA:", listingData);
 
       setListing(listingData);
       setSelectedImage(listingData?.image_url);
@@ -195,7 +199,8 @@ export default function ProviderBookingPage() {
     }
   }
 
-  if (!booking || !listing) return <p>Loading...</p>;
+  if (!booking) return <p>❌ Booking not found or failed to load</p>;
+  if (!listing) return <p>❌ Listing not found or failed to load</p>;
 
   const images = listing.image_urls || [listing.image_url];
 
