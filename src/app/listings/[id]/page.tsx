@@ -250,81 +250,17 @@ export default function ListingDetailPage() {
     }
    }
 
-    // 🔥 NEW — Handle guest booking (NO Stripe)
-    if (!userId && !isForSale) {
-      console.log("🔥 USING API ROUTE 🔥");
-
-      console.log("GUEST DATA:", guestName, guestEmail, guestPhone);
-
-      if (!guestName || !guestEmail) {
-       console.log("❌ STOPPED: missing guest info");
-       alert("Please enter your name and email.");
+   // ✅ REQUIRE GUEST INFO BEFORE CHECKOUT
+   if (!userId) {
+    if (!guestName || !guestEmail) {
+      alert("Please enter your name and email.");
       return;
     }
-
-    console.log("🔥 ABOUT TO CALL API 🔥");
-
-    const res = await fetch("/api/create-booking", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        user_id: null,
-        user_email: guestEmail, 
-        booker_email: guestEmail, 
-        guest_name: guestName,
-        guest_email: guestEmail,
-        guest_phone: guestPhone,
-        listing_id: listing.id,
-
-        // ✅ FIX — handle sale vs booking properly
-        start_date: isForSale ? null : startDate,
-        end_date: isForSale ? null : endDate,
-        days: isForSale ? null : days,
-        final_amount: totalPrice,
-        status: "pending",
-        owner_id: listing.owner_id,
-      }),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-       console.error("Booking failed:", data);
-       alert(data.error || "Booking failed");
-       return;
-    }
-
-   const newBooking = data;   
-
-    // 🆕 AUTO-CREATE MESSAGE THREAD FOR BOOKING
-    await supabase.from("inquiries").insert([
-      {
-        listing_id: listing.id,
-        sender_id: null, // guest
-        guest_email: guestEmail,
-        receiver_id: listing.owner_id,
-        message: `Booking request received. Respond above to proceed.`,
-      },
-    ]);
-
-    // 🔔 Trigger email notification to provider
-    await fetch("/api/booking-notification", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        receiver_id: listing.owner_id,
-        booking_id: newBooking.id, // 🔥 REQUIRED
-        booking_status: "pending", // 🔥 REQUIRED
-      }),
-    });
-
-    alert("Booking request submitted! Create an account, then go to 'My Orders' in your dashboard to complete payment.");
-    router.push("/listings");
-    return;
    }
 
+
     if (listing.demo_mode) {
-      alert("Demo Only – Checkout disabled");
+      alert("Example Only – Checkout disabled");
     } else {
       router.push(
         isForSale
@@ -694,7 +630,7 @@ export default function ListingDetailPage() {
             {finalImages.length === 0
               ? "Photo Required Before Booking"
               : listing.demo_mode
-              ? "Demo Listing – Checkout Disabled"
+              ? "Example Listing – Checkout Disabled"
               : invalidPrice
               ? "Price Not Set – Booking Disabled"
               : buttonText}
