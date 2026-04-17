@@ -11,7 +11,11 @@ const supabase = createClient(
 
 export async function POST(req: Request) {
   try {
-    const { receiver_id, receiver_email, booking_id, booking_status } = await req.json();
+    console.log("🔥 BOOKING NOTIFICATION API HIT");
+
+    const body = await req.json();
+    console.log("📦 BODY:", body);
+    const { receiver_id, receiver_email, booking_id, booking_status } = body;
 
     if (!receiver_id) {
       return NextResponse.json({ error: "Missing receiver_id" }, { status: 400 });
@@ -23,9 +27,11 @@ export async function POST(req: Request) {
       .select("email, contact_email")
       .eq("id", receiver_id)
       .single();
+    console.log("👤 PROFILE:", profile);
 
     // 🔥 fallback logic
     const providerEmail = profile?.email || profile?.contact_email;
+    console.log("📧 SENDING TO:", providerEmail);
 
     if (error || !providerEmail) {
       console.error("❌ No email found for provider:", profile);
@@ -41,7 +47,7 @@ export async function POST(req: Request) {
     const redirectUrl = `/provider/bookings/details?id=${booking_id}`;
     const encodedRedirect = encodeURIComponent(redirectUrl);
 
-    await resend.emails.send({
+    const emailResponse = await resend.emails.send({
       from: "Prosperity Hub <no-reply@prosperityhub.app>",
       to: providerEmail,
       subject: "You have a new booking request on Prosperity Hub",
@@ -60,6 +66,7 @@ export async function POST(req: Request) {
         <p>Please log in to view customer details and respond.</p>
       `,
     });
+    console.log("📨 RESEND RESPONSE:", emailResponse);
 
     return NextResponse.json({ success: true });
   } catch (err) {
