@@ -101,7 +101,9 @@ function SuccessBookingContent() {
            {
             listing_id: meta.listing_id,
             user_id: meta.user_id !== "0" ? meta.user_id : null,
-            user_email: meta.user_email,
+            user_email: meta.user_email || loggedInEmail || null,
+            guest_email: meta.user_email || loggedInEmail || null,
+            booker_email: meta.user_email || loggedInEmail || null,
             start_date: meta.start_date || null,
             end_date: meta.end_date || null,
             days: meta.days ? Number(meta.days) : null,
