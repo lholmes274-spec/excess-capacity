@@ -215,6 +215,8 @@ export default function MyOrdersPage() {
                           year: "numeric",
                           month: "numeric",
                           day: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
                           timeZone:
                             Intl.DateTimeFormat().resolvedOptions().timeZone,
                         }).format(new Date(o.created_at))
