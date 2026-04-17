@@ -211,6 +211,20 @@ export default function BookingDetailsPage() {
           <strong>Amount Paid:</strong> ${booking.amount_paid}
         </p>
 
+        {booking.status !== "cancelled" && (
+          <button
+            onClick={() => {
+              const confirmCancel = confirm("Are you sure you want to cancel this booking?");
+              if (!confirmCancel) return;
+
+              alert("Cancel feature coming soon.");
+            }}
+             className="mt-4 w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition"
+          >
+             Cancel Booking
+          </button>
+        )}
+
         {!isPurchase && booking.days != null && (
           <p>
             <strong>Duration:</strong>{" "}
