@@ -211,6 +211,10 @@ export default function BookingDetailsPage() {
           <strong>Amount Paid:</strong> ${booking.amount_paid}
         </p>
 
+        <p className="text-orange-600 font-medium">
+          ⏳ Schedule: To be confirmed with provider
+        </p>
+
         {booking.status !== "cancelled" && (
           <button
             onClick={() => {

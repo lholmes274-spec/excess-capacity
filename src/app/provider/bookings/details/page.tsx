@@ -213,15 +213,19 @@ export default function ProviderBookingDetailsPage() {
 
         {booking.start_date && (
           <p>
-            <strong>Start:</strong>{" "}
-            {new Date(booking.start_date).toLocaleDateString()}
+            <strong>Scheduled Time:</strong>{" "}
+            {booking.start_date
+              ? new Date(booking.start_date).toLocaleDateString()
+              : "To be confirmed with provider"}
           </p>
         )}
 
         {booking.end_date && (
           <p>
-            <strong>End:</strong>{" "}
-            {new Date(booking.end_date).toLocaleDateString()}
+             <strong>End:</strong>{" "}
+             {booking.end_date
+               ? new Date(booking.end_date).toLocaleDateString()
+               : "To be confirmed"}
           </p>
         )}
       </div>
