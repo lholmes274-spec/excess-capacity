@@ -221,6 +221,19 @@ export default function MyOrdersPage() {
                       : "—"}
                   </p>
 
+                  {o.start_date && o.start_date !== "" ? (
+                    <p className="text-sm text-gray-700 mt-1">
+                      Scheduled:{" "}
+                      {new Date(o.start_date).toLocaleDateString()}{" "}
+                      -{" "}
+                      {new Date(o.end_date).toLocaleDateString()}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-orange-600 mt-1">
+                      Schedule: To be confirmed
+                    </p>
+                  )}
+
                   <p className="text-sm text-gray-600 mt-1">
                     Status:{" "}
                     <span className="font-semibold capitalize">
