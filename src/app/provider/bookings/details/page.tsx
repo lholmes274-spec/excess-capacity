@@ -10,6 +10,15 @@ export default function ProviderBookingDetailsPage() {
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
 
+  const isValidUUID = /^[0-9a-fA-F-]{36}$/.test(id || "");
+  if (!isValidUUID) {
+     return (
+      <div className="p-6 text-gray-600">
+        Loading booking details...
+      </div>
+     );
+   }
+
   const [booking, setBooking] = useState(null);
   const [messages, setMessages] = useState([]);
   const [selectedMessages, setSelectedMessages] = useState([]);
