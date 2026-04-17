@@ -264,13 +264,14 @@ export default function ListingDetailPage() {
     } else {
       router.push(
         isForSale
-          ? `/checkout?listing_id=${listing.id}&transaction_type=sale&guest=true`
+          ? `/checkout?listing_id=${listing.id}&transaction_type=sale&guest=true&guest_email=${guestEmail}`
           : `/checkout?listing_id=${listing.id}` +
               `&transaction_type=booking` +
               `&start_date=${startDate}` +
               `&end_date=${endDate}` +
               `&time_window=${estimatedTimeWindow}` +
               `&days=${days}`
+              `&guest_email=${guestEmail}`
       );
     }
   };

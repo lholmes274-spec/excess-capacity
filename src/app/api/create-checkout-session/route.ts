@@ -161,7 +161,8 @@ export async function POST(req: Request) {
 
     const user = session?.user || null;
     const userId = user?.id ? String(user.id) : "0";
-    const userEmail = user?.email ? String(user.email) : "unknown";
+    const guestEmail = body.guest_email;
+    const userEmail = user?.email || guestEmail || null;
 
     /**
      * =========================================================
@@ -208,12 +209,7 @@ export async function POST(req: Request) {
         payment_method_types: ["card"],
         billing_address_collection: "required",
         customer: stripeCustomerId,
-        customer_email:
-          stripeCustomerId
-           ? undefined
-           : userEmail !== "unknown"
-           ? userEmail
-           : undefined,
+        customer_email: stripeCustomerId ? undefined : userEmail || undefined,
 
         metadata: {
           listing_id: String(listing_id),
