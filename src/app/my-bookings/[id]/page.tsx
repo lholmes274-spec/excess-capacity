@@ -254,7 +254,13 @@ export default function BookingDetailsPage() {
          {!isPurchase && (
           <p>
             <strong>Booking Created:</strong>{" "}
-            {new Date(booking.created_at).toLocaleDateString()}
+            {new Intl.DateTimeFormat("en-US", {
+              year: "numeric",
+              month: "numeric",
+              day: "numeric",
+              hour: "numeric",
+              minute: "2-digit",
+            }).format(new Date(booking.created_at.replace(" ", "T")))}
           </p>
        )}
 
