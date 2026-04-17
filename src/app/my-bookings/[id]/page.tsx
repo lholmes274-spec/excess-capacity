@@ -211,9 +211,23 @@ export default function BookingDetailsPage() {
           <strong>Amount Paid:</strong> ${booking.amount_paid}
         </p>
 
+        {booking.start_date && booking.start_date !== "" ? (
+          <>
+           <p>
+            <strong>Start:</strong>{" "}
+            {new Date(booking.start_date).toLocaleDateString()}
+           </p>
+
+           <p>
+            <strong>End:</strong>{" "}
+            {new Date(booking.end_date).toLocaleDateString()}
+           </p>
+          </>
+       ) : (
         <p className="text-orange-600 font-medium">
           ⏳ Schedule: To be confirmed with provider
         </p>
+      )}
 
         {booking.status !== "cancelled" && (
           <button
