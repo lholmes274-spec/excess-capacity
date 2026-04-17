@@ -21,20 +21,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing receiver_id" }, { status: 400 });
     }
 
-    // Get provider email
-    const { data: profile, error } = await supabase
-      .from("profiles")
-      .select("email, contact_email")
-      .eq("id", receiver_id)
+    // 🔥 Get provider email directly from listings table
+    const { data: listing, error: listingError } = await supabase
+      .from("listings")
+      .select("contact_email")
+      .eq("owner_id", receiver_id)
       .single();
-    console.log("👤 PROFILE:", profile);
 
-    // 🔥 fallback logic
-    const providerEmail = profile?.email || profile?.contact_email;
+    const providerEmail = listing?.contact_email;
+
     console.log("📧 SENDING TO:", providerEmail);
 
-    if (error || !providerEmail) {
-      console.error("❌ No email found for provider:", profile);
+    if (listingError || !providerEmail) {
+      console.error("❌ No email found for provider:", listing);
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
