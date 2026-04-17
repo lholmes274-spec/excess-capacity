@@ -216,7 +216,7 @@ export default function MyOrdersPage() {
                   </p>
 
                   <p className="text-sm text-gray-500 mt-2">
-                    Ordered on:{" "}
+                    Booked on:{" "}
                     {o.created_at
                       ? new Intl.DateTimeFormat("en-US", {
                           year: "numeric",
@@ -226,7 +226,7 @@ export default function MyOrdersPage() {
                           minute: "2-digit",
                           timeZone:
                             Intl.DateTimeFormat().resolvedOptions().timeZone,
-                        }).format(new Date(o.created_at))
+                        }).format(new Date(o.created_at + "Z"))
                       : "—"}
                   </p>
 
