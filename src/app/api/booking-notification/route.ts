@@ -22,18 +22,18 @@ export async function POST(req: Request) {
     }
 
     // 🔥 Get provider email directly from listings table
-    const { data: listing, error: listingError } = await supabase
+    const { data: listings, error: listingError } = await supabase
       .from("listings")
       .select("contact_email")
       .eq("owner_id", receiver_id)
-      .single();
+      .limit(1);
 
-    const providerEmail = listing?.contact_email;
+    const providerEmail = listings?.[0]?.contact_email;
 
     console.log("📧 SENDING TO:", providerEmail);
 
     if (listingError || !providerEmail) {
-      console.error("❌ No email found for provider:", listing);
+      console.error("❌ No email found for provider:", listings);
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
