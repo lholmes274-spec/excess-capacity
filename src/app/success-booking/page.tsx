@@ -79,7 +79,49 @@ function SuccessBookingContent() {
         const { data: userData } = await supabase.auth.getUser();
         setLoggedInEmail(userData?.user?.email || null);
 
-        const bookingData = await pollForBooking(session_id);
+        // 🔥 GET STRIPE SESSION + CREATE BOOKING IF NOT EXISTS
+        let bookingData = await pollForBooking(session_id);
+
+        if (!bookingData) {
+          try {
+            // call your server to fetch Stripe session
+            const res = await fetch(`/api/get-session?session_id=${session_id}`);
+            const session = await res.json();
+
+            const meta = session.metadata;
+                
+            if (!meta?.listing_id) {
+             throw new Error("Missing metadata");
+         }
+
+       // create booking in Supabase
+       const { data: newBooking, error } = await supabase
+         .from("bookings")
+         .insert([
+           {
+            listing_id: meta.listing_id,
+            user_id: meta.user_id !== "0" ? meta.user_id : null,
+            user_email: meta.user_email,
+            start_date: meta.start_date || null,
+            end_date: meta.end_date || null,
+            days: meta.days ? Number(meta.days) : null,
+            amount_paid: session.amount_total / 100,
+            status: "completed",
+            stripe_session_id: session_id,
+          },
+        ])
+        .select()
+        .single();
+
+      if (error) {
+       console.error("Booking insert error:", error);
+      }
+
+      bookingData = newBooking;
+    } catch (err) {
+      console.error("Session fetch / booking error:", err);
+    }
+   }
 
         // ⏳ Subscription-safe behavior:
         // Keep showing processing instead of erroring
