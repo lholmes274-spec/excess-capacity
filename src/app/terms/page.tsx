@@ -15,8 +15,8 @@ export default function TermsPage() {
 
         <p className="text-sm text-gray-500 text-center mb-6">
           {isES
-            ? "Última actualización: 1 de marzo de 2026"
-            : "Last updated: March 1, 2026"}
+            ? "Última actualización: 16 de Abril de 2026"
+            : "Last updated: April 16, 2026"}
         </p>
 
         <p className="text-gray-700 mb-4">
@@ -146,7 +146,7 @@ export default function TermsPage() {
           )}
         </p>
 
-        {/* 5 NEW */}
+        {/* 5 */}
         <h2 className="text-2xl font-semibold mt-8 mb-3 text-gray-900">
           {isES
             ? "5. Reglas de Anuncios y Transacciones Externas"
@@ -174,7 +174,7 @@ export default function TermsPage() {
           )}
         </p>
 
-        {/* 6 NEW — PROHIBITED CONTENT */}
+        {/* 6 */}
         <h2 className="text-2xl font-semibold mt-8 mb-3 text-red-700">
           {isES ? "6. Política de Contenido Prohibido" : "6. Prohibited Content Policy"}
         </h2>
@@ -288,6 +288,29 @@ export default function TermsPage() {
           >
             support@prosperityhub.app
           </a>
+        </p>
+
+        {/* 11 NEW — CANCELLATION POLICY */}
+        <h2 className="text-2xl font-semibold mt-8 mb-3 text-gray-900">
+          {isES ? "11. Política de Cancelación" : "11. Cancellation Policy"}
+        </h2>
+        <p className="text-gray-700 mb-4">
+          {isES ? (
+            <>
+              Los clientes pueden cancelar dentro de las 24 horas posteriores a la reserva
+              para recibir un reembolso completo de la tarifa de reserva, siempre que el
+              horario del servicio no haya pasado. Las cancelaciones realizadas después
+              de 24 horas o cerca de la hora programada pueden no ser elegibles para un
+              reembolso. Para cualquier cambio, por favor contacte directamente al proveedor.
+            </>
+          ) : (
+            <>
+              Customers may cancel within 24 hours of booking for a full refund of the
+              booking fee, as long as the scheduled service time has not already passed.
+              Cancellations made after 24 hours or close to the scheduled time may not
+              be eligible for a refund. Please contact the provider directly for any changes.
+            </>
+          )}
         </p>
 
         <p className="text-gray-600 text-sm mt-10">
