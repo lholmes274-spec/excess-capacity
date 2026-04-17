@@ -227,9 +227,10 @@ export default function ListingDetailPage() {
        }
 
     // ➕ START — enforce required booking dates
-    if (!isForSale) {
+    const isService = listing.pricing_type === "per_service";
+
+    if (!isForSale && !isService) {
       if (!startDate || !endDate) {
-      console.log("❌ STOPPED: missing dates");
       alert("Please select a start and end date for your booking.");
       return;
     }
@@ -258,22 +259,23 @@ export default function ListingDetailPage() {
     }
    }
 
+   if (listing.demo_mode) {
+     alert("Example Only – Checkout disabled");
+     return;
+   } 
 
-    if (listing.demo_mode) {
-      alert("Example Only – Checkout disabled");
-    } else {
-      router.push(
-        isForSale
-          ? `/checkout?listing_id=${listing.id}&transaction_type=sale&guest=true&guest_email=${guestEmail}`
-          : `/checkout?listing_id=${listing.id}` +
-              `&transaction_type=booking` +
-              `&start_date=${startDate}` +
-              `&end_date=${endDate}` +
-              `&time_window=${estimatedTimeWindow}` +
-              `&days=${days}`
-              `&guest_email=${guestEmail}`
-      );
-    }
+   let url = "";
+
+   if (isForSale) {
+    url = `/checkout?listing_id=${listing.id}&transaction_type=sale&guest=true&guest_email=${guestEmail}`;
+   } else if (isService) {
+    url = `/checkout?listing_id=${listing.id}&transaction_type=booking&days=1&guest_email=${guestEmail}`;
+   } else {
+    url = `/checkout?listing_id=${listing.id}&transaction_type=booking&start_date=${startDate}&end_date=${endDate}&time_window=${estimatedTimeWindow}&days=${Number(days || 1)}&guest_email=${guestEmail}`;
+   }
+
+   console.log("🚀 REDIRECT URL:", url);
+   router.push(url);
   };
 
   return (
