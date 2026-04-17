@@ -119,18 +119,31 @@ function SuccessBookingContent() {
 
       bookingData = newBooking;
       // 🔔 Trigger provider email notification
-      if (newBooking?.id) {
+      if (newBooking?.id && meta?.listing_id) {
         try {
-          await fetch("/api/booking-notification", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            booking_id: newBooking.id,
-            booking_status: "completed",
-         }),
-       });
+          // 🔥 get provider (owner_id)
+          const { data: listingData } = await supabase
+            .from("listings")
+            .select("owner_id")
+            .eq("id", meta.listing_id)
+            .single();
+
+          if (!listingData?.owner_id) {
+            console.error("❌ No owner_id found");
+            return;
+          }
+
+         await fetch("/api/booking-notification", {
+           method: "POST",
+           headers: {
+             "Content-Type": "application/json",
+           },
+           body: JSON.stringify({
+             booking_id: newBooking.id,
+             receiver_id: listingData.owner_id,
+             booking_status: "completed",
+          }),
+        });
 
        console.log("✅ Booking email triggered");
       } catch (err) {
