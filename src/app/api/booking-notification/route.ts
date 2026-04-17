@@ -20,11 +20,15 @@ export async function POST(req: Request) {
     // Get provider email
     const { data: profile, error } = await supabase
       .from("profiles")
-      .select("email")
+      .select("email, contact_email")
       .eq("id", receiver_id)
       .single();
 
-    if (error || !profile?.email) {
+    // 🔥 fallback logic
+    const providerEmail = profile?.email || profile?.contact_email;
+
+    if (error || !providerEmail) {
+      console.error("❌ No email found for provider:", profile);
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
@@ -39,7 +43,7 @@ export async function POST(req: Request) {
 
     await resend.emails.send({
       from: "Prosperity Hub <no-reply@prosperityhub.app>",
-      to: profile.email,
+      to: providerEmail,
       subject: "You have a new booking request on Prosperity Hub",
       html: `
         <p>You have received a new booking request for one of your listings.</p>
