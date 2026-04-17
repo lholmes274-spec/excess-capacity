@@ -118,6 +118,26 @@ function SuccessBookingContent() {
       }
 
       bookingData = newBooking;
+      // 🔔 Trigger provider email notification
+      if (newBooking?.id) {
+        try {
+          await fetch("/api/booking-notification", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            booking_id: newBooking.id,
+            booking_status: "completed",
+         }),
+       });
+
+       console.log("✅ Booking email triggered");
+      } catch (err) {
+        console.error("❌ Email trigger failed:", err);
+      }
+    }
+
     } catch (err) {
       console.error("Session fetch / booking error:", err);
     }
