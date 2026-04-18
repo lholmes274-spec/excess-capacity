@@ -40,7 +40,7 @@ export default function BookingDetailsPage() {
       setUser(loggedInUser);
 
       // 1️⃣ Get booking 
-      const { data: bookingData, error } = await supabase
+      let { data: bookingData, error } = await supabase
         .from("bookings")
         .select("*")
         .eq("id", id)
@@ -48,9 +48,21 @@ export default function BookingDetailsPage() {
 
       console.log("Fetched booking:", bookingData);
 
-      if (error) {
-        console.error("Booking not found:", error);
+      if (!bookingData) {
+        console.log("🔁 Retrying booking fetch...");
+
+        await new Promise((res) => setTimeout(res, 500));
+
+        const { data: retryData } = await supabase
+           .from("bookings")
+           .select("*")
+           .eq("id", id)
+          .maybeSingle();
+
+        bookingData = retryData;
       }
+
+      console.log("Final booking:", bookingData);
 
       if (!bookingData) {
         console.warn("No booking found");
