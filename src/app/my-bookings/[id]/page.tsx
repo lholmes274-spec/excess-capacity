@@ -231,7 +231,7 @@ export default function BookingDetailsPage() {
 
         {booking.status !== "cancelled" && (
           <button
-            onClick={() => {
+            onClick={async () => {
               const confirmCancel = confirm("Are you sure you want to cancel this booking?");
               if (!confirmCancel) return;
 
