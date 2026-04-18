@@ -43,7 +43,7 @@ export async function POST(req: Request) {
       ? "View Booking Request"
       : "View Booking";
 
-    const redirectUrl = `/provider/bookings/details?id=${booking_id}`;
+    const redirectUrl = `/my-bookings/${booking_id}`;
     const encodedRedirect = encodeURIComponent(redirectUrl);
 
     const emailResponse = await resend.emails.send({
@@ -57,7 +57,6 @@ export async function POST(req: Request) {
           <a 
             href="${process.env.NEXT_PUBLIC_SITE_URL}/auth-redirect?to=${encodedRedirect}"
             style="display:inline-block;padding:12px 20px;background:#16a34a;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:bold;">
-          >
             ${buttonText}
           </a>
         </p>
