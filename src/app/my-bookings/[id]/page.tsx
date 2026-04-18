@@ -235,7 +235,24 @@ export default function BookingDetailsPage() {
               const confirmCancel = confirm("Are you sure you want to cancel this booking?");
               if (!confirmCancel) return;
 
-              alert("Cancel feature coming soon.");
+              const { error } = await supabase
+                .from("bookings")
+                .update({ status: "cancelled" })
+                .eq("id", booking.id);
+
+              if (error) {
+                alert("Failed to cancel booking. Please try again.");
+                console.error("Cancel error:", error);
+                return;
+              }
+
+              alert("Booking cancelled successfully!");
+
+              // 🔥 Update UI instantly
+              setBooking((prev) => ({
+                ...prev,
+                status: "cancelled",
+              }));
             }}
              className="mt-4 w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition"
           >
