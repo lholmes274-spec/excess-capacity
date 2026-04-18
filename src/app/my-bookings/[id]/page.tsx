@@ -252,14 +252,21 @@ export default function BookingDetailsPage() {
               const confirmCancel = confirm("Are you sure you want to cancel this booking?");
               if (!confirmCancel) return;
 
-              const { error } = await supabase
-                .from("bookings")
-                .update({ status: "cancelled" })
-                .eq("id", booking.id);
+              const res = await fetch("/api/cancel-booking", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                   bookingId: booking.id,
+                }),
+              });
 
-              if (error) {
-                alert("Failed to cancel booking. Please try again.");
-                console.error("Cancel error:", error);
+              const data = await res.json();
+
+              if (!res.ok) {
+                alert("Failed to cancel booking.");
+                console.error(data);
                 return;
               }
 
