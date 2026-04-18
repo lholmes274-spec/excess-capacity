@@ -11,7 +11,7 @@ const supabase = createClient(
 
 export async function POST(req: Request) {
   try {
-    const { receiver_id, receiver_email, booking_id } = await req.json();
+    const { receiver_id, receiver_email, booking_id, type } = await req.json();
 
     let emailToSend = "";
     let booking = null;
@@ -95,7 +95,9 @@ export async function POST(req: Request) {
      // 🔹 Build premium message text
      let messageText = "You received a new message.";
 
-     if (booking_id && booking) {
+     if (type === "booking_cancelled") {
+        messageText = "A booking has been cancelled. Please review the details.";
+     } else if (booking_id && booking) {
        const ownerId = booking.listings?.[0]?.owner_id;
        const isProvider = receiver_id === ownerId;
 
@@ -108,7 +110,10 @@ export async function POST(req: Request) {
     await resend.emails.send({
       from: "Prosperity Hub <no-reply@prosperityhub.app>",
       to: emailToSend,
-      subject: booking_id
+      subject: 
+        type === "booking_cancelled"
+             ? "Booking Cancelled on Prosperity Hub"
+             : booking_id
              ? "New booking activity on Prosperity Hub"
              : "You have a new message on Prosperity Hub",
       html: `
