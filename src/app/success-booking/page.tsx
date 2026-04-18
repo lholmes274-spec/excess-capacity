@@ -168,6 +168,34 @@ function SuccessBookingContent() {
         setBooking(bookingData);
         setLoading(false);
 
+        if (bookingData?.id && bookingData?.listing_id) {
+           try {
+            const { data: listingData } = await supabase
+              .from("listings")
+              .select("owner_id")
+              .eq("id", bookingData.listing_id)
+              .single();
+
+            if (listingData?.owner_id) {
+              await fetch("/api/booking-notification", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  booking_id: bookingData.id,
+                  receiver_id: listingData.owner_id,
+                  booking_status: bookingData.status || "completed",
+                }),
+              });
+
+              console.log("✅ Email triggered (guaranteed)");
+            }
+          } catch (err) {
+            console.error("❌ Email trigger failed:", err);
+          }
+        }
+
         const { data: listingData } = await supabase
           .from("listings")
           .select("*")
