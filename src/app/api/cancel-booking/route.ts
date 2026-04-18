@@ -51,7 +51,7 @@ export async function POST(req: Request) {
 
     let refundIssued = false;
 
-    if (diffHours <= 24 && booking.stripe_session_id) {
+    if (diffHours <= 24 && booking.stripe_session_id && !booking.refunded) {
       try {
         const session = await stripe.checkout.sessions.retrieve(
           booking.stripe_session_id
