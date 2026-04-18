@@ -169,6 +169,7 @@ export default function MyOrdersPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {orders.map((o) => {
+            console.log("ORDER:", o.id, o.start_date);
             const listing = o.listings || {};
             const thumbnail =
               listing?.image_urls?.[0] ||
