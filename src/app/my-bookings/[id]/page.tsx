@@ -37,11 +37,6 @@ export default function BookingDetailsPage() {
       const { data: userData } = await supabase.auth.getUser();
       const loggedInUser = userData?.user || null;
 
-      if (!loggedInUser) {
-        console.log("⏳ Waiting for user session...");
-        return; // 🚨 STOP here until user exists
-      }
-
       setUser(loggedInUser);
 
       // 1️⃣ Get booking 
@@ -49,16 +44,20 @@ export default function BookingDetailsPage() {
         .from("bookings")
         .select("*")
         .eq("id", id)
-        .or(`user_id.eq.${loggedInUser?.id},owner_id.eq.${loggedInUser?.id}`
-        .single());
+        .maybeSingle();
 
       console.log("Fetched booking:", bookingData);
 
-      if (error || !bookingData) {
+      if (error) {
         console.error("Booking not found:", error);
+      }
+
+      if (!bookingData) {
+        console.warn("No booking found");
+        setBooking(null);
         setLoading(false);
         return;
-      }
+    }
 
       // 2️⃣ Get listing 
       const { data: listingData } = await supabase
