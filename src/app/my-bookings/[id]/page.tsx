@@ -37,6 +37,11 @@ export default function BookingDetailsPage() {
       const { data: userData } = await supabase.auth.getUser();
       const loggedInUser = userData?.user || null;
 
+      if (!loggedInUser) {
+        console.log("⏳ Waiting for user session...");
+        return; // 🚨 STOP here until user exists
+      }
+
       setUser(loggedInUser);
 
       // 1️⃣ Get booking 
