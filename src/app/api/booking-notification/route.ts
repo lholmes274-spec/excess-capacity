@@ -46,6 +46,24 @@ export async function POST(req: Request) {
     const redirectUrl = `/my-bookings/${booking_id}`;
     const encodedRedirect = encodeURIComponent(redirectUrl);
 
+    let subject = "Booking Update on Prosperity Hub";
+    let message = "There has been an update to a booking.";
+
+    if (booking_status === "pending") {
+      subject = "You have a new booking request on Prosperity Hub";
+      message = "You have received a new booking request for one of your listings.";
+    }
+
+    if (booking_status === "completed") {
+      subject = "New Booking Confirmed on Prosperity Hub";
+      message = "A booking has been confirmed for one of your listings.";
+    }
+
+    if (booking_status === "cancelled") {
+      subject = "Booking Cancelled on Prosperity Hub";
+      message = "A booking has been cancelled for one of your listings.";
+    }
+
     const emailResponse = await resend.emails.send({
       from: "Prosperity Hub <no-reply@prosperityhub.app>",
       to: providerEmail,
