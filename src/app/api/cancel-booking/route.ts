@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import Stripe from "stripe";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 export async function POST(req: Request) {
   try {
@@ -39,10 +42,41 @@ export async function POST(req: Request) {
       .eq("id", booking.listing_id)
       .single();
 
-    // 3️⃣ Cancel booking
+    // 🔥 3️⃣ CHECK 24-HOUR REFUND WINDOW
+    const bookingTime = new Date(booking.created_at);
+    const now = new Date();
+
+    const diffHours =
+      (now.getTime() - bookingTime.getTime()) / (1000 * 60 * 60);
+
+    let refundIssued = false;
+
+    if (diffHours <= 24 && booking.stripe_session_id) {
+      try {
+        const session = await stripe.checkout.sessions.retrieve(
+          booking.stripe_session_id
+        );
+
+        if (session.payment_intent) {
+          await stripe.refunds.create({
+            payment_intent: session.payment_intent as string,
+          });
+
+          refundIssued = true;
+          console.log("💰 Refund issued");
+        }
+      } catch (err) {
+        console.error("❌ Refund failed:", err);
+      }
+    }
+
+    // 4️⃣ Cancel booking + store refund status
     const { error } = await supabase
       .from("bookings")
-      .update({ status: "cancelled" })
+      .update({
+        status: "cancelled",
+        refunded: refundIssued,
+      })
       .eq("id", bookingId);
 
     if (error) {
@@ -53,18 +87,17 @@ export async function POST(req: Request) {
       );
     }
 
-    // 4️⃣ 🔥 SEND EMAIL TO PROVIDER
+    // 5️⃣ 🔥 SEND EMAIL TO PROVIDER (UPDATED API)
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/message-notification`, {
+      await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/booking-notification`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           receiver_id: booking.owner_id,
-          receiver_email: listing?.contact_email,
           booking_id: booking.id,
-          type: "booking_cancelled",
+          booking_status: "cancelled",
         }),
       });
     } catch (emailErr) {
@@ -72,7 +105,11 @@ export async function POST(req: Request) {
       // ❗ DO NOT FAIL THE REQUEST if email fails
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      refunded: refundIssued,
+    });
+
   } catch (err) {
     console.error("Server error:", err);
     return NextResponse.json(
