@@ -234,9 +234,9 @@ export default function MyOrdersPage() {
                   {o.start_date && o.start_date !== "" ? (
                     <p className="text-sm text-gray-700 mt-1">
                       Scheduled:{" "}
-                      {new Date(o.start_date).toLocaleDateString()}{" "}
+                      {new Date(o.start_date + "T00:00:00").toLocaleDateString()}{" "}
                       -{" "}
-                      {new Date(o.end_date).toLocaleDateString()}
+                      {new Date(o.end_date + "T00:00:00").toLocaleDateString()}
                     </p>
                   ) : (
                     <p className="text-sm text-orange-600 mt-1">
