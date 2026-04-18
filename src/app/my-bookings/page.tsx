@@ -226,7 +226,7 @@ export default function MyOrdersPage() {
                           minute: "2-digit",
                           timeZone:
                             Intl.DateTimeFormat().resolvedOptions().timeZone,
-                        }).format(new Date(o.created_at.replace(" ", "T")))
+                        }).format(new Date(o.booking_date))
                       : "—"}
                   </p>
 
