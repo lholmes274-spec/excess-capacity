@@ -215,12 +215,12 @@ export default function BookingDetailsPage() {
           <>
            <p>
             <strong>Start:</strong>{" "}
-            {new Date(booking.start_date).toLocaleDateString()}
+            {new Date(booking.start_date + "T00:00:00").toLocaleDateString()}
            </p>
 
            <p>
             <strong>End:</strong>{" "}
-            {new Date(booking.end_date).toLocaleDateString()}
+            {new Date(booking.end_date + "T00:00:00").toLocaleDateString()}
            </p>
           </>
        ) : (
