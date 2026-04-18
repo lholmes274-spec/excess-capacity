@@ -38,7 +38,7 @@ export async function POST(req: Request) {
         body: JSON.stringify({
           receiver_id: data.owner_id, // provider
           booking_id: data.id,
-          booking_status: "pending", // or "confirmed" if you use that
+          booking_status: "completed",
         }),
       });
 
