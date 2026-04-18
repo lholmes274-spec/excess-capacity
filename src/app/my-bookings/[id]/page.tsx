@@ -277,7 +277,7 @@ export default function BookingDetailsPage() {
               day: "numeric",
               hour: "numeric",
               minute: "2-digit",
-            }).format(new Date(booking.created_at))}
+            }).format(new Date(booking.created_at + "Z"))}
           </p>
        )}
 
