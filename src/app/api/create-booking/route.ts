@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
 export async function POST(req: Request) {
+  console.log("🔥 CREATE BOOKING ROUTE HIT");
   const body = await req.json();
 
   const supabase = createClient(
