@@ -44,7 +44,8 @@ export default function BookingDetailsPage() {
         .from("bookings")
         .select("*")
         .eq("id", id)
-        .single();
+        .or(`user_id.eq.${loggedInUser?.id},owner_id.eq.${loggedInUser?.id}`
+        .single());
 
       console.log("Fetched booking:", bookingData);
 
