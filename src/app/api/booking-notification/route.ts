@@ -67,9 +67,9 @@ export async function POST(req: Request) {
     const emailResponse = await resend.emails.send({
       from: "Prosperity Hub <no-reply@prosperityhub.app>",
       to: providerEmail,
-      subject: "You have a new booking request on Prosperity Hub",
+      subject,
       html: `
-        <p>You have received a new booking request for one of your listings.</p>
+        <p>${message}</p>
 
         <p style="margin:20px 0;">
           <a 
