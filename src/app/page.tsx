@@ -76,8 +76,8 @@ export default function HomePage() {
       <div className="text-center mt-10 px-4">
         <h1 className="text-3xl font-bold text-gray-900">
           {isES
-            ? "Gana dinero con lo que ya tienes"
-            : "Earn by Listing What You Already Own"}
+            ? "Encuentra servicios o comienza a ganar"
+            : "Find Services or Start Earning"}
         </h1>
 
         <p className="text-gray-600 mt-3 max-w-xl mx-auto">
