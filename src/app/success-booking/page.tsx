@@ -135,13 +135,13 @@ function SuccessBookingContent() {
             return;
           }
 
-         await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/booking-notification`, {
+          await fetch("/api/booking-notification", {
            method: "POST",
            headers: {
              "Content-Type": "application/json",
            },
            body: JSON.stringify({
-             booking_id: newBooking.id,
+             booking_id: bookingData.id,
              receiver_id: listingData.owner_id,
              booking_status: "completed",
           }),
