@@ -43,6 +43,9 @@ export async function POST(req: Request) {
       .eq("id", booking.listing_id)
       .single();
 
+    console.log("📦 BOOKING:", booking);
+    console.log("📦 LISTING:", listing);
+
     // 🔥 3️⃣ CHECK 24-HOUR REFUND WINDOW
     const bookingTime = new Date(booking.created_at);
     const now = new Date();
@@ -88,15 +91,21 @@ export async function POST(req: Request) {
       );
     }
 
-    // 5️⃣ 🔥 SEND EMAIL TO PROVIDER (UPDATED API)
+    // 5️⃣ 🔥 SEND EMAIL TO PROVIDER (FINAL FIX + DEBUG)
     try {
+      console.log("➡️ About to send cancel email");
+      console.log("owner_id from listing:", listing?.owner_id);
+      console.log("booking_id:", booking.id);
+
       await sendBookingNotification({
-          receiver_id: booking.owner_id,
-          booking_id: booking.id,
-          booking_status: "cancelled",
+        receiver_id: listing?.owner_id, // ✅ FIXED (was booking.owner_id ❌)
+        booking_id: booking.id,
+        booking_status: "cancelled",
       });
+
+      console.log("✅ Cancel email function finished");
     } catch (emailErr) {
-      console.error("Email send failed:", emailErr);
+      console.error("❌ Email send failed:", emailErr);
       // ❗ DO NOT FAIL THE REQUEST if email fails
     }
 
