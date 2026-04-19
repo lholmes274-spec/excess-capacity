@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import Stripe from "stripe";
+import { sendBookingNotification } from "@/lib/sendBookingNotification";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -89,16 +90,10 @@ export async function POST(req: Request) {
 
     // 5️⃣ 🔥 SEND EMAIL TO PROVIDER (UPDATED API)
     try {
-      await fetch("https://prosperityhub.app/api/booking-notification", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      await sendBookingNotification({
           receiver_id: booking.owner_id,
           booking_id: booking.id,
           booking_status: "cancelled",
-        }),
       });
     } catch (emailErr) {
       console.error("Email send failed:", emailErr);
