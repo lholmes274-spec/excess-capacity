@@ -505,8 +505,19 @@ export default function AddListingPage() {
       )}
 
       <h1 className="text-3xl font-bold mb-6 text-center text-orange-800">
-        Add a New Listing
+        Create Your Listing — Start Getting Booked
       </h1>
+
+      <p className="text-center text-gray-600 mb-4">
+        Takes less than 2 minutes. No upfront cost. You control your pricing.
+      </p>
+
+      <div className="text-sm text-gray-500 text-center mb-6">
+        <p>Examples:</p>
+        <p>• Rent out tools or equipment</p>
+        <p>• Offer a service (notary, cleaning, etc.)</p>
+        <p>• List a space or item</p>
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Listing Type */}
