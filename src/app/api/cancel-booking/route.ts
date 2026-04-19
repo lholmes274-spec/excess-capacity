@@ -98,7 +98,7 @@ export async function POST(req: Request) {
       console.log("booking_id:", booking.id);
 
       await sendBookingNotification({
-        receiver_id: listing?.owner_id, // ✅ FIXED (was booking.owner_id ❌)
+        receiver_id: listing?.owner_id,
         booking_id: booking.id,
         booking_status: "cancelled",
       });
