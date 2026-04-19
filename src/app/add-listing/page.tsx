@@ -729,10 +729,12 @@ export default function AddListingPage() {
           />
           <div className="relative">
             <input
+              type="email"
               name="contact_email"
               value={form.contact_email}
               onChange={handleChange}
               placeholder="Contact Email"
+              required
               className={`w-full p-3 border rounded-lg pr-10 ${
               isEmailValid === false ? "border-gray-300" : ""
               }`}
