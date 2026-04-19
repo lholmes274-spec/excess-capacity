@@ -177,7 +177,7 @@ function SuccessBookingContent() {
               .single();
 
             if (listingData?.owner_id) {
-              await fetch("/api/booking-notification", {
+              await fetch("https://prosperityhub.app/api/booking-notification", {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
