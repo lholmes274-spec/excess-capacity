@@ -43,6 +43,24 @@ export async function POST(req: Request) {
       .eq("id", booking.listing_id)
       .single();
 
+    // 🔐 Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // 🔐 Check permission
+    const isCustomer = booking.user_id === user.id;
+    const isProvider = listing?.owner_id === user.id;
+
+    if (!isCustomer && !isProvider) {
+      return NextResponse.json(
+        { error: "Not allowed to cancel this booking" },
+        { status: 403 }
+      );
+    }
+
     console.log("📦 BOOKING:", booking);
     console.log("📦 LISTING:", listing);
 
