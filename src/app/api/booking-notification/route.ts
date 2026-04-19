@@ -89,7 +89,7 @@ export async function POST(req: Request) {
 
     if (booking_status === "cancelled") {
       subject = "Booking Cancelled on Prosperity Hub";
-      message += `<br/><br/><strong>A booking has been cancelled.</strong>`;
+      message = "A booking has been cancelled for one of your listings. Please log in to view details.";
     }
 
     const emailResponse = await resend.emails.send({
