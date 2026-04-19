@@ -89,7 +89,7 @@ export async function POST(req: Request) {
 
     // 5️⃣ 🔥 SEND EMAIL TO PROVIDER (UPDATED API)
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/booking-notification`, {
+      await fetch("https://prosperityhub.app/api/booking-notification", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
