@@ -21,6 +21,27 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing receiver_id" }, { status: 400 });
     }
 
+    // 🔍 Get booking info
+    const { data: booking } = await supabase
+      .from("bookings")
+      .select("*")
+      .eq("id", booking_id)    
+      .single()
+      
+    // 🔍 Get listing info.single();
+    const { data: listing } = await supabase
+      .from("listings")
+      .select("title")
+      .eq("id", booking?.listing_id)
+      .single();
+
+    // 📦 Extract useful info
+    const customerEmail = booking?.user_email || booking?.guest_email || "N/A";
+    const listingTitle = listing?.title || "Listing";
+    const bookingDate = booking?.created_at
+      ? new Date(booking.created_at).toLocaleString()
+      : "N/A";
+
     // 🔥 Get provider email directly from listings table
     const { data: listings, error: listingError } = await supabase
       .from("listings")
@@ -47,7 +68,14 @@ export async function POST(req: Request) {
     const encodedRedirect = encodeURIComponent(redirectUrl);
 
     let subject = "Booking Update on Prosperity Hub";
-    let message = "There has been an update to a booking.";
+    let message = `
+    <strong>${listingTitle}</strong><br/><br/>
+
+    Customer: ${customerEmail}<br/>
+    Date: ${bookingDate}<br/><br/>
+
+    There has been an update to a booking.
+    `;
 
     if (booking_status === "pending") {
       subject = "You have a new booking request on Prosperity Hub";

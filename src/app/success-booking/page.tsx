@@ -185,7 +185,7 @@ function SuccessBookingContent() {
                 body: JSON.stringify({
                   booking_id: bookingData.id,
                   receiver_id: listingData.owner_id,
-                  booking_status: bookingData.status || "completed",
+                  booking_status: "completed",
                 }),
               });
 
