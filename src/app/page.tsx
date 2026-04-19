@@ -66,8 +66,8 @@ export default function HomePage() {
 
           <p className="text-xl mt-4 font-semibold opacity-95">
             {isES
-              ? "Encuentra servicios, alquila artículos y gana en tu área"
-              : "Find Services, Rent Items, and Earn in Your Area"}
+              ? "Convierte lo que ya tienes en ingresos"
+              : "Turn What You Already Own Into Income"}
           </p>
         </div>
       </div>
@@ -76,14 +76,14 @@ export default function HomePage() {
       <div className="text-center mt-10 px-4">
         <h1 className="text-3xl font-bold text-gray-900">
           {isES
-            ? "Encuentra o gana en tu comunidad"
-            : "Find Services or Earn in Your Community"}
+            ? "Gana dinero con lo que ya tienes"
+            : "Earn by Listing What You Already Own"}
         </h1>
 
         <p className="text-gray-600 mt-3 max-w-xl mx-auto">
           {isES
-            ? "Explora servicios locales, alquila lo que necesitas o comienza a ganar ofreciendo lo que ya tienes."
-            : "Browse local services, rent what you need, or start earning by offering what you already have."}
+            ? "Publica tu carro, herramientas, espacio o servicios y comienza a recibir reservas de clientes reales."
+            : "List your car, tools, space, or services and start getting booked by real customers."}
         </p>
 
         {user === null && (
