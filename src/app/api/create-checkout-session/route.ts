@@ -306,10 +306,12 @@ export async function POST(req: Request) {
     }
 
     const unitAmountInCents = Math.round(Number(listing.baseprice) * 100);
-    const totalAmountInCents = unitAmountInCents * quantity;
+    const baseTotal = unitAmountInCents * quantity;
+    const PLATFORM_FEE = 500; // $5 in cents
+    const totalAmountInCents = baseTotal + PLATFORM_FEE;
 
     const platformFee = Math.min(
-      Math.round(totalAmountInCents * 0.1),
+      Math.round(baseTotal * 0.1) + PLATFORM_FEE,
       totalAmountInCents - 1
     );
 
