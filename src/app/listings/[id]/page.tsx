@@ -203,10 +203,13 @@ export default function ListingDetailPage() {
     }).format(amount);
   };
 
-  const totalPrice =
+  const PLATFORM_FEE = 5;
+  const subtotal =
     !isForSale && listing.baseprice && days
       ? Number(listing.baseprice) * Number(days)
-      : listing.baseprice;
+      : Number(listing.baseprice || 0);
+
+  const totalPrice = subtotal + PLATFORM_FEE;
 
   // 🚫 Prevent booking if price invalid
   const invalidPrice =  
@@ -475,9 +478,17 @@ export default function ListingDetailPage() {
               />
             </div>
 
-            <p className="mt-3 text-lg font-semibold text-gray-900">
-              Total: {formatCurrency(Number(totalPrice), listing.currency)}
-            </p>
+            <div className="mt-4 space-y-1 text-gray-900">
+              <p className="text-sm">
+                Subtotal: {formatCurrency(Number(subtotal), listing.currency)}
+              </p>
+              <p className="text-sm">
+                Service fee: {formatCurrency(PLATFORM_FEE, listing.currency)}
+              </p>
+              <p className="text-lg font-semibold">
+                Total: {formatCurrency(Number(totalPrice), listing.currency)}
+              </p>
+            </div>
           </>
         )}
 
