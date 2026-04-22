@@ -39,7 +39,6 @@ export default function HomePage() {
 
       setRealListings(realData || []);
 
-      // 🔥 End loading AFTER everything resolves
       setLoadingUserData(false);
     }
 
@@ -87,7 +86,6 @@ export default function HomePage() {
         </p>
 
         {user === null && (
-
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
             <Link href="/listings">
               <button className="bg-gray-900 hover:bg-black text-white px-6 py-3 rounded-full text-lg font-semibold transition">
@@ -106,12 +104,40 @@ export default function HomePage() {
         )}
       </div>
 
+      {/* 🔥 HOW IT WORKS (NEW SECTION) */}
+      <div className="mt-10 px-6">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            {isES ? "Cómo funciona" : "How It Works"}
+          </h2>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-gray-700">
+            <div>
+              <p className="text-lg font-semibold">
+                {isES ? "1. Publica tu anuncio" : "1. List your service, item, or space"}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-lg font-semibold">
+                {isES ? "2. Clientes te encuentran" : "2. Customers find and book you"}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-lg font-semibold">
+                {isES ? "3. Recibe pagos seguros" : "3. Get paid securely through Stripe"}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* PROVIDER OPPORTUNITY SECTION */}
       {!loadingUserData && (
         <div className="mt-12 px-6">
           <div className="max-w-4xl mx-auto bg-white/95 rounded-2xl shadow-lg py-6 px-6 text-center border border-gray-200">
 
-            {/* LOGGED OUT */}
             {user === null && (
               <>
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">
@@ -134,7 +160,6 @@ export default function HomePage() {
               </>
             )}
 
-            {/* LOGGED IN + NO LISTINGS */}
             {user && listingCount === 0 && (
               <>
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">
@@ -155,7 +180,6 @@ export default function HomePage() {
               </>
             )}
 
-            {/* LOGGED IN + HAS LISTINGS */}
             {user && listingCount > 0 && (
               <>
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">
@@ -179,7 +203,6 @@ export default function HomePage() {
                 </Link>
               </>
             )}
-
           </div>
         </div>
       )}
