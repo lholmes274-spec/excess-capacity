@@ -111,6 +111,17 @@ export default function HomePage() {
             {isES ? "Cómo funciona" : "How It Works"}
           </h2>
 
+      {/* 🔥 TRUST PROOF */}
+      <div className="mt-8 px-6">
+        <div className="max-w-4xl mx-auto text-center">
+          <p className="text-gray-600 text-sm font-medium">
+            {isES
+              ? "Creciendo en todo EE.UU. • Nuevos anuncios añadidos regularmente • Proveedores tempranos ganando visibilidad"
+              : "Growing across the U.S. • New listings added regularly • Early providers gaining visibility"}
+          </p>
+        </div>
+      </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-gray-700">
             <div>
               <p className="text-lg font-semibold">
