@@ -296,6 +296,10 @@ export default function HomePage() {
               <p className="text-gray-600 text-sm">
                 {listing.city}, {listing.state}
               </p>
+
+              <p className="text-xs text-gray-400 mt-1">
+                Recently added
+              </p>
             </Link>
           ))}
         </div>
