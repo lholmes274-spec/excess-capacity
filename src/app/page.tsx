@@ -168,6 +168,13 @@ export default function HomePage() {
                     {isES ? "Comenzar" : "Start Listing"}
                   </button>
                 </Link>
+
+                {/* 🔥 ADD THIS RIGHT HERE */}
+                <p className="text-xs text-gray-500 mt-3">
+                  {isES
+                    ? "Sin costo inicial. Publica gratis."
+                    : "No upfront cost. List for free."}
+                </p>
               </>
             )}
 
@@ -188,12 +195,6 @@ export default function HomePage() {
                     {isES ? "Crear anuncio" : "Create Listing"}
                   </button>
                 </Link>
-
-                <p className="text-xs text-gray-500 mt-3">
-                  {isES
-                    ? "Sin costo inicial. Publica gratis."
-                    : "No upfront cost. List for free."}
-                </p>
               </>
             )}
 
