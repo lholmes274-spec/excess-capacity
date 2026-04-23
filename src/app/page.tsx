@@ -239,6 +239,14 @@ export default function HomePage() {
               className="bg-white rounded-xl shadow p-4 border border-gray-200 hover:shadow-lg transition"
             >
               <div className="relative">
+
+                {/* ✅ NEW BADGE */}
+                {new Date(listing.created_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) && (
+                  <div className="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-1 rounded-full shadow">
+                     New
+                  </div>
+                )}
+
                 {listing.image_url ? (
                   <img
                     src={listing.image_url}
