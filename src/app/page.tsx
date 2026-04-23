@@ -135,8 +135,8 @@ export default function HomePage() {
 
       {/* PROVIDER OPPORTUNITY SECTION */}
       {!loadingUserData && (
-        <div className="mt-12 px-6">
-          <div className="max-w-4xl mx-auto bg-white/95 rounded-2xl shadow-lg py-6 px-6 text-center border border-gray-200">
+        <div className="mt-6 px-6">
+          <div className="max-w-4xl mx-auto bg-white/95 rounded-2xl shadow-lg py-4 px-6 text-center border border-gray-200">
 
             {user === null && (
               <>
