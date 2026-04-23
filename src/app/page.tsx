@@ -170,10 +170,10 @@ export default function HomePage() {
                 </Link>
 
                 {/* 🔥 ADD THIS RIGHT HERE */}
-                <p className="text-xs text-gray-500 mt-3">
+                <p className="text-sm text-green-600 font-semibold mt-3">
                   {isES
                     ? "Sin costo inicial. Publica gratis."
-                    : "No upfront cost. List for free."}
+                    : "No upfront cost • List for free"}
                 </p>
               </>
             )}
