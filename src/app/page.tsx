@@ -246,22 +246,11 @@ export default function HomePage() {
                      New
                   </div>
                 )}
-
-                {listing.image_url ? (
-                  <img
-                    src={listing.image_url}
-                    className="w-full h-40 object-cover rounded-lg"
-                  />
-                ) : (
-                  <div className="w-full h-40 rounded-lg flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 text-gray-500">
-                    <p className="text-sm font-semibold">
-                      Image Coming Soon
-                    </p>
-                    <p className="text-xs opacity-70">
-                      Submitted by Seller
-                    </p>
-                  </div>
-                )}
+                
+                <img
+                  src={listing.image_url}
+                  className="w-full h-40 object-cover rounded-lg"
+                />
 
                 <div
                   className={`absolute top-2 right-2 px-3 py-1 text-xs font-semibold rounded-full text-white shadow ${
