@@ -227,12 +227,14 @@ export default function HomePage() {
 
       {/* AVAILABLE LISTINGS */}
       <div className="mt-10 px-4 max-w-5xl mx-auto mb-20">
-        <h2 className="text-2xl font-semibold mb-4">
+        
         <p className="text-sm text-gray-500 mb-2 text-center">
           {isES
             ? "Se agregan nuevos anuncios en múltiples ubicaciones"
             : "New listings are being added across multiple locations"}
         </p>
+
+        <h2 className="text-2xl font-semibold mb-4">
           {isES ? "Anuncios disponibles" : "Available Listings"}
         </h2>
 
@@ -291,7 +293,8 @@ export default function HomePage() {
                 {listing.city}, {listing.state}
               </p>
 
-           {new Date(listing.created_at) > new Date(Date.now() - 14 * 24 * 60 * 60 * 1000) && (
+         {listing.created_at && !isNaN(new Date(listing.created_at).getTime()) &&
+           new Date(listing.created_at).getTime() > Date.now() - 14 * 24 * 60 * 60 * 1000 && (
               <p className="text-xs text-gray-400 mt-1">
                 Recently added
               </p>
