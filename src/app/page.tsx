@@ -159,8 +159,8 @@ export default function HomePage() {
 
                 <p className="text-gray-600 max-w-2xl mx-auto mb-4">
                   {isES
-                    ? "Los proveedores que comienzan temprano obtienen más visibilidad y oportunidades a medida que la plataforma crece."
-                    : "Providers who start early gain more visibility and opportunities as the platform grows."}
+                    ? "Los primeros proveedores en tu área obtienen la mayor visibilidad y más oportunidades a medida que la plataforma crece."
+                    : "Early providers in your area get the most visibility and the best opportunities as the platform grows."}
                 </p>
 
                 <Link href="/signup">
@@ -188,6 +188,12 @@ export default function HomePage() {
                     {isES ? "Crear anuncio" : "Create Listing"}
                   </button>
                 </Link>
+
+                <p className="text-xs text-gray-500 mt-3">
+                  {isES
+                    ? "Sin costo inicial. Publica gratis."
+                    : "No upfront cost. List for free."}
+                </p>
               </>
             )}
 
