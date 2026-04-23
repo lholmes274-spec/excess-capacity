@@ -111,17 +111,6 @@ export default function HomePage() {
             {isES ? "Cómo funciona" : "How It Works"}
           </h2>
 
-      {/* 🔥 TRUST PROOF */}
-      <div className="mt-8 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-gray-600 text-sm font-medium">
-            {isES
-              ? "Creciendo en todo EE.UU. • Nuevos anuncios añadidos regularmente • Proveedores tempranos ganando visibilidad"
-              : "Growing across the U.S. • New listings added regularly • Early providers gaining visibility"}
-          </p>
-        </div>
-      </div>
-
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-gray-700">
             <div>
               <p className="text-lg font-semibold">
@@ -227,6 +216,12 @@ export default function HomePage() {
 
       {/* AVAILABLE LISTINGS */}
       <div className="mt-10 px-4 max-w-5xl mx-auto mb-20">
+
+        <p className="text-sm text-gray-500 mb-2 text-center">
+          {isES
+            ? "Creciendo en todo EE.UU. • Nuevos anuncios añadidos regularmente • Proveedores tempranos ganando visibilidad"
+             : "Growing across the U.S. • New listings added regularly • Early providers gaining visibility"}
+        </p>
 
         <h2 className="text-2xl font-semibold mb-4">
           {isES ? "Anuncios disponibles" : "Available Listings"}
