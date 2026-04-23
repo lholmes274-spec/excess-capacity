@@ -291,9 +291,11 @@ export default function HomePage() {
                 {listing.city}, {listing.state}
               </p>
 
+           {new Date(listing.created_at) > new Date(Date.now() - 14 * 24 * 60 * 60 * 1000) && (
               <p className="text-xs text-gray-400 mt-1">
                 Recently added
               </p>
+              )}
             </Link>
           ))}
         </div>
