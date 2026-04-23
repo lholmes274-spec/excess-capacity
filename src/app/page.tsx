@@ -228,6 +228,11 @@ export default function HomePage() {
       {/* AVAILABLE LISTINGS */}
       <div className="mt-10 px-4 max-w-5xl mx-auto mb-20">
         <h2 className="text-2xl font-semibold mb-4">
+        <p className="text-sm text-gray-500 mb-2 text-center">
+          {isES
+            ? "Se agregan nuevos anuncios en múltiples ubicaciones"
+            : "New listings are being added across multiple locations"}
+        </p>
           {isES ? "Anuncios disponibles" : "Available Listings"}
         </h2>
 
