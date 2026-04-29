@@ -19,7 +19,7 @@ export default function BlogPage() {
           Make Money Locally: Services, Rentals, and Items You Can List Today
         </h1>
 
-        <p style={{ color: "#777", marginBottom: "20px" }}>
+        <p style={{ color: "#6b7280", marginBottom: "20px" }}>
           Last updated: April 28, 2026
         </p>
 
