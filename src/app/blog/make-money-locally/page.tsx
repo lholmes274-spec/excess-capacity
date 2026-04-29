@@ -20,7 +20,7 @@ export default function BlogPage() {
         </h1>
 
         <p style={{ marginBottom: "25px", color: "#555", lineHeight: "1.7" }}>
-          Looking for ways to earn extra income locally? Prosperity Hub makes it easy to
+          Looking for ways to earn extra income locally? ProsperityHub makes it easy to
           turn your skills, space, or unused items into real income by connecting you
           with people in your area.
         </p>
@@ -30,19 +30,21 @@ export default function BlogPage() {
         <h2>1. Offer Local Services</h2>
         <p style={{ marginBottom: "20px", lineHeight: "1.7" }}>
           You can create listings for services like notary work, cleaning, consulting,
-          or other skills. Local services are one of the fastest ways to start earning.
+          or other skills. Local services are one of the fastest ways to start earning
+          because people are actively searching for help nearby.
         </p>
 
         <h2>2. Rent Out Items You Already Own</h2>
         <p style={{ marginBottom: "20px", lineHeight: "1.7" }}>
           Tools, vehicles, equipment, or storage space can all be rented out. If you
-          already own it and don’t use it every day, it can generate income.
+          already own something you don’t use every day, it can become a source of income
+          instead of sitting unused.
         </p>
 
         <h2>3. Sell Items You No Longer Need</h2>
         <p style={{ marginBottom: "25px", lineHeight: "1.7" }}>
-          List items for sale and connect with local buyers. This is a simple way to
-          declutter while making money.
+          List items for sale and connect with local buyers in your area. This is a
+          simple way to declutter while making extra money.
         </p>
 
         <div
@@ -53,12 +55,33 @@ export default function BlogPage() {
             marginTop: "30px",
           }}
         >
-          <h2 style={{ marginBottom: "15px" }}>Why Use Prosperity Hub?</h2>
+          <h2 style={{ marginBottom: "15px" }}>Why Use ProsperityHub?</h2>
           <ul style={{ paddingLeft: "20px", lineHeight: "1.8" }}>
             <li>All-in-one marketplace for services, rentals, and sales</li>
             <li>Connect with local users in your area</li>
             <li>Simple and fast listing process</li>
           </ul>
+        </div>
+
+        {/* NEW SECTION */}
+        <div
+          style={{
+            marginTop: "40px",
+          }}
+        >
+          <h2>What We’re Learning</h2>
+          <p style={{ marginTop: "10px", lineHeight: "1.7" }}>
+            As the platform grows, one thing is clear: getting started is easy, but
+            helping users actually create listings is where the real value happens.
+          </p>
+          <p style={{ marginTop: "10px", lineHeight: "1.7" }}>
+            With around 189 users so far, the focus now is improving how people take
+            action — not just sign up.
+          </p>
+          <p style={{ marginTop: "10px", lineHeight: "1.7" }}>
+            That means simplifying the listing process and making it clearer how users
+            can earn money using the platform.
+          </p>
         </div>
 
         <div
