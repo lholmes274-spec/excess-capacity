@@ -101,6 +101,22 @@ const PRICING_INTENT: Record<
 export default function AddListingPage() {
   const router = useRouter();
 
+  const [bookingMode, setBookingMode] = useState("full_day");
+
+  const defaultTimeSlots = [
+    "09:00",
+    "10:00",
+    "11:00",
+    "12:00",
+    "13:00",
+    "14:00",
+    "15:00",
+    "16:00",
+    "17:00",
+    "18:00",
+    "19:00",
+  ];
+
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -431,6 +447,8 @@ export default function AddListingPage() {
         demo_mode: form.demo_mode,
         image_url: uploadedImageUrls[0] || null,
         image_urls: uploadedImageUrls,
+        booking_mode: bookingMode,
+        time_slots: bookingMode === "time_slots" ? defaultTimeSlots : null,
        },
     ])
     .select()
@@ -602,6 +620,32 @@ export default function AddListingPage() {
             <option value="DOP">DOP – Dominican Peso</option>
             <option value="CAD">CAD – Canadian Dollar</option>
           </select>
+        </div>
+
+        {/* Booking Mode */}
+        <div>
+          <label className="block font-semibold mb-1">
+            How do customers book this listing?
+          </label>
+
+          <select
+            value={bookingMode}
+            onChange={(e) => setBookingMode(e.target.value)}
+            className="w-full p-3 border rounded-lg bg-white"
+          >
+            <option value="time_slots">Specific Time Slots</option>
+            <option value="full_day">Full Day</option>
+            <option value="request">Request / Flexible</option>
+          </select>
+
+          <p className="text-sm text-gray-500 mt-1">
+            {bookingMode === "time_slots" &&
+              "Customers choose exact times (best for services like notary or beauty)."}
+            {bookingMode === "full_day" &&
+              "Customer books the entire day (best for rentals like cars or tools)."}
+            {bookingMode === "request" &&
+              "Customer requests a time and you confirm later."}
+          </p>
         </div>
 
         {/* Pricing Type */}
