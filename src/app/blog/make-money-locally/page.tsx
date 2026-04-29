@@ -19,6 +19,10 @@ export default function BlogPage() {
           Make Money Locally: Services, Rentals, and Items You Can List Today
         </h1>
 
+        <p style={{ color: "#777", marginBottom: "20px" }}>
+          Last updated: April 28, 2026
+        </p>
+
         <p style={{ marginBottom: "25px", color: "#555", lineHeight: "1.7" }}>
           Looking for ways to earn extra income locally? ProsperityHub makes it easy to
           turn your skills, space, or unused items into real income by connecting you
