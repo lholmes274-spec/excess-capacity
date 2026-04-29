@@ -19,7 +19,7 @@ export default function BlogPage() {
           Make Money Locally: Services, Rentals, and Items You Can List Today
         </h1>
 
-        <p style={{ color: "#6b7280", marginBottom: "20px" }}>
+        <p style={{ color: "#6b7280", fontSize: "14px", marginTop: "-10px", marginBottom: "20px" }}>
           Last updated: April 28, 2026
         </p>
 
@@ -95,7 +95,7 @@ export default function BlogPage() {
           }}
         >
           <p style={{ fontWeight: "bold", marginBottom: "15px" }}>
-            Ready to get started?
+            Start earning from what you already own
           </p>
 
           <a
