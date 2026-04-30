@@ -306,7 +306,7 @@ export default function ListingDetailPage() {
    } else if (isService) {
     url = `/checkout?listing_id=${listing.id}&transaction_type=booking&days=1&guest_email=${guestEmail}`;
    } else {
-    url = `/checkout?listing_id=${listing.id}&transaction_type=booking&start_date=${startDate}&end_date=${endDate}&time_slot=${selectedTime}&days=${Number(days || 1)}&guest_email=${guestEmail}`;
+    url = `/checkout?listing_id=${listing.id}&transaction_type=booking&start_date=${startDate}&end_date=${endDate}${selectedTime ? `&time_slot=${selectedTime}` : ""}&days=${Number(days || 1)}&guest_email=${guestEmail}`;
    }
 
    console.log("🚀 REDIRECT URL:", url);

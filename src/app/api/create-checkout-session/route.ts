@@ -282,13 +282,18 @@ export async function POST(req: Request) {
 
     // HARD AVAILABILITY CHECK
     if (start_date && end_date) {
-      const { data: overlappingBookings, error: overlapError } = await supabase
+      let query = supabase
         .from("bookings")
         .select("id")
         .eq("listing_id", listing_id)
         .eq("start_date", start_date)
-        .eq("time_slot", body.time_slot)
         .in("status", ["paid", "completed", "confirmed"]);
+
+      if (body.time_slot) {
+        query = query.eq("time_slot", body.time_slot);
+     }
+
+     const { data: overlappingBookings, error: overlapError } = await query;
 
       if (overlapError) {
         return NextResponse.json(
@@ -326,11 +331,17 @@ export async function POST(req: Request) {
         ? "per hour"
         : pricingLabel;
 
-    // 🔥 Only require time for hourly bookings
+   // 🔥 Only require time for hourly bookings
+   const requiresTime = [
+     "per_hour",
+     "per_use",
+     "per_service",
+    "per_trip"
+   ];
    if (
      transaction_type === "booking" &&
-     listing.pricing_type === "per_hour" &&
-     !body.time_slot
+     requiresTime.includes(listing.pricing_type) &&
+     (!body.time_slot || body.time_slot === "")
   ) {
     console.error("❌ time_slot MISSING for hourly booking");
 
