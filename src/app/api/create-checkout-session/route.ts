@@ -368,18 +368,11 @@ export async function POST(req: Request) {
 
    // 🚀 BYPASS STRIPE IF NO CONNECTED ACCOUNT
    if (!hasStripe) {
-     const { error: insertError } = await supabase.from("bookings").insert({
-       listing_id,
-       owner_id: listing.owner_id, 
-       user_id: userId !== "0" ? userId : null,
-       guest_email: userId === "0" ? userEmail : null,
-       start_date,
-       end_date,
-       days: quantity,
-       time_slot: body.time_slot || null,
-       status: "confirmed",
-       transaction_type: "booking",
-    });
+       return NextResponse.json(
+         { error: "This provider is not ready to accept bookings yet." },
+         { status: 400 }
+     );
+    
 
     if (insertError) {
        console.error("❌ FULL INSERT ERROR:", insertError);
