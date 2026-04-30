@@ -11,6 +11,7 @@ function CheckoutContent() {
   const transaction_type = searchParams.get("transaction_type"); // ✅ READ INTENT
   const start_date = searchParams.get("start_date");
   const end_date = searchParams.get("end_date");
+  const time_slot = searchParams.get("time_slot"); 
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,6 +30,12 @@ function CheckoutContent() {
         return;
       }
 
+      if (transaction_type === "booking" && !time_slot) {
+        setError("Missing time selection");
+        setLoading(false);
+        return;
+      }
+
       try {
         const res = await fetch("/api/create-checkout-session", {
           method: "POST",
@@ -39,6 +46,7 @@ function CheckoutContent() {
             transaction_type, // ✅ PASS INTENT
             start_date,
             end_date,
+            time_slot,
             days: Number(days) || 1,
           }),
         });
@@ -61,7 +69,7 @@ function CheckoutContent() {
     }
 
     createCheckoutSession();
-  }, [listing_id, days, transaction_type, start_date, end_date]);
+  }, [listing_id, days, transaction_type, start_date, end_date, time_slot]);
 
   if (loading)
     return (
