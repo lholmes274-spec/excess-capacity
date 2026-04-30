@@ -320,7 +320,7 @@ const { data: overlappingBookings } = await query;
    if (isForSale) {
     url = `/checkout?listing_id=${listing.id}&transaction_type=sale&guest=true&guest_email=${guestEmail}`;
    } else if (isService) {
-    url = `/checkout?listing_id=${listing.id}&transaction_type=booking&days=1&guest_email=${guestEmail}`;
+      url = `/checkout?listing_id=${listing.id}&transaction_type=booking&start_date=${startDate}&end_date=${endDate}&days=1&guest_email=${guestEmail}`;
    } else {
      url = `/checkout?listing_id=${listing.id}&transaction_type=booking&start_date=${startDate}&end_date=${endDate}&days=${Number(days || 1)}&guest_email=${guestEmail}`;
 
