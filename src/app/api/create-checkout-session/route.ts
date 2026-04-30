@@ -379,7 +379,6 @@ export async function POST(req: Request) {
        time_slot: body.time_slot || null,
        status: "confirmed",
        transaction_type: "booking",
-       total_price: totalAmountInCents / 100,
     });
 
     if (insertError) {
