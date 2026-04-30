@@ -326,6 +326,17 @@ export async function POST(req: Request) {
         ? "per hour"
         : pricingLabel;
 
+    // 🔥 DEBUG — VERIFY FRONTEND IS SENDING TIME
+    console.log("🧪 DEBUG time_slot:", body.time_slot);
+
+    if (!body.time_slot) {
+     console.error("❌ time_slot MISSING FROM FRONTEND");
+     return NextResponse.json(
+       { error: "time_slot missing" },
+       { status: 400 }
+     );
+   }
+
     const stripeSession = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
