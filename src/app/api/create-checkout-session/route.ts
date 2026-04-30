@@ -370,6 +370,7 @@ export async function POST(req: Request) {
    if (!hasStripe) {
      const { error: insertError } = await supabase.from("bookings").insert({
        listing_id,
+       owner_id: listing.owner_id, 
        user_id: userId !== "0" ? userId : null,
        guest_email: userId === "0" ? userEmail : null,
        start_date,
@@ -382,9 +383,9 @@ export async function POST(req: Request) {
     });
 
     if (insertError) {
-       console.error("❌ Booking insert failed:", insertError);
+       console.error("❌ FULL INSERT ERROR:", insertError);
        return NextResponse.json(
-         { error: "Failed to create booking" },
+         { error: insertError.message }, 
          { status: 500 }
        );
     }
