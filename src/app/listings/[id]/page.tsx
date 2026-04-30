@@ -269,6 +269,22 @@ export default function ListingDetailPage() {
     }
    }
 
+   // ✅ NEW — prevent double booking SAME TIME SLOT
+   if (listing.booking_mode === "time_slots") {
+    const { data: sameTimeBookings } = await supabase
+      .from("bookings")
+      .select("id")
+      .eq("listing_id", listing.id)
+      .eq("start_date", startDate)
+      .eq("time_slot", selectedTime)
+      .in("status", ["paid", "completed", "confirmed"]);
+
+    if (sameTimeBookings && sameTimeBookings.length > 0) {
+      alert("This time slot is already booked. Please select another time.")
+      return;
+    }
+   }
+
    // ✅ REQUIRE GUEST INFO BEFORE CHECKOUT
    if (!userId) {
     if (!guestName || !guestEmail) {
