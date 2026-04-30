@@ -326,16 +326,19 @@ export async function POST(req: Request) {
         ? "per hour"
         : pricingLabel;
 
-    // 🔥 DEBUG — VERIFY FRONTEND IS SENDING TIME
-    console.log("🧪 DEBUG time_slot:", body.time_slot);
+    // 🔥 Only require time for hourly bookings
+   if (
+     transaction_type === "booking" &&
+     listing.pricing_type === "per_hour" &&
+     !body.time_slot
+  ) {
+    console.error("❌ time_slot MISSING for hourly booking");
 
-    if (!body.time_slot) {
-     console.error("❌ time_slot MISSING FROM FRONTEND");
-     return NextResponse.json(
-       { error: "time_slot missing" },
-       { status: 400 }
-     );
-   }
+    return NextResponse.json(
+      { error: "Missing time selection" },
+      { status: 400 }
+   );
+  } 
 
     const stripeSession = await stripe.checkout.sessions.create({
       mode: "payment",
