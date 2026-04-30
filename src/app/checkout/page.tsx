@@ -30,7 +30,9 @@ function CheckoutContent() {
         return;
       }
 
-      if (transaction_type === "booking" && !time_slot) {
+      // ✅ ONLY require time IF time_slot exists in URL (time-based bookings)
+      const requiresTimeSlot = time_slot !== null;
+      if (transaction_type === "booking" && time_slot !== null && !time_slot) {
         setError("Missing time selection");
         setLoading(false);
         return;
