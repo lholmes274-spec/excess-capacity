@@ -143,8 +143,8 @@ export default function ListingDetailPage() {
       if (error || !data) return;
 
       const ranges = data.map((booking) => ({
-        from: new Date(booking.start_date + "T00:00:00"),
-        to: new Date(booking.end_date + "T00:00:00"),
+        start_date: booking.start_date,
+        end_date: booking.end_date,
         time_slot: booking.time_slot
       }));
 
@@ -463,7 +463,6 @@ export default function ListingDetailPage() {
           }}
           disabled={[
             { before: new Date() }, // disable past
-            ...bookedRanges,        // disable booked
           ]}
           />
         </div>
