@@ -6,6 +6,14 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
 
+const formatTime = (time: string) => {
+  const [hour, minute] = time.split(":");
+  const h = Number(hour);
+  const suffix = h >= 12 ? "PM" : "AM";
+  const formattedHour = h % 12 || 12;
+  return `${formattedHour}:${minute} ${suffix}`;
+};
+
 export default function MyOrdersPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -234,8 +242,13 @@ export default function MyOrdersPage() {
                   {o.start_date && o.start_date !== "" ? (
                     <p className="text-sm text-gray-700 mt-1">
                       Scheduled:{" "}
-                      {new Date(o.start_date + "T00:00:00").toLocaleDateString()}{" "}
-                      -{" "}
+                      {new Date(o.start_date + "T00:00:00").toLocaleDateString()}
+
+                      {o.time_slot && (
+                        <> at {formatTime(o.time_slot)}</>
+                      )}
+
+                      {" "} -{" "}
                       {new Date(o.end_date + "T00:00:00").toLocaleDateString()}
                     </p>
                   ) : (
