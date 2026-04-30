@@ -212,11 +212,26 @@ export default function ListingDetailPage() {
   };
 
   const PLATFORM_FEE = 5;
-  const subtotal =
-    !isForSale && listing.baseprice && days
-      ? Number(listing.baseprice) * Number(days)
-      : Number(listing.baseprice || 0);
 
+  // 🧠 Calculate subtotal properly by type
+  let subtotal = 0;
+
+  if (!isForSale) {
+     if (
+       listing.pricing_type === "per_day" ||
+       listing.pricing_type === "per_night" ||
+       listing.pricing_type === "per_month"
+      ) {
+       subtotal = Number(listing.baseprice || 0) * Number(days || 1);
+      } else {
+        // per_service, per_use, per_hour, etc.
+       subtotal = Number(listing.baseprice || 0);
+      }
+     } else {
+       subtotal = Number(listing.baseprice || 0);
+      }
+     const totalPrice = subtotal + PLATFORM_FEE;
+  
   const totalPrice = subtotal + PLATFORM_FEE;
 
   // 🚫 Prevent booking if price invalid
