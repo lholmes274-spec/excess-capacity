@@ -6,6 +6,14 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useParams } from "next/navigation";
 
+const formatTime = (time: string) => {
+  const [hour, minute] = time.split(":");
+  const h = Number(hour);
+  const suffix = h >= 12 ? "PM" : "AM";
+  const formattedHour = h % 12 || 12;
+  return `${formattedHour}:${minute} ${suffix}`;
+};
+
 export default function ProviderBookingPage() {
   const params = useParams();
   const id = Array.isArray(params?.id) ? params.id[0] : params?.id;
@@ -273,6 +281,17 @@ export default function ProviderBookingPage() {
             ${booking.final_amount || listing.baseprice}
           </span>
         </p>
+
+        {booking.start_date && (
+         <p>
+           Scheduled:{" "}
+           {new Date(booking.start_date + "T00:00:00").toLocaleDateString()}
+
+           {booking.time_slot && (
+             <> at {formatTime(booking.time_slot)}</>
+          )}
+        </p>
+      )}
 
         {/* 🔥 ONLY CHANGE ADDED */}
         <button

@@ -6,6 +6,14 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
 
+const formatTime = (time: string) => {
+  const [hour, minute] = time.split(":");
+  const h = Number(hour);
+  const suffix = h >= 12 ? "PM" : "AM";
+  const formattedHour = h % 12 || 12;
+  return `${formattedHour}:${minute} ${suffix}`;
+};
+
 export default function ProviderBookingsPage() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -226,6 +234,17 @@ export default function ProviderBookingsPage() {
                     Booked on:{" "}
                     {new Date(b.booking_date).toLocaleDateString()}
                   </p>
+
+                  {b.start_date && (
+                    <p className="text-sm text-gray-700 mt-1">
+                      Scheduled:{" "}
+                      {new Date(b.start_date + "T00:00:00").toLocaleDateString()}
+
+                      {b.time_slot && (
+                        <> at {formatTime(b.time_slot)}</>
+                      )}
+                    </p>
+                  )}
 
                   <p className="text-sm text-gray-600 mt-1">
                     Status:{" "}
