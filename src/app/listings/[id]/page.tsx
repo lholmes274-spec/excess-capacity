@@ -241,9 +241,11 @@ export default function ListingDetailPage() {
     const isService = listing.pricing_type === "per_service";
 
     // ✅ NEW — require time selection for time slot listings
-    if (listing.booking_mode === "time_slots") {
-      if (!selectedTime) {
-        alert("Please select a time for your booking.");
+    if (listing.booking_mode === "time_slots" && !isService) {
+      // do nothing for rentals
+    } else if (listing.booking_mode === "time_slots") {
+       if (!selectedTime) {
+         alert("Please select a time for your booking.");
         return;
       }
     }
@@ -255,13 +257,18 @@ export default function ListingDetailPage() {
     }
 
     // 🔥 NEW — Check availability BEFORE redirecting
-    const { data: overlappingBookings } = await supabase
-      .from("bookings")
-      .select("id")
-      .eq("listing_id", listing.id)
-      .eq("start_date", startDate)
-      .eq("time_slot", selectedTime)
-      .in("status", ["paid", "completed", "confirmed"]);
+   let query = supabase
+     .from("bookings")
+     .select("id")
+     .eq("listing_id", listing.id)
+     .eq("start_date", startDate)
+     .in("status", ["paid", "completed", "confirmed"]);
+
+   if (selectedTime) {
+    query = query.eq("time_slot", selectedTime);
+  }
+
+const { data: overlappingBookings } = await query;
 
     if (overlappingBookings && overlappingBookings.length > 0) {
       console.log("❌ STOPPED: dates already booked");
