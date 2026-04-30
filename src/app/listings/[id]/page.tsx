@@ -591,6 +591,9 @@ const { data: overlappingBookings } = await query;
               <p className="text-sm">
                 Service fee: {formatCurrency(PLATFORM_FEE, listing.currency)}
               </p>
+              <p className="text-xs text-gray-500">
+                 Service fee helps support the platform and ensures secure, reliable bookings.
+              </p>
               <p className="text-lg font-semibold">
                 Total: {formatCurrency(Number(totalPrice), listing.currency)}
               </p>
