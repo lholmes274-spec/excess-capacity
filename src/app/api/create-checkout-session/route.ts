@@ -339,9 +339,11 @@ export async function POST(req: Request) {
         ? "per hour"
         : pricingLabel;
 
-    // ✅ Only require time for TRUE time-based bookings
-    const TIME_BASED_TYPES = ["per_hour", "per_use"];
-    const requiresTimeSlot = TIME_BASED_TYPES.includes(listing.pricing_type);
+   // ✅ FINAL LOGIC — ONLY require time if BOTH conditions match
+   const requiresTimeSlot =
+     listing.booking_mode === "time_slots" &&
+     (listing.pricing_type === "per_hour" ||
+     listing.pricing_type === "per_use");
 
    // ✅ ONLY enforce time slot IF listing actually uses time slots
   if (
