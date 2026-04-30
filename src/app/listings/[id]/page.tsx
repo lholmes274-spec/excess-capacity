@@ -241,8 +241,7 @@ export default function ListingDetailPage() {
     const isService = listing.pricing_type === "per_service";
 
     const requiresTimeSlot =
-      listing.pricing_type === "per_hour" ||
-      listing.pricing_type === "per_use";
+      listing.booking_mode === "time_slots";
 
     console.log("🧠 requiresTimeSlot:", requiresTimeSlot);
     console.log("🧠 selectedTime:", selectedTime);
@@ -320,13 +319,16 @@ const { data: overlappingBookings } = await query;
    if (isForSale) {
     url = `/checkout?listing_id=${listing.id}&transaction_type=sale&guest=true&guest_email=${guestEmail}`;
    } else if (isService) {
-      url = `/checkout?listing_id=${listing.id}&transaction_type=booking&start_date=${startDate}&end_date=${endDate}&days=1&guest_email=${guestEmail}`;
+       url = `/checkout?listing_id=${listing.id}&transaction_type=booking&start_date=${startDate}&end_date=${endDate}&days=1&guest_email=${guestEmail}`;
+
+       if (listing.booking_mode === "time_slots") {
+         url += `&time_slot=${selectedTime}`;
+       }
    } else {
      url = `/checkout?listing_id=${listing.id}&transaction_type=booking&start_date=${startDate}&end_date=${endDate}&days=${Number(days || 1)}&guest_email=${guestEmail}`;
 
     const requiresTimeSlot =
-      listing.pricing_type === "per_hour" ||
-      listing.pricing_type === "per_use";
+      listing.booking_mode === "time_slots";
 
     if (requiresTimeSlot) {
       url += `&time_slot=${selectedTime}`;
