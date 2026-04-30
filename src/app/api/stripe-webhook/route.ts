@@ -211,6 +211,12 @@ export async function POST(req: Request) {
       const days = session.metadata?.days
         ? Number(session.metadata.days)
         : null;
+
+      const time_slot =
+        session.metadata?.time_slot && session.metadata.time_slot !== "undefined"
+          ? session.metadata.time_slot
+          : null;
+
       const estimated_time_window =
         session.metadata?.time_window || null;
 
@@ -219,11 +225,6 @@ export async function POST(req: Request) {
         end_date,
         days,
       });
-      
-      const time_slot =
-        session.metadata?.time_slot && session.metadata.time_slot !== "undefined"
-          ? session.metadata.time_slot
-          : null;
 
       const { error } = await supabase.from("bookings").insert([
         {
