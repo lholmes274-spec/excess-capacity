@@ -7,6 +7,14 @@ import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
+const formatTime = (time: string) => {
+  const [hour, minute] = time.split(":");
+  const h = Number(hour);
+  const suffix = h >= 12 ? "PM" : "AM";
+  const formattedHour = h % 12 || 12;
+  return `${formattedHour}:${minute} ${suffix}`;
+};
+
 export default function BookingDetailsPage() {
   const params = useParams();
   const rawId = Array.isArray(params?.id) ? params.id[0] : params?.id;
@@ -233,6 +241,10 @@ export default function BookingDetailsPage() {
            <p>
             <strong>Start:</strong>{" "}
             {new Date(booking.start_date + "T00:00:00").toLocaleDateString()}
+
+             {booking.time_slot && (
+                <> at {formatTime(booking.time_slot)}</>
+             )}
            </p>
 
            <p>
