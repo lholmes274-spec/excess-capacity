@@ -231,8 +231,6 @@ export default function ListingDetailPage() {
        subtotal = Number(listing.baseprice || 0);
       }
      const totalPrice = subtotal + PLATFORM_FEE;
-  
-  const totalPrice = subtotal + PLATFORM_FEE;
 
   // 🚫 Prevent booking if price invalid
   const invalidPrice =  
@@ -562,11 +560,11 @@ const { data: overlappingBookings } = await query;
 )}
           
       {/* RENTAL ONLY: QUANTITY + TOTAL */}
-      {!isForSale &&
+      {!isForSale && (
+        <>
         (listing.pricing_type === "per_day" ||
           listing.pricing_type === "per_night" ||
           listing.pricing_type === "per_month") && (
-          <>
             <div className="mt-4">
               <label className="block font-semibold text-gray-800 mb-1">
                 {listing.pricing_type === "per_month"
@@ -581,7 +579,7 @@ const { data: overlappingBookings } = await query;
                 readOnly
                 className="w-32 border rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed"
               />
-            </div>
+            </div>   
 
             <div className="mt-4 space-y-1 text-gray-900">
               <p className="text-sm">
