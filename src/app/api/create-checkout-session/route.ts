@@ -382,11 +382,16 @@ export async function POST(req: Request) {
         time_slot: String(body.time_slot || ""),
       },
 
-      payment_intent_data: {
+        payment_intent_data: hasStripe
+          ? {
+             application_fee_amount: platformFee,
+             transfer_data: {
+               destination: listerProfile.stripe_account_id,
+            },
+        setup_future_usage: "off_session",
+      }
+    : {
         application_fee_amount: platformFee,
-        transfer_data: {
-          destination: listerProfile.stripe_account_id,
-        },
         setup_future_usage: "off_session",
       },
 
