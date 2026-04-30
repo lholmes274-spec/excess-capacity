@@ -259,9 +259,9 @@ export default function ListingDetailPage() {
       .from("bookings")
       .select("id")
       .eq("listing_id", listing.id)
-      .in("status", ["paid", "completed", "confirmed"])
-      .lte("start_date", endDate)
-      .gte("end_date", startDate);
+      .eq("start_date", startDate)
+      .eq("time_slot", selectedTime)
+      .in("status", ["paid", "completed", "confirmed"]);
 
     if (overlappingBookings && overlappingBookings.length > 0) {
       console.log("❌ STOPPED: dates already booked");
