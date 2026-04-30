@@ -559,10 +559,11 @@ const { data: overlappingBookings } = await query;
   </div>
 )}
           
-      {/* RENTAL ONLY: QUANTITY + TOTAL */}
+      {/* BOOKING: SHOW TOTAL FOR ALL */}
       {!isForSale && (
         <>
-        (listing.pricing_type === "per_day" ||
+         {/* ✅ ONLY rentals show quantity */}
+         {(listing.pricing_type === "per_day" ||
           listing.pricing_type === "per_night" ||
           listing.pricing_type === "per_month") && (
             <div className="mt-4">
@@ -580,7 +581,9 @@ const { data: overlappingBookings } = await query;
                 className="w-32 border rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed"
               />
             </div>   
+           )}
 
+            {/* ✅ SHOW FEE FOR BOTH rentals + services */}
             <div className="mt-4 space-y-1 text-gray-900">
               <p className="text-sm">
                 Subtotal: {formatCurrency(Number(subtotal), listing.currency)}
