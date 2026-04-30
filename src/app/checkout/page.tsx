@@ -56,7 +56,9 @@ function CheckoutContent() {
         });
 
         if (!res.ok) {
-          throw new Error(`Failed to create session: ${res.status}`);
+          const errorData = await res.json();
+          console.error("🔥 API ERROR:", errorData);
+          throw new Error(errorData.error || "Failed to create session");
         }
 
         const { url } = await res.json();
