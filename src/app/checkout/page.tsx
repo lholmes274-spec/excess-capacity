@@ -24,7 +24,9 @@ function CheckoutContent() {
         return;
       }
 
-      if (transaction_type === "booking" && (!start_date || !end_date)) {
+      const requiresDates = time_slot === null;
+
+      if (transaction_type === "booking" && requiresDates && (!start_date || !end_date)) {
         setError("Missing booking dates");
         setLoading(false);
         return;
