@@ -343,8 +343,11 @@ export async function POST(req: Request) {
    // ✅ FINAL LOGIC — ONLY require time if BOTH conditions match
    const requiresTimeSlot =
      listing.booking_mode === "time_slots" &&
-     (listing.pricing_type === "per_hour" ||
-     listing.pricing_type === "per_use");
+     (
+      listing.pricing_type === "per_hour" ||
+      listing.pricing_type === "per_use" ||
+      listing.pricing_type === "per_service" 
+     );
 
    // ✅ ONLY enforce time slot IF listing actually uses time slots
   if (
