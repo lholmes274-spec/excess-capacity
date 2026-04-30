@@ -341,22 +341,20 @@ export async function POST(req: Request) {
 
     // ✅ Only require time for TRUE time-based bookings
     const TIME_BASED_TYPES = ["per_hour", "per_use"];
-
     const requiresTimeSlot = TIME_BASED_TYPES.includes(listing.pricing_type);
-    console.log("🔥 DEBUG requiresTimeSlot:", requiresTimeSlot);
 
-    if (
-      transaction_type === "booking" &&
-      requiresTimeSlot &&
-      (!body.time_slot || body.time_slot === "")
-    ) {
-      console.error("❌ time_slot MISSING for time-based booking");
-
-      return NextResponse.json(
-        { error: "Missing time selection" },
-        { status: 400 }
-      );
-    }
+   // ✅ ONLY enforce time slot IF listing actually uses time slots
+  if (
+    transaction_type === "booking" &&
+    requiresTimeSlot &&
+    listing.booking_mode === "time_slots" &&
+    (!body.time_slot || body.time_slot === "")
+  ) {
+    return NextResponse.json(
+      { error: "Missing time selection" },
+      { status: 400 }
+    );
+  }
 
     const stripeSession = await stripe.checkout.sessions.create({
       mode: "payment",
