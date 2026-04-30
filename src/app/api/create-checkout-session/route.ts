@@ -343,6 +343,7 @@ export async function POST(req: Request) {
         days: String(quantity),
         start_date: String(start_date),
         end_date: String(end_date),
+        time_slot: String(body.time_slot || ""),
       },
 
       payment_intent_data: {
