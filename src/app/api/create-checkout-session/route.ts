@@ -44,6 +44,7 @@ function formatPricingUnit(type: string) {
 
 export async function POST(req: Request) {
   try {
+    console.log("🔥 NEW BACKEND VERSION LOADED");
     const body = await req.json();
     console.log("🔥 REQUEST BODY:", body);
 
