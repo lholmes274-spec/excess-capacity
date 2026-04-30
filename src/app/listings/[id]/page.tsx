@@ -33,7 +33,14 @@ export default function ListingDetailPage() {
   // ➕ START — booking requirements
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
-  const [estimatedTimeWindow, setEstimatedTimeWindow] = useState<string>("");
+  const [selectedTime, setSelectedTime] = useState<string>("");
+
+  // fallback if listing has no slots
+  const defaultSlots = [
+    "09:00","10:00","11:00","12:00",
+    "13:00","14:00","15:00","16:00",
+    "17:00","18:00","19:00"
+  ];
 
   // 🆕 NEW — booked date ranges
   const [bookedRanges, setBookedRanges] = useState<any[]>([]);
@@ -232,6 +239,14 @@ export default function ListingDetailPage() {
     // ➕ START — enforce required booking dates
     const isService = listing.pricing_type === "per_service";
 
+    // ✅ NEW — require time selection for time slot listings
+    if (listing.booking_mode === "time_slots") {
+      if (!selectedTime) {
+        alert("Please select a time for your booking.");
+        return;
+      }
+    }
+
     if (!isForSale && !isService) {
       if (!startDate || !endDate) {
       alert("Please select a start and end date for your booking.");
@@ -274,7 +289,7 @@ export default function ListingDetailPage() {
    } else if (isService) {
     url = `/checkout?listing_id=${listing.id}&transaction_type=booking&days=1&guest_email=${guestEmail}`;
    } else {
-    url = `/checkout?listing_id=${listing.id}&transaction_type=booking&start_date=${startDate}&end_date=${endDate}&time_window=${estimatedTimeWindow}&days=${Number(days || 1)}&guest_email=${guestEmail}`;
+    url = `/checkout?listing_id=${listing.id}&transaction_type=booking&start_date=${startDate}&end_date=${endDate}&time_slot=${selectedTime}&days=${Number(days || 1)}&guest_email=${guestEmail}`;
    }
 
    console.log("🚀 REDIRECT URL:", url);
@@ -438,24 +453,41 @@ export default function ListingDetailPage() {
       </div>
     </div>
 
-          <div>
-            <label className="block font-semibold text-gray-800 mb-1">
-             Estimated Time Window (optional)
-            </label>
-            <select
-              value={estimatedTimeWindow}
-              onChange={(e) => setEstimatedTimeWindow(e.target.value)}
-              className="border rounded-lg px-3 py-2 w-full"
-            >
-              <option value="">Select</option>
-              <option value="morning">Morning</option>
-              <option value="afternoon">Afternoon</option>
-              <option value="evening">Evening</option>
-            </select>
-          </div>
-         </div>
-        )}
+    {/* TIME SLOTS */}
+    {listing.booking_mode === "time_slots" && (
+      <div>
+        <label className="block font-semibold text-gray-800 mb-2">
+          Select Time *
+        </label>
 
+        <div className="grid grid-cols-3 gap-2">
+          {(listing.time_slots && listing.time_slots.length > 0
+            ? listing.time_slots
+            : [
+                "09:00","10:00","11:00","12:00",
+                "13:00","14:00","15:00","16:00",
+                "17:00","18:00","19:00"
+              ]
+          ).map((time) => (
+            <button
+              key={time}
+              type="button"
+              onClick={() => setSelectedTime(time)}
+              className={`border rounded-lg py-2 text-sm font-medium ${
+                selectedTime === time
+                  ? "bg-orange-600 text-white"
+                  : "bg-white text-gray-700 hover:bg-gray-100"
+              }`}
+            >
+              {time}
+            </button>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+)}
+          
       {/* RENTAL ONLY: QUANTITY + TOTAL */}
       {!isForSale &&
         (listing.pricing_type === "per_day" ||
