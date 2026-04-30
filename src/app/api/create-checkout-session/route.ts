@@ -143,12 +143,8 @@ export async function POST(req: Request) {
       .eq("id", listing.owner_id)
       .single();
 
-    if (!listerProfile?.stripe_account_id) {
-      return NextResponse.json(
-        { error: "Lister is not connected to Stripe" },
-        { status: 400 }
-      );
-    }
+    // ✅ Allow bookings even if lister has no Stripe
+    const hasStripe = !!listerProfile?.stripe_account_id;
 
     // Booker auth
     const cookieStore = cookies();
@@ -228,12 +224,16 @@ export async function POST(req: Request) {
           user_email: String(userEmail),
         },
 
-        payment_intent_data: {
-          application_fee_amount: platformFee,
-          transfer_data: {
-            destination: listerProfile.stripe_account_id,
-          },
-        },
+        payment_intent_data: hasStripe
+          ? {
+             application_fee_amount: platformFee,
+             transfer_data: {
+               destination: listerProfile.stripe_account_id,
+            },
+           }
+         : {
+             application_fee_amount: platformFee,
+           },
 
         line_items: [
           {
