@@ -286,9 +286,9 @@ export async function POST(req: Request) {
         .from("bookings")
         .select("id")
         .eq("listing_id", listing_id)
-        .in("status", ["paid", "completed", "confirmed"])
-        .lte("start_date", end_date)
-        .gte("end_date", start_date);
+        .eq("start_date", start_date)
+        .eq("time_slot", body.time_slot)
+        .in("status", ["paid", "completed", "confirmed"]);
 
       if (overlapError) {
         return NextResponse.json(
