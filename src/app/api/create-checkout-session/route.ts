@@ -209,6 +209,8 @@ export async function POST(req: Request) {
         amountInCents - 1
       );
 
+      
+
       const stripeSession = await stripe.checkout.sessions.create({
         mode: "payment",
         payment_method_types: ["card"],
@@ -362,7 +364,37 @@ export async function POST(req: Request) {
     );
   }
 
-    const stripeSession = await stripe.checkout.sessions.create({
+   // 🚀 BYPASS STRIPE IF NO CONNECTED ACCOUNT
+   if (!hasStripe) {
+     const { error: insertError } = await supabase.from("bookings").insert({
+       listing_id,
+       user_id: userId !== "0" ? userId : null,
+       guest_email: userId === "0" ? userEmail : null,
+       start_date,
+       end_date,
+       days: quantity,
+       time_slot: body.time_slot || null,
+       status: "confirmed",
+       transaction_type: "booking",
+       total_price: totalAmountInCents / 100,
+    });
+
+    if (insertError) {
+       console.error("❌ Booking insert failed:", insertError);
+       return NextResponse.json(
+         { error: "Failed to create booking" },
+         { status: 500 }
+       );
+    }
+
+    return NextResponse.json({
+       url: `${process.env.NEXT_PUBLIC_SITE_URL}/success-booking?manual=true`,
+    });
+  }
+
+  
+   // ✅ STRIPE FLOW (only runs if hasStripe === true)
+   const stripeSession = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
       billing_address_collection: "required",
