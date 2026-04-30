@@ -240,21 +240,27 @@ export default function ListingDetailPage() {
     // ➕ START — enforce required booking dates
     const isService = listing.pricing_type === "per_service";
 
-    // ✅ Only require time for true time-based listings
     const requiresTimeSlot =
       listing.pricing_type === "per_hour" ||
       listing.pricing_type === "per_use";
 
-    if (requiresTimeSlot && !selectedTime) {
-      alert("Please select a time for your booking.");
-      return;
-   }
+    console.log("🧠 requiresTimeSlot:", requiresTimeSlot);
+    console.log("🧠 selectedTime:", selectedTime);
 
-    if (!isForSale && !isService) {
-      if (!startDate || !endDate) {
-      alert("Please select a start and end date for your booking.");
-      return;
-    }
+   if (requiresTimeSlot && !selectedTime) {
+    console.log("❌ BLOCKED: missing time slot");
+    alert("Please select a time for your booking.");
+  return;
+ }
+
+   if (!isForSale && !isService) {
+    console.log("🧠 startDate:", startDate, "endDate:", endDate);
+
+   if (!startDate || !endDate) {
+    console.log("❌ BLOCKED: missing dates");
+    alert("Please select a start and end date for your booking.");
+    return;
+  }
 
     // 🔥 NEW — Check availability BEFORE redirecting
    let query = supabase
@@ -295,11 +301,14 @@ const { data: overlappingBookings } = await query;
 
    // ✅ REQUIRE GUEST INFO BEFORE CHECKOUT
    if (!userId) {
-    if (!guestName || !guestEmail) {
-      alert("Please enter your name and email.");
-      return;
-    }
+     console.log("🧠 guestName:", guestName, "guestEmail:", guestEmail);
+
+   if (!guestName || !guestEmail) {
+     console.log("❌ BLOCKED: missing guest info");
+     alert("Please enter your name and email.");
+     return;
    }
+ }
 
    if (listing.demo_mode) {
      alert("Example Only – Checkout disabled");
@@ -313,7 +322,7 @@ const { data: overlappingBookings } = await query;
    } else if (isService) {
     url = `/checkout?listing_id=${listing.id}&transaction_type=booking&days=1&guest_email=${guestEmail}`;
    } else {
-    let url = `/checkout?listing_id=${listing.id}&transaction_type=booking&start_date=${startDate}&end_date=${endDate}&days=${Number(days || 1)}&guest_email=${guestEmail}`;
+     url = `/checkout?listing_id=${listing.id}&transaction_type=booking&start_date=${startDate}&end_date=${endDate}&days=${Number(days || 1)}&guest_email=${guestEmail}`;
 
     const requiresTimeSlot =
       listing.pricing_type === "per_hour" ||
@@ -323,6 +332,9 @@ const { data: overlappingBookings } = await query;
       url += `&time_slot=${selectedTime}`;
     }
    }
+
+   console.log("✅ STEP PASSED — redirecting now");
+   console.log("🚀 FINAL URL:", url);
 
    console.log("🚀 REDIRECT URL:", url);
    router.push(url);
