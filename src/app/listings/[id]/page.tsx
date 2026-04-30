@@ -240,15 +240,15 @@ export default function ListingDetailPage() {
     // ➕ START — enforce required booking dates
     const isService = listing.pricing_type === "per_service";
 
-    // ✅ NEW — require time selection for time slot listings
-    if (listing.booking_mode === "time_slots" && !isService) {
-      // do nothing for rentals
-    } else if (listing.booking_mode === "time_slots") {
-       if (!selectedTime) {
-         alert("Please select a time for your booking.");
-        return;
-      }
-    }
+    // ✅ Only require time for true time-based listings
+    const requiresTimeSlot =
+      listing.pricing_type === "per_hour" ||
+      listing.pricing_type === "per_use";
+
+    if (requiresTimeSlot && !selectedTime) {
+      alert("Please select a time for your booking.");
+      return;
+   }
 
     if (!isForSale && !isService) {
       if (!startDate || !endDate) {
@@ -313,7 +313,15 @@ const { data: overlappingBookings } = await query;
    } else if (isService) {
     url = `/checkout?listing_id=${listing.id}&transaction_type=booking&days=1&guest_email=${guestEmail}`;
    } else {
-    url = `/checkout?listing_id=${listing.id}&transaction_type=booking&start_date=${startDate}&end_date=${endDate}${selectedTime ? `&time_slot=${selectedTime}` : ""}&days=${Number(days || 1)}&guest_email=${guestEmail}`;
+    let url = `/checkout?listing_id=${listing.id}&transaction_type=booking&start_date=${startDate}&end_date=${endDate}&days=${Number(days || 1)}&guest_email=${guestEmail}`;
+
+    const requiresTimeSlot =
+      listing.pricing_type === "per_hour" ||
+      listing.pricing_type === "per_use";
+
+    if (requiresTimeSlot) {
+      url += `&time_slot=${selectedTime}`;
+    }
    }
 
    console.log("🚀 REDIRECT URL:", url);
