@@ -139,12 +139,14 @@ export async function POST(req: Request) {
     // Fetch lister profile
     const { data: listerProfile } = await supabase
       .from("profiles")
-      .select("stripe_account_id")
+      .select("stripe_account_id, stripe_charges_enabled")
       .eq("id", listing.owner_id)
       .single();
 
     // ✅ Allow bookings even if lister has no Stripe
-    const hasStripe = !!listerProfile?.stripe_account_id;
+    const hasStripe =
+      !!listerProfile?.stripe_account_id &&
+      listerProfile?.stripe_charges_enabled === true;
 
     // Booker auth
     const cookieStore = cookies();
