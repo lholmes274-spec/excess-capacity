@@ -136,7 +136,7 @@ export default function ListingDetailPage() {
     async function loadBookedDates() {
       const { data, error } = await supabase
         .from("bookings")
-        .select("start_date, end_date")
+        .select("start_date, end_date, time_slot")
         .eq("listing_id", id)
         .in("status", ["paid", "completed", "confirmed"]);
 
@@ -145,6 +145,7 @@ export default function ListingDetailPage() {
       const ranges = data.map((booking) => ({
         from: new Date(booking.start_date + "T00:00:00"),
         to: new Date(booking.end_date + "T00:00:00"),
+        time_slot: booking.time_slot
       }));
 
       setBookedRanges(ranges);
@@ -484,20 +485,33 @@ export default function ListingDetailPage() {
                 "13:00","14:00","15:00","16:00",
                 "17:00","18:00","19:00"
               ]
-          ).map((time) => (
-            <button
-              key={time}
-              type="button"
-              onClick={() => setSelectedTime(time)}
-              className={`border rounded-lg py-2 text-sm font-medium ${
-                selectedTime === time
-                  ? "bg-orange-600 text-white"
-                  : "bg-white text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              {time}
-            </button>
-          ))}
+          ).map((time) => {
+
+           const isBooked = bookedRanges.some((booking) => {
+             return (
+               booking.start_date === startDate &&
+               booking.time_slot === time
+             );
+           });
+
+           return (
+             <button
+               key={time}
+               type="button"
+               disabled={isBooked}
+               onClick={() => !isBooked && setSelectedTime(time)}
+               className={`border rounded-lg py-2 text-sm font-medium ${
+                 isBooked
+                   ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                   : selectedTime === time
+                   ? "bg-orange-600 text-white"
+                   : "bg-white text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                {isBooked ? `${time} (Unavailable)` : time}
+              </button>
+          );
+         })}
         </div>
       </div>
     )}
