@@ -47,6 +47,11 @@ export async function POST(req: Request) {
     const body = await req.json();
     console.log("🔥 REQUEST BODY:", body);
 
+    // 🔍 DEBUG — what frontend is sending
+    console.log("🔥 DEBUG body.time_slot:", body.time_slot);
+    console.log("🔥 DEBUG body.start_date:", body.start_date);
+    console.log("🔥 DEBUG body.end_date:", body.end_date);
+
     let listing_id = body.listing_id;
     let days = body.days;
     let start_date = body.start_date;
@@ -111,6 +116,9 @@ export async function POST(req: Request) {
       .select("*")
       .eq("id", listing_id)
       .single();
+
+    console.log("🔥 DEBUG listing.pricing_type:", listing?.pricing_type);
+    console.log("🔥 DEBUG listing.booking_mode:", listing?.booking_mode);
 
     if (listingError || !listing) {
       return NextResponse.json(
@@ -335,6 +343,7 @@ export async function POST(req: Request) {
     const TIME_BASED_TYPES = ["per_hour", "per_use"];
 
     const requiresTimeSlot = TIME_BASED_TYPES.includes(listing.pricing_type);
+    console.log("🔥 DEBUG requiresTimeSlot:", requiresTimeSlot);
 
     if (
       transaction_type === "booking" &&
