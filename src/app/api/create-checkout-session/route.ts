@@ -465,7 +465,7 @@ export async function POST(req: Request) {
                   : quantity === 1 ? "session" : "sessions"
               }`,
             },
-            unit_amount: unitAmountInCents,
+            unit_amount: totalAmountInCents,
           },
           quantity,
         },
