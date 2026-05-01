@@ -250,6 +250,10 @@ export default function BookingDetailsPage() {
            <p>
             <strong>End:</strong>{" "}
             {new Date(booking.end_date + "T00:00:00").toLocaleDateString()}
+
+            {booking.end_time && (
+              <> at {formatTime(booking.end_time)}</>
+            )}
            </p>
           </>
        ) : (
