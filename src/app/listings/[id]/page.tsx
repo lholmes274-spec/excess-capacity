@@ -536,8 +536,8 @@ const { data: overlappingBookings } = await query;
              }
 
              const slotHour = parseInt(time.split(":")[0], 10);
-             const startHour = parseInt(booking.start_time.split(":")[0], 10);
-             const endHour = parseInt(booking.end_time.split(":")[0], 10);
+             const startHour = parseInt(String(booking.start_time).slice(0, 2), 10);
+             const endHour = parseInt(String(booking.end_time).slice(0, 2), 10);
 
              return slotHour >= startHour && slotHour < endHour;
           });
