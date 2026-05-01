@@ -550,7 +550,7 @@ const { data: overlappingBookings } = await query;
                onClick={() => !isBooked && setSelectedTime(time)}
                className={`border rounded-lg py-2 text-sm font-medium ${
                  isBooked
-                   ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                   ? "bg-gray-200 text-gray-400 cursor-not-allowed border-gray-200 opacity-70"
                    : selectedTime === time
                    ? "bg-orange-600 text-white"
                    : "bg-white text-gray-700 hover:bg-gray-100"
