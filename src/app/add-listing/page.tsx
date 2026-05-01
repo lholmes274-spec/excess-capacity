@@ -532,6 +532,10 @@ export default function AddListingPage() {
         List something simple — you can update details anytime. No upfront cost.
       </p>
 
+      <p className="text-center text-sm text-gray-500 mb-4">
+        New listings are gaining visibility as the platform grows — early providers have an advantage.
+      </p>
+
       {/* 🔥 QUICK START */}
       <div className="bg-gray-50 border rounded-xl p-4 mb-6 text-center">
         <p className="font-semibold mb-2">Start with one of these:</p>
@@ -579,6 +583,10 @@ export default function AddListingPage() {
 
       <form onSubmit={handleSubmit} className="space-y-5">
       <h2 className="font-semibold text-gray-700">Basic Info</h2>
+
+      <p className="text-xs text-gray-500">
+        Start with the basics — you can add more details later.
+      </p>
         {/* Listing Type */}
         <div>
           <label className="block font-semibold mb-1">Listing Type</label>
@@ -626,6 +634,10 @@ export default function AddListingPage() {
           required
         />
 
+        <p className="text-xs text-gray-500 mt-1">
+          Be clear and specific (e.g., what you’re offering and where). This helps customers find your listing faster.
+        </p>
+
         {/* Description */}
         <textarea
           name="description"
@@ -635,6 +647,10 @@ export default function AddListingPage() {
           className="w-full p-3 border rounded-lg"
           rows={3}
         />
+
+        <p className="text-xs text-gray-500 mt-1">
+          Adding details helps your listing get more bookings (optional but recommended)
+        </p>
 
         {/* Base Price + Currency */}
         <div className="grid grid-cols-2 gap-4">
