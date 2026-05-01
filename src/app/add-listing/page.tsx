@@ -640,7 +640,7 @@ export default function AddListingPage() {
         />
 
         <p className="text-xs text-gray-500 mt-1">
-          Be clear and specific (e.g., what you’re offering and where). This helps customers find your listing faster.
+          Be clear and specific — this helps customers find your listing faster.
         </p>
 
         {/* Description */}
@@ -919,11 +919,12 @@ export default function AddListingPage() {
           />
         </div>
 
-        <h2 className="font-semibold text-gray-700 pt-4">Images</h2>
+        <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wide mt-6">
+          Upload Images
+        </h2>
 
         {/* Image Upload */}
         <div>
-          <label className="block font-semibold mb-1">Upload Images</label>
           <input
             type="file"
             accept="image/*"
