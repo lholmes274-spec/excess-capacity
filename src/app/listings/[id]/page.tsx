@@ -145,7 +145,9 @@ export default function ListingDetailPage() {
       const ranges = data.map((booking) => ({
         start_date: booking.start_date,
         end_date: booking.end_date,
-        time_slot: booking.time_slot
+        time_slot: booking.time_slot,
+        start_time: booking.start_time,
+         end_time: booking.end_time
       }));
 
       setBookedRanges(ranges);
