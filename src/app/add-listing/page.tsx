@@ -525,21 +525,60 @@ export default function AddListingPage() {
       )}
 
       <h1 className="text-3xl font-bold mb-6 text-center text-orange-800">
-        Create Your Listing — Start Getting Booked
+        Start earning in 2 minutes
       </h1>
 
       <p className="text-center text-gray-600 mb-4">
-        Takes less than 2 minutes. No upfront cost. You control your pricing.
+        List something simple — you can update details anytime. No upfront cost.
       </p>
 
+      {/* 🔥 QUICK START */}
+      <div className="bg-gray-50 border rounded-xl p-4 mb-6 text-center">
+        <p className="font-semibold mb-2">Start with one of these:</p>
+
+        <div className="flex flex-wrap gap-2 justify-center">
+          <button
+             type="button"
+             onClick={() =>
+              document.querySelector("select[name='type']")?.scrollIntoView({ behavior: "smooth" })
+            }
+            className="px-3 py-1 bg-white border rounded-full text-sm hover:bg-gray-100"
+          >
+            List a Service
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              document.querySelector("select[name='type']")?.scrollIntoView({ behavior: "smooth" })
+            }
+            className="px-3 py-1 bg-white border rounded-full text-sm hover:bg-gray-100"
+          >
+            Rent an Item
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              document.querySelector("select[name='type']")?.scrollIntoView({ behavior: "smooth" })
+            }
+            className="px-3 py-1 bg-white border rounded-full text-sm hover:bg-gray-100"
+          >
+            Sell Something
+          </button>
+        </div>
+      </div>
+
       <div className="text-sm text-gray-500 text-center mb-6">
-        <p>Examples:</p>
-        <p>• Rent out tools or equipment</p>
-        <p>• Offer a service (notary, cleaning, etc.)</p>
-        <p>• List a space or item</p>
+        <p className="font-semibold">Popular examples:</p>
+        <p>• Mobile Notary Service</p>
+        <p>• Hair Styling or Beauty Services</p>
+        <p>• Tool Rental (Drill, Ladder)</p>
+        <p>• Sell Electronics or Furniture</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
+      <h2 className="font-semibold text-gray-700">Basic Info</h2>
         {/* Listing Type */}
         <div>
           <label className="block font-semibold mb-1">Listing Type</label>
@@ -623,6 +662,8 @@ export default function AddListingPage() {
             <option value="CAD">CAD – Canadian Dollar</option>
           </select>
         </div>
+
+        <h2 className="font-semibold text-gray-700 pt-4">Booking & Pricing</h2>
 
         {/* Booking Mode */}
         <div>
@@ -714,6 +755,8 @@ export default function AddListingPage() {
           )}
         </div>
 
+        <h2 className="font-semibold text-gray-700 pt-4">Location</h2>
+
         {/* Address */}
         <div className="space-y-3">
           <input
@@ -794,6 +837,8 @@ export default function AddListingPage() {
         </div>
       </div>
 
+        <h2 className="font-semibold text-gray-700 pt-4">Contact Info</h2>
+
         {/* Contact */}
         <div className="space-y-3">
           <input
@@ -853,6 +898,8 @@ export default function AddListingPage() {
           />
         </div>
 
+        <h2 className="font-semibold text-gray-700 pt-4">Images</h2>
+
         {/* Image Upload */}
         <div>
           <label className="block font-semibold mb-1">Upload Images</label>
@@ -907,13 +954,17 @@ export default function AddListingPage() {
           </p>
         </div>
 
+        <div className="text-center text-sm text-gray-500 mt-4">
+          <p>No upfront cost • You can edit anytime • Takes less than 2 minutes</p>
+        </div>
+
         {/* Submit */}
         <button
           type="submit"
           disabled={loading || uploading}
           className="w-full bg-orange-600 hover:bg-orange-700 text-white p-3 rounded-lg font-semibold transition disabled:opacity-50"
         >
-          {loading ? "Submitting..." : "Add Listing"}
+          {loading ? "Submitting..." : "Create Listing"}
         </button>
       </form>
     </div>
