@@ -418,6 +418,8 @@ export async function POST(req: Request) {
         start_date: String(start_date),
         end_date: String(end_date),
         time_slot: String(body.time_slot || ""),
+        start_time: String(start_time || ""),
+        end_time: String(end_time || ""),
       },
 
         payment_intent_data: hasStripe
