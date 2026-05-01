@@ -581,8 +581,13 @@ export default function AddListingPage() {
         <p>• Sell Electronics or Furniture</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
-      <h2 className="font-semibold text-gray-700">Basic Info</h2>
+      <form onSubmit={handleSubmit} className="space-y-6">
+      {/* 🔥 BASIC INFO SECTION */}
+      <div className="space-y-4">
+        <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wide">
+          Basic Info
+        </h2>
+      </div>
 
       <p className="text-xs text-gray-500 mb-3">
         Only a few fields are required to get started — you can complete the rest later.
