@@ -248,8 +248,9 @@ export default function MyOrdersPage() {
                         <> at {formatTime(o.time_slot)}</>
                       )}
 
-                      {" "} -{" "}
-                      {new Date(o.end_date + "T00:00:00").toLocaleDateString()}
+                      {o.end_time && (
+                      <> - {formatTime(o.end_time)}</>
+                      )}
                     </p>
                   ) : (
                     <p className="text-sm text-orange-600 mt-1">
