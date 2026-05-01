@@ -529,11 +529,18 @@ const { data: overlappingBookings } = await query;
           ).map((time) => {
 
            const isBooked = bookedRanges.some((booking) => {
-             return (
-               booking.start_date === startDate &&
-               booking.time_slot === time
-             );
-           });
+             if (booking.start_date !== startDate) return false;
+             if (!booking.start_time || !booking.end_time) {
+               // fallback for old bookings
+               return booking.time_slot === time;
+             }
+
+             const slotHour = parseInt(time.split(":")[0], 10);
+             const startHour = parseInt(booking.start_time.split(":")[0], 10);
+             const endHour = parseInt(booking.end_time.split(":")[0], 10);
+
+             return slotHour >= startHour && slotHour < endHour;
+          });
 
            return (
              <button
