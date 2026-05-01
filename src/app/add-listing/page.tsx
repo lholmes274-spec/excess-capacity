@@ -102,6 +102,7 @@ export default function AddListingPage() {
   const router = useRouter();
 
   const [bookingMode, setBookingMode] = useState("full_day");
+  const [durationHours, setDurationHours] = useState(1);
 
   const defaultTimeSlots = [
     "09:00",
@@ -449,6 +450,7 @@ export default function AddListingPage() {
         image_urls: uploadedImageUrls,
         booking_mode: bookingMode,
         time_slots: bookingMode === "time_slots" ? defaultTimeSlots : null,
+        duration_hours: bookingMode === "time_slots" ? durationHours : 1,
        },
     ])
     .select()
@@ -648,7 +650,33 @@ export default function AddListingPage() {
           </p>
         </div>
 
-        {/* Pricing Type */}
+      {/* Service Duration (ONLY for time slots) */}
+      {bookingMode === "time_slots" && (
+        <div>
+         <label className="block font-semibold mb-1">
+           How long does this service take?
+         </label>
+
+          <select
+            value={durationHours}
+            onChange={(e) => setDurationHours(Number(e.target.value))}
+            className="w-full p-3 border rounded-lg bg-white"
+          >
+            <option value={1}>1 hour</option>
+            <option value={2}>2 hours</option>
+            <option value={3}>3 hours</option>
+            <option value={4}>4 hours</option>
+            <option value={5}>5 hours</option>
+            <option value={6}>6 hours</option>
+          </select>
+
+          <p className="text-sm text-gray-500 mt-1">
+             This determines how many time slots will be blocked per booking.
+          </p>
+          </div>
+      )}
+
+      {/* Pricing Type */}
         <div>
           <label className="block font-semibold mb-1">Pricing Type</label>
           <select
