@@ -169,20 +169,21 @@ function SuccessBookingContent() {
         setLoading(false);
 
         if (typeof window !== "undefined" && window.gtag) {
-          window.gtag("event", "techsol", {
-            value: bookingData?.amount_paid || 0,
-            currency: "USD",
-            transaction_id: bookingData?.id,
-         });
-
-         // optional (safe transition)
+         // 🔥 GA4 reporting event
          window.gtag("event", "booking_success", {
            value: bookingData?.amount_paid || 0,
            currency: "USD",
            transaction_id: bookingData?.id,
         });
 
-        console.log("✅ GA event fired: techsol + booking_success");
+         // 🔥 Google Ads event (techsol)
+         window.gtag("event", "techsol", {
+            value: bookingData?.amount_paid || 0,
+            currency: "USD",
+            transaction_id: bookingData?.id,
+         });
+
+        console.log("✅ GA events fired: booking_success + techsol");
       }
 
         if (bookingData?.id && bookingData?.listing_id) {
