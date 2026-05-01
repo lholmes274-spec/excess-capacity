@@ -242,6 +242,8 @@ export async function POST(req: Request) {
           end_date,
           days,
           time_slot,
+          start_time: session.metadata?.start_time || null,
+          end_time: session.metadata?.end_time || null,
         },
       ]);
 
