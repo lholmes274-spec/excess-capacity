@@ -366,6 +366,17 @@ export async function POST(req: Request) {
     );
   }
 
+   // ✅ NEW — CALCULATE START + END TIME
+   let start_time = body.time_slot || null;
+   let end_time = null;
+
+   if (start_time && listing.duration_hours) {
+     const startHour = parseInt(start_time.split(":")[0], 10);
+     const endHour = startHour + Number(listing.duration_hours);
+
+     end_time = `${endHour.toString().padStart(2, "0")}:00`;
+   }
+
    // 🚀 BYPASS STRIPE IF NO CONNECTED ACCOUNT
    if (!hasStripe) {
        return NextResponse.json(
