@@ -136,7 +136,7 @@ export default function ListingDetailPage() {
     async function loadBookedDates() {
       const { data, error } = await supabase
         .from("bookings")
-        .select("start_date, end_date, time_slot")
+        .select("start_date, end_date, time_slot, start_time, end_time")
         .eq("listing_id", id)
         .in("status", ["paid", "completed", "confirmed"]);
 
