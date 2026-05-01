@@ -295,31 +295,43 @@ export async function POST(req: Request) {
 
     // HARD AVAILABILITY CHECK
     if (start_date && end_date) {
-      let query = supabase
-        .from("bookings")
-        .select("id")
-        .eq("listing_id", listing_id)
-        .eq("start_date", start_date)
-        .in("status", ["paid", "completed", "confirmed"]);
+      // ✅ NEW — TIME RANGE OVERLAP CHECK
+      if (body.time_slot && listing.duration_hours) {
+        const startHour = parseInt(body.time_slot.split(":")[0], 10);
+        const endHour = startHour + Number(listing.duration_hours);
 
-      if (body.time_slot) {
-        query = query.eq("time_slot", body.time_slot);
-     }
+        const requestedStart = startHour;
+        const requestedEnd = endHour;
 
-     const { data: overlappingBookings, error: overlapError } = await query;
+        const { data: existingBookings, error: overlapError } = await supabase
+          .from("bookings")
+          .select("start_time, end_time")
+          .eq("listing_id", listing_id)
+          .eq("start_date", start_date)
+          .in("status", ["paid", "completed", "confirmed"]);
 
-      if (overlapError) {
-        return NextResponse.json(
-          { error: "Availability check failed" },
-          { status: 500 }
-        );
-      }
+        if (overlapError) {
+           return NextResponse.json(
+             { error: "Availability check failed" },
+             { status: 500 }
+           );
+        }
 
-      if (overlappingBookings && overlappingBookings.length > 0) {
-         return NextResponse.json(
-           { error: "These dates are no longer available." },
-           { status: 400 }
-         );
+        const hasOverlap = existingBookings?.some((b) => {
+          if (!b.start_time || !b.end_time) return false;
+
+          const bStart = parseInt(b.start_time.split(":")[0], 10);
+          const bEnd = parseInt(b.end_time.split(":")[0], 10);
+
+          return requestedStart < bEnd && requestedEnd > bStart;
+        });
+
+        if (hasOverlap) {
+          return NextResponse.json(
+            { error: "This time range is no longer available." },
+            { status: 400 }
+          );
+        }
       }
     }
 
