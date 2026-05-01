@@ -584,8 +584,8 @@ export default function AddListingPage() {
       <form onSubmit={handleSubmit} className="space-y-5">
       <h2 className="font-semibold text-gray-700">Basic Info</h2>
 
-      <p className="text-xs text-gray-500">
-        Start with the basics — you can add more details later.
+      <p className="text-xs text-gray-500 mb-3">
+        Only a few fields are required to get started — you can complete the rest later.
       </p>
         {/* Listing Type */}
         <div>
