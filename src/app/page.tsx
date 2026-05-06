@@ -283,7 +283,7 @@ export default function HomePage() {
               </p>
 
          {listing.created_at && !isNaN(new Date(listing.created_at).getTime()) &&
-           new Date(listing.created_at).getTime() > Date.now() - 30 * 24 * 60 * 60 * 1000 && (
+           new Date(listing.created_at).getTime() > Date.now() - 14 * 24 * 60 * 60 * 1000 && (
               <p className="text-xs text-gray-400 mt-1">
                 Recently added
               </p>
