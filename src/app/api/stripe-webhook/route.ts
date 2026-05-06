@@ -123,7 +123,7 @@ export async function POST(req: Request) {
     // -------------------------
     const { data: listing, error: listingErr } = await supabase
       .from("listings")
-      .select("owner_id, transaction_type, title")
+      .select("owner_id, transaction_type, title, booking_mode")
       .eq("id", listing_id)
       .single();
 
@@ -235,7 +235,10 @@ export async function POST(req: Request) {
           booker_email: buyer_email,
           amount_paid: amountPaid,
           stripe_session_id: session.id,
-          status: "paid",
+          status: 
+            listing.booking_mode === "request"
+              ? "pending"
+              : "paid",
 
           // ✅ NEW — persist booking data
           start_date,
