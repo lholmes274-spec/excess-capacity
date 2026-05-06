@@ -672,6 +672,12 @@ const { data: overlappingBookings } = await query;
 
       {/* CHECKOUT BUTTON */}
 
+      {listing.booking_mode === "request" && (
+        <div className="mt-4 p-4 bg-yellow-50 border border-yellow-300 rounded-lg text-sm text-yellow-800">
+          Booking requests require provider confirmation after checkout.
+        </div>
+      )}
+
       {/* 🔥 NEW — Guest Info */}
       {!userId && (
         <div className="mt-6 space-y-3">
@@ -734,12 +740,19 @@ const { data: overlappingBookings } = await query;
          let buttonText = "";
          let buttonColor = "";
 
-         if (isForSale) {
-          buttonText = "Purchase Now";
-          buttonColor = "bg-green-600 hover:bg-green-700"
+                  if (isForSale) {
+           buttonText = "Purchase Now";
+           buttonColor = "bg-green-600 hover:bg-green-700"
          } else if (isService) {
-           buttonText = "Book Service";
+
+           if (listing.booking_mode === "request") {
+             buttonText = "Request Booking";
+           } else {
+             buttonText = "Book Service";
+           }
+
            buttonColor = "bg-purple-600 hover:bg-purple-700";
+
          } else {
            buttonText = "Reserve Now";
            buttonColor = "bg-blue-600 hover:bg-blue-700";
