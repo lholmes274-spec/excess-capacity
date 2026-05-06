@@ -133,11 +133,30 @@ export default function HomePage() {
         </div>
       </div>
 
-            {/* 🔥 SCROLLING CATEGORY MARQUEE */}
+       {/* 🔥 SCROLLING CATEGORY MARQUEE */}
       <div className="mt-12 overflow-hidden py-6 bg-gradient-to-r from-[#0f172a] via-[#142c45] to-[#0f172a]">
-        <div className="whitespace-nowrap animate-marquee flex gap-4">
+
+        <div className="flex animate-marquee min-w-max gap-4">
 
           {[
+            "Notary Services",
+            "Tool Rentals",
+            "Lawn Care",
+            "Beauty Services",
+            "Photography",
+            "Furniture Rentals",
+            "Moving Help",
+            "Electronics",
+            "Pressure Washing",
+            "Consultant Services",
+            "Storage Space",
+            "Hair Appointments",
+            "Event Services",
+            "Vehicle Rentals",
+            "Home Services",
+            "Equipment Rentals",
+
+            // DUPLICATE FOR LOOP
             "Notary Services",
             "Tool Rentals",
             "Lawn Care",
@@ -157,40 +176,14 @@ export default function HomePage() {
           ].map((item, index) => (
             <div
               key={index}
-              className="inline-flex items-center bg-white/10 border border-white/20 text-white px-6 py-3 rounded-full text-sm font-semibold backdrop-blur-md shadow-md"
+              className="flex-shrink-0 inline-flex items-center bg-white/10 border border-white/20 text-white px-6 py-3 rounded-full text-sm font-semibold backdrop-blur-md shadow-md"
             >
               {item}
             </div>
           ))}
 
-          {[
-            "Notary Services",
-            "Tool Rentals",
-            "Lawn Care",
-            "Beauty Services",
-            "Photography",
-            "Furniture Rentals",
-            "Moving Help",
-            "Electronics",
-            "Pressure Washing",
-            "Consultant Services",
-            "Storage Space",
-            "Hair Appointments",
-            "Event Services",
-            "Vehicle Rentals",
-            "Home Services",
-            "Equipment Rentals",
-          ].map((item, index) => (
-            <div
-              key={`duplicate-${index}`}
-              className="inline-flex items-center bg-white/10 border border-white/20 text-white px-6 py-3 rounded-full text-sm font-semibold backdrop-blur-md shadow-md"
-            >
-              {item}
-            </div>
-          ))}
         </div>
       </div>
-
 
       {/* PROVIDER OPPORTUNITY SECTION */}
       {!loadingUserData && (
