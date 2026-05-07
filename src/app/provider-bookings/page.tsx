@@ -72,64 +72,85 @@ export default function ProviderBookingsPage() {
             No bookings found.
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {bookings.map((booking) => (
               <Link
                 key={booking.id}
                 href={`/provider-bookings/${booking.id}`}
                 className="block"
               >
-                <div className="bg-white rounded-xl shadow p-5 hover:shadow-lg transition cursor-pointer border">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h2 className="text-lg font-semibold">
-                        {booking.listings?.title || "Booking Request"}
-                      </h2>
+                <div className="relative bg-white border border-gray-200 rounded-xl shadow hover:shadow-lg transition overflow-hidden">
 
-                      <p className="text-sm text-gray-500">
-                        {booking.user_email}
-                      </p>
+                  <img
+                    src={
+                      booking.listings?.image_urls?.[0] ||
+                      booking.listings?.image_url ||
+                      "/no-image.png"
+                    }
+                    alt={booking.listings?.title || "Booking"}
+                    className="w-full h-48 object-cover cursor-pointer"
+                  />
+
+                  <div className="p-4">
+
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <h2 className="text-lg font-semibold">
+                          {booking.listings?.title || "Booking Request"}
+                        </h2>
+
+                        <p className="text-sm text-gray-500">
+                          {booking.user_email}
+                        </p>
+                      </div>
+
+                      <span
+                        className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          booking.status === "pending"
+                            ? "bg-yellow-100 text-yellow-700"
+                            : booking.status === "confirmed"
+                            ? "bg-green-100 text-green-700"
+                            : booking.status === "cancelled"
+                            ? "bg-red-100 text-red-700"
+                            : "bg-gray-100 text-gray-700"
+                        }`}
+                      >
+                        {booking.status}
+                      </span>
                     </div>
 
-                    <span
-                      className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        booking.status === "pending"
-                          ? "bg-yellow-100 text-yellow-700"
-                          : booking.status === "confirmed"
-                          ? "bg-green-100 text-green-700"
-                          : booking.status === "cancelled"
-                          ? "bg-red-100 text-red-700"
-                          : "bg-gray-100 text-gray-700"
-                      }`}
-                    >
-                      {booking.status}
-                    </span>
-                  </div>
-
-                  <div className="text-sm text-gray-700 space-y-1">
-                    <p>
-                      <strong>Date:</strong>{" "}
-                      {booking.start_date || "N/A"}
-                    </p>
-
-                    {booking.time_slot && (
+                    <div className="text-sm text-gray-700 space-y-1">
                       <p>
-                        <strong>Time:</strong>{" "}
-                        {booking.time_slot}
+                        <strong>Date:</strong>{" "}
+                        {booking.start_date || "N/A"}
                       </p>
-                    )}
 
-                    <p>
-                      <strong>Total:</strong> $
-                      {booking.amount_paid || 0}
-                    </p>
+                      {booking.time_slot && (
+                        <p>
+                          <strong>Time:</strong>{" "}
+                          {booking.time_slot}
+                        </p>
+                      )}
 
-                    {booking.appointment_type && (
                       <p>
-                        <strong>Appointment:</strong>{" "}
-                        {booking.appointment_type}
+                        <strong>Total:</strong> $
+                        {booking.amount_paid || 0}
                       </p>
-                    )}
+
+                      {booking.appointment_type && (
+                        <p>
+                          <strong>Appointment:</strong>{" "}
+                          {booking.appointment_type}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex gap-2 mt-4 flex-wrap">
+                      <div className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium shadow">
+                        View Booking Details
+                      </div>
+                    </div>
+
                   </div>
                 </div>
               </Link>
