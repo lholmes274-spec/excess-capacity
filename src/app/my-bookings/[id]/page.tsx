@@ -441,8 +441,11 @@ export default function BookingDetailsPage() {
           </p>
         </div>
 
+       <div className="w-full max-w-full overflow-hidden bg-blue-50 border border-blue-200 p-4 rounded-lg">
         <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
-          <h3 className="font-semibold text-blue-700 mb-2">Customer Information</h3>
+          <h3 className="font-semibold text-blue-700 mb-2">
+            Customer Information
+          </h3>
 
           <p className="text-gray-700">
             <strong>Name:</strong> {booking.guest_name || "—"}
@@ -454,6 +457,7 @@ export default function BookingDetailsPage() {
             <strong>Phone:</strong> {booking.guest_phone || "—"}
           </p>
         </div>
+      </div>
 
         {/* 🔥 MESSAGE UI (BOTH SIDES) */}
         <div className="mt-4 space-y-2">
