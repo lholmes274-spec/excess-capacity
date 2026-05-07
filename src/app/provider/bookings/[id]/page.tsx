@@ -29,6 +29,7 @@ export default function ProviderBookingPage() {
 
   const [bookerProfile, setBookerProfile] = useState(null);
   const [providerProfile, setProviderProfile] = useState(null);
+  const [travelFee, setTravelFee] = useState("");
 
   useEffect(() => {
     if (!id) {
@@ -359,6 +360,38 @@ export default function ProviderBookingPage() {
       </div>
 
       <div className="bg-white border border-gray-200 rounded-xl shadow p-6 space-y-4">
+
+    {/* ✅ NEW — Travel Fee Request */}
+    {booking.appointment_type === "mobile" && (
+     <div className="border rounded-xl p-5 shadow-sm bg-orange-50 border-orange-200">
+       <h3 className="font-semibold text-orange-700 mb-3">
+          Mobile Travel Fee
+       </h3>
+
+        <p className="text-sm text-gray-700 mb-3">
+          Enter the mobile travel amount for this appointment.
+        </p>
+
+        <input
+          type="number"
+          placeholder="Enter travel fee"
+          value={travelFee}
+          onChange={(e) => setTravelFee(e.target.value)}
+          className="w-full border rounded-lg p-3 mb-3"
+        />
+
+        <button
+          onClick={() => {
+             alert(
+               `Travel payment request feature coming next. Amount entered: $${travelFee}`
+             );
+           }}
+           className="bg-orange-600 hover:bg-orange-700 text-white px-5 py-3 rounded-lg font-medium"
+         >
+           Request Travel Payment
+         </button>
+       </div>
+      )}
 
       {/* 👤 BOOKER */}
       <div className="border rounded-xl p-5 shadow-sm bg-white">
