@@ -1,0 +1,495 @@
+// @ts-nocheck
+"use client";
+export const dynamic = "force-dynamic";
+
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
+import { useParams } from "next/navigation";
+
+const formatTime = (time: string) => {
+  const [hour, minute] = time.split(":");
+  const h = Number(hour);
+  const suffix = h >= 12 ? "PM" : "AM";
+  const formattedHour = h % 12 || 12;
+  return `${formattedHour}:${minute} ${suffix}`;
+};
+
+export default function ProviderBookingPage() {
+  const params = useParams();
+  const id = Array.isArray(params?.id) ? params.id[0] : params?.id;
+  console.log("FINAL BOOKING ID:", id, typeof id);
+
+  const [booking, setBooking] = useState(null);
+  const [listing, setListing] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState("");
+  const [user, setUser] = useState(null);
+
+  const [bookerProfile, setBookerProfile] = useState(null);
+  const [providerProfile, setProviderProfile] = useState(null);
+  const [travelFee, setTravelFee] = useState("");
+
+  useEffect(() => {
+    if (!id) {
+      console.log("ID NOT READY YET");
+      return;
+    }
+
+      async function load() {
+      console.log("LOADING BOOKING WITH ID:", id);
+
+      // USER
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      console.log("USER:", user);
+
+      if (!user) {
+        console.log("NO USER FOUND");
+        return;
+      }
+
+      setUser(user);
+
+      // BOOKING
+      const { data: bookingData, error: bookingError } = await supabase
+        .from("bookings")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
+
+      console.log("BOOKING RESULT:", bookingData, bookingError);
+
+      if (!bookingData) {
+       console.log("BOOKING NOT FOUND IN DB");
+       setBooking(null);
+       return;
+      }
+
+      setBooking(bookingData);
+
+      // LISTING
+      const { data: listingData, error: listingError } = await supabase
+        .from("listings")
+        .select("*")
+        .eq("id", bookingData.listing_id)
+        .maybeSingle();
+
+      console.log("LISTING RESULT:", listingData, listingError);
+
+      setListing(listingData);
+      setSelectedImage(listingData?.image_url);
+
+      // 👤 BOOKER PROFILE
+      if (bookingData.user_id) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", bookingData.user_id)
+          .single();
+
+        setBookerProfile(data);
+      }
+
+      // 🏢 PROVIDER PROFILE
+      if (listingData?.owner_id) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", listingData.owner_id)
+          .single();
+
+        setProviderProfile(data);
+      }
+
+      // 💬 MESSAGES
+      const { data: msgs } = await supabase
+        .from("inquiries")
+        .select("*")
+        .eq("listing_id", bookingData.listing_id)
+        .eq("hidden_by_lister", false)
+        .or(`
+          sender_id.eq.${user?.id},
+          receiver_id.eq.${user?.id},
+          sender_email.eq.${user?.email},
+          receiver_email.eq.${user?.email}
+     `)
+        .order("created_at", { ascending: true });
+
+      setMessages(msgs || []);
+    }
+
+    load();
+  }, [id]);
+
+  async function sendMessage() {
+    if (!newMessage.trim() || !booking || !user || !listing) return;
+
+    const isProvider = user.id === listing.owner_id;
+
+    let receiverId = null;
+    let receiverEmail = null; //
+     
+    if (isProvider) {
+      // provider replying → send to booker
+
+      if (bookerProfile?.id) {
+        receiverId = bookerProfile.id;
+        receiverEmail = bookerProfile.email;
+      
+      } else if (booking.user_id) {
+        receiverId = booking.user_id;
+      
+      } else if (booking.guest_email) {
+        receiverEmail = booking.guest_email;
+      }
+
+    } else {
+      // booker sending → send to provider
+      receiverId = listing.owner_id;
+      receiverEmail = providerProfile?.email;
+    }
+
+    console.log("SENDING MESSAGE:", {
+      sender: user.id,
+      receiver: receiverId,
+      bookingUser: booking.user_id,
+      owner: listing.owner_id,
+    });
+
+    // ✅ INSERT MESSAGE
+    const { error } = await supabase.from("inquiries").insert([
+      {
+        listing_id: booking.listing_id,
+        sender_id: user.id,
+        sender_email: user.email, 
+        receiver_id: receiverId,
+        receiver_email: receiverEmail, 
+        message: newMessage,
+      },
+    ]);
+
+      if (!error) {
+        console.log("📧 SENDING EMAIL TO:", receiverEmail);
+
+      if (receiverEmail && receiverEmail !== user.email) {
+        await fetch("/api/message-notification", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+         },
+         body: JSON.stringify({
+           receiver_id: receiverId,
+           receiver_email: receiverEmail,
+           booking_id: booking.id,
+        }),
+      });
+    }
+
+      // ❌ DO NOT EMAIL YOURSELF
+      if (receiverEmail && receiverEmail !== user.email) {
+        await fetch("/api/message-notification", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            receiver_id: receiverId,
+            receiver_email: receiverEmail,
+            booking_id: booking.id,
+          }),
+        });
+      }
+
+      // CLEAR INPUT
+      setNewMessage("");
+
+      // REFRESH MESSAGES
+      const { data: msgs } = await supabase
+        .from("inquiries")
+        .select("*")
+        .eq("listing_id", booking.listing_id)
+        .or(`
+          sender_id.eq.${user.id},
+          receiver_id.eq.${user.id},
+          sender_email.eq.${user.email},
+          receiver_email.eq.${user.email}
+      `)
+        .order("created_at", { ascending: true });
+
+      setMessages(msgs || []);
+    }
+  }
+  
+  if (!booking || !listing) return <p>Loading...</p>;
+
+  const images = listing.image_urls || [listing.image_url];
+
+  return (
+    <div className="max-w-4xl mx-auto p-6 space-y-8">
+
+      {/* 🖼️ IMAGE GALLERY */}
+      <div>
+        {selectedImage && (
+          <img
+            src={selectedImage}
+            className="w-full h-[350px] object-cover rounded-xl"
+          />
+        )}
+
+        <div className="flex gap-2 mt-3">
+          {images.map((img, i) => (
+            <img
+              key={i}
+              src={img}
+              onClick={() => setSelectedImage(img)}
+              className="w-20 h-20 object-cover rounded-lg cursor-pointer border"
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* 🧾 LISTING DETAILS */}
+      <div className="space-y-2">
+        <h1 className="text-2xl font-bold text-orange-700">
+          {listing.title}
+        </h1>
+
+        <p className="text-gray-700 text-sm">
+          {listing.description}
+        </p>
+
+        <p className="text-sm text-gray-500">
+          Location: {listing.city}, {listing.state}
+        </p>
+
+        <p className="text-2xl font-bold text-green-600">
+          ${listing.baseprice}
+        </p>
+      </div>
+
+      {/* 📦 BOOKING */}
+      <div className="border rounded-xl p-5 shadow-sm bg-white">
+        <h2 className="font-semibold text-lg mb-2">Booking Summary</h2>
+
+        <p>Status: <span className="font-medium">{booking.status}</span></p>
+
+        {/* ✅ NEW — Appointment Type */}
+        <p>
+          Appointment Type:{" "}
+          <span
+            className={`font-medium ${
+              booking.appointment_type === "mobile"
+                ? "text-orange-600"
+                : "text-blue-600"
+            }`}
+          >
+            {booking.appointment_type === "mobile"
+              ? "Mobile Service"
+              : "Office Visit"}
+          </span>
+        </p>
+
+        <p>
+          Total:{" "}
+          <span className="font-medium">
+            ${booking.final_amount || listing.baseprice}
+          </span>
+        </p>
+
+        {booking.start_date && (
+         <p>
+           Scheduled:{" "}
+           {new Date(booking.start_date + "T00:00:00").toLocaleDateString()}
+
+           {booking.time_slot && (
+             <> at {formatTime(booking.time_slot)}</>
+          )}
+        </p>
+      )}
+
+      {/* ✅ NEW — Mobile Service Notice */}
+      {booking.appointment_type === "mobile" && (
+        <div className="mt-4 p-4 bg-orange-50 border border-orange-200 rounded-xl">
+          <p className="font-semibold text-orange-700">
+            Mobile Service Request
+          </p>
+
+          <p className="text-sm text-orange-600 mt-1">
+            Customer requested provider travel. Travel fees may apply.
+          </p>
+        </div>
+      )}
+
+        {/* 🔥 ONLY CHANGE ADDED */}
+        <button
+          onClick={async () => {
+            const newValue = !booking.archived_by_provider;
+
+            const { error: bookingError } = await supabase
+              .from("bookings")
+              .update({
+                archived_by_provider: newValue,
+              })
+              .eq("id", booking.id);
+
+            const { error: messageError } = await supabase
+              .from("inquiries")
+              .update({
+                hidden_by_lister: newValue,
+              })
+              .eq("listing_id", booking.listing_id);
+
+            if (!bookingError && !messageError) {
+              setBooking({
+                ...booking,
+                 archived_by_provider: newValue,
+              });
+            } else {
+              console.error("Archive error:", bookingError || messageError);
+              alert("Failed to update archive status");
+            }
+          }}
+          className="mt-4 px-4 py-2 rounded-lg text-sm font-medium shadow bg-gray-200 hover:bg-gray-300"
+        >
+          {booking.archived_by_provider ? "Unarchive" : "Archive"}
+        </button>
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-xl shadow p-6 space-y-4">
+
+    {/* ✅ NEW — Travel Fee Request */}
+    {booking.appointment_type === "mobile" && (
+     <div className="border rounded-xl p-5 shadow-sm bg-orange-50 border-orange-200">
+       <h3 className="font-semibold text-orange-700 mb-3">
+          Mobile Travel Fee
+       </h3>
+
+        <p className="text-sm text-gray-700 mb-3">
+          Enter the mobile travel amount for this appointment.
+        </p>
+
+        <input
+          type="number"
+          placeholder="Enter travel fee"
+          value={travelFee}
+          onChange={(e) => setTravelFee(e.target.value)}
+          className="w-full border rounded-lg p-3 mb-3"
+        />
+
+      <button
+        onClick={async () => {
+
+          if (!travelFee || Number(travelFee) <= 0) {
+             alert("Please enter a valid travel fee.");
+             return;
+          }
+
+          try {
+            const response = await fetch(
+              "/api/create-travel-payment-session",
+              {
+                 method: "POST",
+                 headers: {
+                    "Content-Type": "application/json",
+                 },
+                 body: JSON.stringify({
+                    booking_id: booking.id,
+                    amount: Number(travelFee),
+                 }),
+                }
+              );
+
+              const data = await response.json();
+
+              if (!response.ok) {
+                alert(data.error || "Failed to create travel payment.");
+                return;
+              }
+
+              if (data.url) {
+                window.open(data.url, "_blank");
+              }
+
+            } catch (err) {
+              console.error(err);
+              alert("Something went wrong.");
+            }
+          }}
+           className="bg-orange-600 hover:bg-orange-700 text-white px-5 py-3 rounded-lg font-medium"
+         >
+           Request Travel Payment
+         </button>
+       </div>
+      )}
+
+      {/* 👤 BOOKER */}
+      <div className="border rounded-xl p-5 shadow-sm bg-white">
+        <h3 className="font-semibold mb-2">Customer Information</h3>
+
+        <p>
+          <strong>Name:</strong>{" "}
+          {booking.guest_name || bookerProfile?.display_name || "—"}
+        </p>
+
+        <p>
+          <strong>Email:</strong>{" "}
+          {booking.guest_email || booking.user_email || "—"}
+        </p>
+
+        <p>
+          <strong>Phone:</strong>{" "}
+          {booking.guest_phone || "—"}
+        </p>
+      </div>
+
+      {/* 💬 CHAT */}
+      <div className="border rounded-xl p-5 shadow-sm bg-white">
+        <h2 className="font-semibold text-lg mb-4">Conversation</h2>
+
+      {/* 🏢 PROVIDER */}
+      <div className="border rounded-xl p-5 shadow-sm bg-white">
+        <h3 className="font-semibold mb-2">Provider</h3>
+        <p>{providerProfile?.display_name || "Provider"}</p>
+        <p className="text-sm text-gray-500">{providerProfile?.email}</p>
+      </div>
+
+    </div>
+
+        <div className="space-y-3 max-h-64 overflow-y-auto mb-4">
+          {messages.map((msg) => (
+            <div
+              key={msg.id}
+              className={`max-w-xs p-3 rounded-xl text-sm ${
+                msg.sender_id === user?.id
+                  ? "bg-blue-600 text-white ml-auto"
+                  : "bg-gray-100"
+              }`}
+            >
+              {msg.message}
+            </div>
+          ))}
+        </div>
+
+        <div className="flex gap-2">
+          <input
+            className="border p-3 flex-1 rounded-lg"
+            placeholder="Type your message..."
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+          />
+
+          <button
+            onClick={sendMessage}
+            className="bg-blue-600 text-white px-5 rounded-lg"
+          >
+            Send
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
