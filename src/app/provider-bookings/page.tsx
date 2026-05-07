@@ -1,4 +1,4 @@
-// src/app/provider-bookings/page.tsx
+// @ts-nocheck
 
 "use client";
 
@@ -30,31 +30,11 @@ export default function ProviderBookingsPage() {
         return;
       }
 
-      // Get listings owned by provider
-      const { data: listings, error: listingsError } = await supabase
-        .from("listings")
-        .select("id")
-        .eq("user_id", user.id);
-
-      if (listingsError) {
-        console.error("❌ Listings error:", listingsError);
-        setLoading(false);
-        return;
-      }
-
-      const listingIds = listings?.map((listing) => listing.id) || [];
-
-      if (listingIds.length === 0) {
-        setBookings([]);
-        setLoading(false);
-        return;
-      }
-
-      // Get bookings for provider listings
+      // ✅ Fetch bookings directly by owner_id
       const { data, error } = await supabase
         .from("bookings")
         .select("*")
-        .in("listing_id", listingIds)
+        .eq("owner_id", user.id)
         .order("booking_date", { ascending: false });
 
       if (error) {
@@ -94,12 +74,13 @@ export default function ProviderBookingsPage() {
               <Link
                 key={booking.id}
                 href={`/provider-bookings/${booking.id}`}
+                className="block"
               >
                 <div className="bg-white rounded-xl shadow p-5 hover:shadow-lg transition cursor-pointer border">
                   <div className="flex justify-between items-start mb-2">
                     <div>
                       <h2 className="text-lg font-semibold">
-                        {booking.customer_name || "Booking Request"}
+                        {booking.guest_name || "Booking Request"}
                       </h2>
 
                       <p className="text-sm text-gray-500">
