@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 
 const formatTime = (time: string) => {
@@ -14,481 +15,715 @@ const formatTime = (time: string) => {
   return `${formattedHour}:${minute} ${suffix}`;
 };
 
-export default function ProviderBookingPage() {
+export default function BookingDetailsPage() {
   const params = useParams();
-  const id = Array.isArray(params?.id) ? params.id[0] : params?.id;
-  console.log("FINAL BOOKING ID:", id, typeof id);
+  const rawId = Array.isArray(params?.id) ? params.id[0] : params?.id;
+  const id = rawId ? String(rawId) : null;
+
+  if (!id) {
+    console.error("❌ Missing booking ID");
+  }
 
   const [booking, setBooking] = useState(null);
   const [listing, setListing] = useState(null);
-  const [selectedImage, setSelectedImage] = useState(null);
 
-  const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState("");
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [messages, setMessages] = useState([]);
 
-  const [bookerProfile, setBookerProfile] = useState(null);
-  const [providerProfile, setProviderProfile] = useState(null);
-  const [travelFee, setTravelFee] = useState("");
+  const [selectedMessages, setSelectedMessages] = useState([]);
+
+  const [showArchived, setShowArchived] = useState(false);
 
   useEffect(() => {
-    if (!id) {
-      console.log("ID NOT READY YET");
-      return;
-    }
-
-      async function load() {
-      console.log("LOADING BOOKING WITH ID:", id);
-
-      // USER
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      console.log("USER:", user);
-
-      if (!user) {
-        console.log("NO USER FOUND");
+    async function load() {
+      if (!id) {
+        setLoading(false);
         return;
       }
 
-      setUser(user);
+      const { data: userData } = await supabase.auth.getUser();
+      const loggedInUser = userData?.user || null;
 
-      // BOOKING
-      const { data: bookingData, error: bookingError } = await supabase
+      setUser(loggedInUser);
+
+      // 1️⃣ Get booking 
+      let { data: bookingData, error } = await supabase
         .from("bookings")
         .select("*")
         .eq("id", id)
         .maybeSingle();
 
-      console.log("BOOKING RESULT:", bookingData, bookingError);
+      console.log("Fetched booking:", bookingData);
 
       if (!bookingData) {
-       console.log("BOOKING NOT FOUND IN DB");
-       setBooking(null);
-       return;
+        console.log("🔁 Retrying booking fetch...");
+
+        await new Promise((res) => setTimeout(res, 500));
+
+        const { data: retryData } = await supabase
+           .from("bookings")
+           .select("*")
+           .eq("id", id)
+          .maybeSingle();
+
+        bookingData = retryData;
       }
 
-      setBooking(bookingData);
+      console.log("Final booking:", bookingData);
 
-      // LISTING
-      const { data: listingData, error: listingError } = await supabase
+      if (!bookingData) {
+        console.warn("No booking found");
+        setBooking(null);
+        setLoading(false);
+        return;
+    }
+
+      // 2️⃣ Get listing 
+      const { data: listingData } = await supabase
         .from("listings")
         .select("*")
         .eq("id", bookingData.listing_id)
-        .maybeSingle();
+        .single();
 
-      console.log("LISTING RESULT:", listingData, listingError);
+      // ⭐ SECURITY CHECK
+      const buyerId = bookingData.user_id;
+      const buyerEmail = 
+        bookingData.guest_email ||
+        bookingData.user_email ||
+        bookingData.email ||
+        null;
 
+      const isLoggedInBuyer =
+        loggedInUser?.id && buyerId === loggedInUser.id;
+
+      const isLoggedInEmailMatch =
+        loggedInUser?.email &&
+        buyerEmail &&
+        loggedInUser.email.toLowerCase().trim() === buyerEmail.toLowerCase().trim();
+
+      const isGuestEmailMatch =
+        !loggedInUser && typeof window !== "undefined"
+          ? localStorage.getItem("guest_email") === buyerEmail
+          : false;
+
+      // ✅ FINAL ACCESS RULE
+      const isOwner = loggedInUser?.id === bookingData.owner_id;
+      console.log("loggedInUser email:", loggedInUser?.email);
+      console.log("buyerEmail:", buyerEmail);
+      console.log("isLoggedInEmailMatch:", isLoggedInEmailMatch);
+      if (!bookingData) {
+        console.warn("Booking not found");
+        setBooking(null);
+        setLoading(false);
+        return;
+      }
+
+      // ✅ ONLY SET STATE AFTER PASSING SECURITY
+      setBooking(bookingData);
       setListing(listingData);
-      setSelectedImage(listingData?.image_url);
 
-      // 👤 BOOKER PROFILE
-      if (bookingData.user_id) {
-        const { data } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", bookingData.user_id)
-          .single();
-
-        setBookerProfile(data);
+      if (!loggedInUser && buyerEmail) {
+        localStorage.setItem("guest_email", buyerEmail);
       }
-
-      // 🏢 PROVIDER PROFILE
-      if (listingData?.owner_id) {
-        const { data } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", listingData.owner_id)
-          .single();
-
-        setProviderProfile(data);
-      }
-
-      // 💬 MESSAGES
-      const { data: msgs } = await supabase
-        .from("inquiries")
-        .select("*")
-        .eq("listing_id", bookingData.listing_id)
-        .eq("hidden_by_lister", false)
-        .or(`
-          sender_id.eq.${user?.id},
-          receiver_id.eq.${user?.id},
-          sender_email.eq.${user?.email},
-          receiver_email.eq.${user?.email}
-     `)
-        .order("created_at", { ascending: true });
-
-      setMessages(msgs || []);
+      setLoading(false);
     }
 
     load();
   }, [id]);
 
-  async function sendMessage() {
-    if (!newMessage.trim() || !booking || !user || !listing) return;
-
-    const isProvider = user.id === listing.owner_id;
-
-    let receiverId = null;
-    let receiverEmail = null; //
-     
-    if (isProvider) {
-      // provider replying → send to booker
-
-      if (bookerProfile?.id) {
-        receiverId = bookerProfile.id;
-        receiverEmail = bookerProfile.email;
-      
-      } else if (booking.user_id) {
-        receiverId = booking.user_id;
-      
-      } else if (booking.guest_email) {
-        receiverEmail = booking.guest_email;
-      }
-
-    } else {
-      // booker sending → send to provider
-      receiverId = listing.owner_id;
-      receiverEmail = providerProfile?.email;
-    }
-
-    console.log("SENDING MESSAGE:", {
-      sender: user.id,
-      receiver: receiverId,
-      bookingUser: booking.user_id,
-      owner: listing.owner_id,
-    });
-
-    // ✅ INSERT MESSAGE
-    const { error } = await supabase.from("inquiries").insert([
-      {
-        listing_id: booking.listing_id,
-        sender_id: user.id,
-        sender_email: user.email, 
-        receiver_id: receiverId,
-        receiver_email: receiverEmail, 
-        message: newMessage,
-      },
-    ]);
-
-      if (!error) {
-        console.log("📧 SENDING EMAIL TO:", receiverEmail);
-
-      if (receiverEmail && receiverEmail !== user.email) {
-        await fetch("/api/message-notification", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-         },
-         body: JSON.stringify({
-           receiver_id: receiverId,
-           receiver_email: receiverEmail,
-           booking_id: booking.id,
-        }),
-      });
-    }
-
-      // ❌ DO NOT EMAIL YOURSELF
-      if (receiverEmail && receiverEmail !== user.email) {
-        await fetch("/api/message-notification", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            receiver_id: receiverId,
-            receiver_email: receiverEmail,
-            booking_id: booking.id,
-          }),
-        });
-      }
-
-      // CLEAR INPUT
-      setNewMessage("");
-
-      // REFRESH MESSAGES
-      const { data: msgs } = await supabase
+  useEffect(() => {
+    if (!booking?.listing_id) return;
+    
+    async function loadMessages() {
+      const { data, error } = await supabase
         .from("inquiries")
         .select("*")
-        .eq("listing_id", booking.listing_id)
-        .or(`
-          sender_id.eq.${user.id},
-          receiver_id.eq.${user.id},
-          sender_email.eq.${user.email},
-          receiver_email.eq.${user.email}
-      `)
-        .order("created_at", { ascending: true });
+        .order("created_at", { ascending: false });
 
-      setMessages(msgs || []);
+      if (error) {
+        console.error("❌ Message fetch error:", error);
+        return;
+      }
+
+      const listingId = booking?.listing_id || booking?.listings?.id;
+
+      const filtered = (data || []).filter((msg) => {       
+        if (msg.listing_id !== listingId) return false;
+
+        if (showArchived) {
+          return msg.archived_by_booker === true;
+        } else {
+          return msg.archived_by_booker !== true;
+        }
+      });
+
+      setMessages(filtered);
     }
-  }
-  
-  if (!booking || !listing) return <p>Loading...</p>;
+    loadMessages();
 
-  const images = listing.image_urls || [listing.image_url];
+    const channel = supabase
+      .channel("inquiries-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "inquiries",
+        },
+        () => {
+          loadMessages();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [booking, showArchived]);
+
+  if (loading)
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-600">Loading booking details...</p>
+      </div>
+    );
+
+  if (!booking)
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
+        <p className="text-red-600 text-xl font-semibold mb-4">
+          Order not found or access denied.
+        </p>
+        <Link
+          href="/my-bookings"
+          className="px-6 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
+        >
+          Back to My Orders
+        </Link>
+      </div>
+    );
+
+  const thumbnail =
+    listing?.image_urls?.[0] || listing?.image_url || "/no-image.png";
+
+  const isPurchase = listing?.pricing_type === "for_sale";
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-8">
+    <div className="container mx-auto px-6 py-10 max-w-3xl">
+      <h1 className="text-3xl font-bold mb-6 text-center">
+        {isPurchase ? "Order Details" : "Booking Details"}
+      </h1>
 
-      {/* 🖼️ IMAGE GALLERY */}
-      <div>
-        {selectedImage && (
-          <img
-            src={selectedImage}
-            className="w-full h-[350px] object-cover rounded-xl"
-          />
-        )}
+      <img
+        src={thumbnail}
+        className="w-full h-64 object-cover rounded-lg shadow mb-6"
+      />
 
-        <div className="flex gap-2 mt-3">
-          {images.map((img, i) => (
-            <img
-              key={i}
-              src={img}
-              onClick={() => setSelectedImage(img)}
-              className="w-20 h-20 object-cover rounded-lg cursor-pointer border"
-            />
-          ))}
-        </div>
-      </div>
+      <h2 className="text-2xl font-semibold mb-2 text-orange-700">
+        {listing?.title}
+      </h2>
 
-      {/* 🧾 LISTING DETAILS */}
-      <div className="space-y-2">
-        <h1 className="text-2xl font-bold text-orange-700">
-          {listing.title}
-        </h1>
-
-        <p className="text-gray-700 text-sm">
-          {listing.description}
-        </p>
-
-        <p className="text-sm text-gray-500">
-          Location: {listing.city}, {listing.state}
-        </p>
-
-        <p className="text-2xl font-bold text-green-600">
-          ${listing.baseprice}
-        </p>
-      </div>
-
-      {/* 📦 BOOKING */}
-      <div className="border rounded-xl p-5 shadow-sm bg-white">
-        <h2 className="font-semibold text-lg mb-2">Booking Summary</h2>
-
-        <p>Status: <span className="font-medium">{booking.status}</span></p>
-
-        {/* ✅ NEW — Appointment Type */}
-        <p>
-          Appointment Type:{" "}
-          <span
-            className={`font-medium ${
-              booking.appointment_type === "mobile"
-                ? "text-orange-600"
-                : "text-blue-600"
-            }`}
-          >
-            {booking.appointment_type === "mobile"
-              ? "Mobile Service"
-              : "Office Visit"}
-          </span>
-        </p>
-
-        <p>
-          Total:{" "}
-          <span className="font-medium">
-            ${booking.final_amount || listing.baseprice}
-          </span>
-        </p>
-
-        {booking.start_date && (
-         <p>
-           Scheduled:{" "}
-           {new Date(booking.start_date + "T00:00:00").toLocaleDateString()}
-
-           {booking.time_slot && (
-             <> at {formatTime(booking.time_slot)}</>
-          )}
-        </p>
-      )}
-
-      {/* ✅ NEW — Mobile Service Notice */}
-      {booking.appointment_type === "mobile" && (
-        <div className="mt-4 p-4 bg-orange-50 border border-orange-200 rounded-xl">
-          <p className="font-semibold text-orange-700">
-            Mobile Service Request
-          </p>
-
-          <p className="text-sm text-orange-600 mt-1">
-            Customer requested provider travel. Travel fees may apply.
-          </p>
-        </div>
-      )}
-
-        {/* 🔥 ONLY CHANGE ADDED */}
-        <button
-          onClick={async () => {
-            const newValue = !booking.archived_by_provider;
-
-            const { error: bookingError } = await supabase
-              .from("bookings")
-              .update({
-                archived_by_provider: newValue,
-              })
-              .eq("id", booking.id);
-
-            const { error: messageError } = await supabase
-              .from("inquiries")
-              .update({
-                hidden_by_lister: newValue,
-              })
-              .eq("listing_id", booking.listing_id);
-
-            if (!bookingError && !messageError) {
-              setBooking({
-                ...booking,
-                 archived_by_provider: newValue,
-              });
-            } else {
-              console.error("Archive error:", bookingError || messageError);
-              alert("Failed to update archive status");
-            }
-          }}
-          className="mt-4 px-4 py-2 rounded-lg text-sm font-medium shadow bg-gray-200 hover:bg-gray-300"
-        >
-          {booking.archived_by_provider ? "Unarchive" : "Archive"}
-        </button>
-      </div>
+      <p className="text-gray-600 mb-4">{listing?.description}</p>
 
       <div className="bg-white border border-gray-200 rounded-xl shadow p-6 space-y-4">
-
-    {/* ✅ NEW — Travel Fee Request */}
-    {booking.appointment_type === "mobile" && (
-     <div className="border rounded-xl p-5 shadow-sm bg-orange-50 border-orange-200">
-       <h3 className="font-semibold text-orange-700 mb-3">
-          Mobile Travel Fee
-       </h3>
-
-        <p className="text-sm text-gray-700 mb-3">
-          Enter the mobile travel amount for this appointment.
+        <p>
+          <strong>Status:</strong>{" "}
+          <span className="capitalize">{booking.status}</span>
         </p>
 
-        <input
-          type="number"
-          placeholder="Enter travel fee"
-          value={travelFee}
-          onChange={(e) => setTravelFee(e.target.value)}
-          className="w-full border rounded-lg p-3 mb-3"
-        />
+        {booking.appointment_type && (
+       <p>
+         <strong>Appointment Type:</strong>{" "}
+         <span className="capitalize">
+           {booking.appointment_type}
+         </span>
+      </p>
+   )}
 
-      <button
-        onClick={async () => {
+        {/* ✅ PROVIDER ACTIONS */}
+        {user?.id === booking.owner_id &&
+          booking.status === "pending" && (
+           <div className="flex gap-3 mt-4">
+    
+             <button
+               onClick={async () => {
+                 const confirmed = confirm(
+                   "Accept this booking request?"
+                 );
 
-          if (!travelFee || Number(travelFee) <= 0) {
-             alert("Please enter a valid travel fee.");
-             return;
-          }
+                if (!confirmed) return;
 
-          try {
-            const response = await fetch(
-              "/api/create-travel-payment-session",
-              {
+                const { error } = await supabase
+                 .from("bookings")
+                 .update({
+                   status: "confirmed",
+                })
+                .eq("id", booking.id);
+
+                if (error) {
+                 alert("Failed to accept booking.");
+                 return;
+                }
+
+                setBooking((prev) => ({
+                 ...prev,
+                 status: "confirmed",
+               }));
+
+               await fetch("/api/message-notification", {
                  method: "POST",
                  headers: {
-                    "Content-Type": "application/json",
+                   "Content-Type": "application/json",
                  },
                  body: JSON.stringify({
-                    booking_id: booking.id,
-                    amount: Number(travelFee),
+                  booking_id: booking.id,
+                  receiver_email:
+                    booking.guest_email ||
+                    booking.user_email ||
+                    booking.booker_email,
                  }),
-                }
-              );
+              });
 
-              const data = await response.json();
+               alert("Booking confirmed successfully!");
+            }}
+            className="flex-1 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition"
+          >
+            Accept Booking
+          </button>
 
-              if (!response.ok) {
-                alert(data.error || "Failed to create travel payment.");
+          <button
+            onClick={async () => {
+              const confirmed = confirm(
+                "Decline this booking request?"
+             );
+
+             if (!confirmed) return;
+
+             const { error } = await supabase
+               .from("bookings")
+               .update({
+                 status: "declined",
+               })
+               .eq("id", booking.id);
+
+             if (error) {
+              alert("Failed to decline booking.");
+              return;
+             }
+
+             setBooking((prev) => ({
+              ...prev,
+              status: "declined",
+             }));
+
+             alert("Booking declined.");
+           }}
+           className="flex-1 bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition"
+         >
+           Decline Booking
+         </button>
+
+       </div>
+    )}
+
+        <p>
+          <strong>Amount Paid:</strong> ${booking.amount_paid}
+        </p>
+
+        {booking.start_date && booking.start_date !== "" ? (
+          <>
+           <p>
+            <strong>Start:</strong>{" "}
+            {new Date(booking.start_date + "T00:00:00").toLocaleDateString()}
+
+             {booking.time_slot && (
+                <> at {formatTime(booking.time_slot)}</>
+             )}
+           </p>
+
+           <p>
+            <strong>End:</strong>{" "}
+            {new Date(booking.end_date + "T00:00:00").toLocaleDateString()}
+
+            {booking.end_time && (
+              <> at {formatTime(booking.end_time)}</>
+            )}
+           </p>
+          </>
+       ) : (
+        <p className="text-orange-600 font-medium">
+          ⏳ Schedule: To be confirmed with provider
+        </p>
+      )}
+
+        {booking.status !== "cancelled" && (
+          <button
+            onClick={async () => {
+              const confirmCancel = confirm("Are you sure you want to cancel this booking?");
+              if (!confirmCancel) return;
+
+              const res = await fetch("/api/cancel-booking", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                   bookingId: booking.id,
+                }),
+              });
+
+              const data = await res.json();
+
+              if (!res.ok) {
+                alert("Failed to cancel booking.");
+                console.error(data);
                 return;
               }
 
-              if (data.url) {
-                window.open(data.url, "_blank");
-              }
+              alert("Booking cancelled successfully!");
 
-            } catch (err) {
-              console.error(err);
-              alert("Something went wrong.");
-            }
-          }}
-           className="bg-orange-600 hover:bg-orange-700 text-white px-5 py-3 rounded-lg font-medium"
-         >
-           Request Travel Payment
-         </button>
-       </div>
-      )}
+              // 🔥 Update UI instantly
+              setBooking((prev) => ({
+                ...prev,
+                status: "cancelled",
+              }));
+            }}
+             className="mt-4 w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition"
+          >
+             Cancel Booking
+          </button>
+        )}
 
-      {/* 👤 BOOKER */}
-      <div className="border rounded-xl p-5 shadow-sm bg-white">
-        <h3 className="font-semibold mb-2">Customer Information</h3>
+        {!isPurchase && booking.days != null && (
+          <p>
+            <strong>Duration:</strong>{" "}
+             {booking.days}{" "}
+             {listing?.pricing_type === "per_night" ? "nights" : "days"}
+          </p>
+       )}        
 
-        <p>
-          <strong>Name:</strong>{" "}
-          {booking.guest_name || bookerProfile?.display_name || "—"}
-        </p>
+         {!isPurchase && (
+          <p>
+            <strong>Booking Created:</strong>{" "}
+            {new Intl.DateTimeFormat("en-US", {
+              year: "numeric",
+              month: "numeric",
+              day: "numeric",
+              hour: "numeric",
+              minute: "2-digit",
+            }).format(new Date(booking.booking_date))}
+          </p>
+       )}
 
-        <p>
-          <strong>Email:</strong>{" "}
-          {booking.guest_email || booking.user_email || "—"}
-        </p>
+        <hr />
 
-        <p>
-          <strong>Phone:</strong>{" "}
-          {booking.guest_phone || "—"}
-        </p>
-      </div>
+        {listing?.pickup_instructions && (
+          <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
+            <h3 className="font-semibold text-yellow-700 mb-2">
+              Pickup Instructions
+            </h3>
+            <p className="text-gray-700 whitespace-pre-line">
+              {listing.pickup_instructions}
+            </p>
+          </div>
+        )}
 
-      {/* 💬 CHAT */}
-      <div className="border rounded-xl p-5 shadow-sm bg-white">
-        <h2 className="font-semibold text-lg mb-4">Conversation</h2>
+        {listing?.private_instructions && (
+          <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+            <h3 className="font-semibold text-green-700 mb-2">
+              Private Instructions
+            </h3>
+            <p className="text-gray-700 whitespace-pre-line">
+              {listing.private_instructions}
+            </p>
+          </div>
+        )}
 
-      {/* 🏢 PROVIDER */}
-      <div className="border rounded-xl p-5 shadow-sm bg-white">
-        <h3 className="font-semibold mb-2">Provider</h3>
-        <p>{providerProfile?.display_name || "Provider"}</p>
-        <p className="text-sm text-gray-500">{providerProfile?.email}</p>
-      </div>
-
-    </div>
-
-        <div className="space-y-3 max-h-64 overflow-y-auto mb-4">
-          {messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`max-w-xs p-3 rounded-xl text-sm ${
-                msg.sender_id === user?.id
-                  ? "bg-blue-600 text-white ml-auto"
-                  : "bg-gray-100"
-              }`}
-            >
-              {msg.message}
-            </div>
-          ))}
+        <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg">
+          <h3 className="font-semibold text-gray-800 mb-2">Address</h3>
+          <p className="text-gray-700">
+            {listing.address_line1}
+            <br />
+            {listing.address_line2 && <>{listing.address_line2}<br /></>}
+            {listing.city}, {listing.state} {listing.zip}
+          </p>
         </div>
 
-        <div className="flex gap-2">
-          <input
-            className="border p-3 flex-1 rounded-lg"
+       <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg w-full overflow-hidden">
+          <h3 className="font-semibold text-blue-700 mb-2">
+            Customer Information
+          </h3>
+
+          <div className="space-y-2 text-gray-700">
+          <p className="break-all">
+            <strong>Name:</strong> {booking.guest_name || "—"}
+          </p>
+
+         <div className="text-gray-700">
+           <strong>Email:</strong>
+
+           <div className="break-all w-full">
+             {booking.guest_email || booking.user_email || "—"}
+           </div>
+         </div>
+
+          <p className="text-gray-700">
+            <strong>Phone:</strong> {booking.guest_phone || "—"}
+          </p>
+        </div>
+      </div>
+
+        {/* 🔥 MESSAGE UI (BOTH SIDES) */}
+        <div className="mt-4 space-y-2">
+          <textarea
             placeholder="Type your message..."
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
+            className="w-full border p-3 rounded-lg"
+            id="messageBox"
           />
 
           <button
-            onClick={sendMessage}
-            className="bg-blue-600 text-white px-5 rounded-lg"
+            onClick={async () => {
+              const messageInput = document.getElementById("messageBox") as HTMLTextAreaElement;
+              const message = messageInput?.value;
+
+              if (!message || message.trim() === "") return;
+
+              const { error } = await supabase.from("inquiries").insert([
+                {
+                  booking_id: id,
+                  listing_id: booking.listing_id,
+                  sender_id: user.id,
+                  receiver_id:
+                    user.id === booking.owner_id
+                      ? booking.user_id || null
+                      : booking.owner_id,
+                  guest_email: booking.guest_email,
+                  message: message.trim(),
+                },
+              ]);
+
+              if (error) {
+                alert("Unable to send message. Please try again.");
+                return;
+              }
+
+              await fetch("/api/message-notification", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  receiver_id:
+                    user.id === booking.owner_id
+                      ? booking.user_id
+                      : booking.owner_id,
+                  receiver_email:
+                    user.id === booking.owner_id
+                      ? booking.guest_email
+                      : null,
+                  booking_id: booking.id,
+                }),
+              });
+
+              messageInput.value = "";
+
+              setMessages((prev) => [
+                ...prev,
+                {
+                  id: Date.now(),
+                  message: message.trim(),
+                  sender_id: user.id,
+                  created_at: new Date().toISOString(),
+                },
+              ]);
+
+              alert("Message sent successfully!");
+            }}
+            className="mt-4 w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
           >
-            Send
+            Send Message
           </button>
         </div>
+
+        {/* 🔥 CONVERSATION THREAD */}
+        <div className="mt-6 space-y-3">
+          <h3 className="font-semibold text-gray-800">Conversation</h3>
+
+          {/* 🔘 TOGGLE VIEW (ADD THIS) */}
+          <div className="flex gap-2 mt-2">
+            <button
+               onClick={() => setShowArchived(false)}
+               className={`px-3 py-1 rounded ${
+                !showArchived ? "bg-blue-600 text-white" : "bg-gray-200"
+               }`}
+            >
+              Active
+            </button>
+
+            <button
+              onClick={() => setShowArchived(true)}
+              className={`px-3 py-1 rounded ${
+                 showArchived ? "bg-blue-600 text-white" : "bg-gray-200"
+              }`}
+            >
+              Archived
+            </button>
+          </div>
+        </div>
+
+        {/* 🔘 SELECT ALL */}
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={
+               messages.length > 0 &&
+               selectedMessages.length === messages.length
+            }
+            onChange={() => {
+              if (selectedMessages.length === messages.length) {
+                setSelectedMessages([]);
+              } else {
+                setSelectedMessages(messages.map((m) => String(m.id)));
+              }
+            }}
+          />
+          <span className="text-sm text-gray-600">Select All</span>
+        </div>
+
+        {messages.length === 0 ? (
+          <p className="text-gray-500 text-sm">No messages yet.</p>
+         ) : (
+           <div>
+             {messages.map((msg) => {
+               const isProvider = msg.sender_id === booking.owner_id;
+                return (
+                  <div
+                    key={msg.id}
+                    className="flex items-start gap-3 p-3 border rounded-lg bg-gray-100"
+                  >
+                    {/* ✅ CHECKBOX */}
+                    <input
+                      type="checkbox"
+                      checked={selectedMessages.includes(msg.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedMessages((prev) => [
+                            ...prev,
+                            String(msg.id),
+                         ]);
+                       } else {
+                          setSelectedMessages((prev) =>
+                            prev.filter((id) => id !== String(msg.id))
+                          );
+                       }
+                      }}
+                    />
+
+                    {/* MESSAGE */}
+                    <div
+                      className={`p-3 rounded-2xl ${
+                        isProvider
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-200 text-black"
+                      }`}
+                    >
+                      <p className="text-sm">{msg.message}</p>
+                      <p className="text-xs mt-1 opacity-70">
+                        {new Date(msg.created_at).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* 🔥 ARCHIVE BUTTON */}
+              {selectedMessages.length > 0 && (
+                <button
+                  onClick={async () => {
+
+                    const confirmAction = confirm(
+                      showArchived
+                        ? "Unarchive selected messages?"
+                        : "Archive selected messages?"
+                    );
+
+                    if (!confirmAction) return;
+
+                    const ids = selectedMessages.map((id) => String(id));
+
+                    const { error } = await supabase
+                      .from("inquiries")
+                      .update({ archived_by_booker: !showArchived })
+                      .in("id", ids);
+
+                    if (error) {
+                      alert("Failed to update messages");
+                      return;
+                    }
+
+                      alert(
+                        showArchived
+                          ? "Messages unarchived successfully!"
+                          : "Messages archived successfully!"
+                      );
+
+                    setSelectedMessages([]);
+
+                    // 🔥 SWITCH TAB AUTOMATICALLY
+                    setShowArchived(!showArchived);
+
+                    // 🔥 RELOAD DATA
+                    const { data } = await supabase
+                      .from("inquiries")
+                      .select("*")
+                      .order("created_at", { ascending: false });
+
+                    const listingId = booking?.listing_id || booking?.listings?.id;
+
+                    const filtered = (data || []).filter((msg) => {
+                      if (msg.listing_id !== listingId) return false;
+
+                      if (showArchived) {
+                        return msg.archived_by_booker === true;
+                      } else {
+                         return msg.archived_by_booker !== true;
+                      }
+                    });
+
+                  setMessages(filtered);
+                }}
+                className="text-sm text-red-500 underline mt-2"
+               >
+                {showArchived ? "Unarchive Selected" : "Archive Selected Messages"}
+               </button>
+              )}
+            </div>
+          )}
+
+        <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg mt-4">
+          <h3 className="font-semibold text-gray-800 mb-2">Provider Information</h3>
+          
+          <p className="text-gray-700">
+            <strong>Name:</strong> {listing.contact_name || "—"}
+          </p>
+          <p className="text-gray-700">
+            <strong>Phone:</strong> {listing.contact_phone || "—"}
+          </p>
+          <div className="mt-2 text-sm text-gray-600">
+            For best response time, please use the in-app messaging system.
+          </div>
+          <p className="text-gray-700">
+            <strong>Email:</strong> {listing.contact_email || "—"}
+          </p>
+        </div>
+      </div>
+
+      <div className="text-center mt-10">
+        <Link
+          href="/my-bookings"
+          className="px-6 py-3 bg-orange-600 text-white rounded-lg shadow hover:bg-orange-700 transition"
+        >
+          Back to My Bookings
+        </Link>
       </div>
     </div>
   );
