@@ -571,8 +571,7 @@ const { data: overlappingBookings } = await query;
 
       {/* ✅ NEW — Appointment Type Selection */}
       {listing.booking_mode === "request" &&
-      !isForSale &&
-      listing.pricing_type === "per_service" && (
+      !isForSale && (
        <div className="mt-6">
         <label className="block font-semibold text-gray-800 mb-3">
              Appointment Type *
