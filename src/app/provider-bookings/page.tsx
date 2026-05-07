@@ -9,10 +9,11 @@ import { supabase } from "@/lib/supabaseClient";
 export default function ProviderBookingsPage() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [view, setView] = useState("active");
 
   useEffect(() => {
     fetchBookings();
-  }, []);
+  }, [view]);
 
   async function fetchBookings() {
     try {
@@ -29,12 +30,10 @@ export default function ProviderBookingsPage() {
        .from("bookings")
        .select(`
         *,
-        listings (
-          id,
-          title
-        )
+        listings!left(*)
     `)
     .eq("owner_id", user.id)
+    .eq("archived_by_provider", view === "hidden")
     .order("created_at", { ascending: false });
 
     console.log("🔥 BOOKINGS:", data);
@@ -52,6 +51,31 @@ export default function ProviderBookingsPage() {
     setLoading(false);
   }
 
+  async function toggleBooking(booking) {
+  const isHidden = booking.archived_by_provider;
+
+  const confirmed = confirm(
+    isHidden
+      ? "Restore this booking to active view?"
+      : "Remove this booking from your view?"
+  );
+
+  if (!confirmed) return;
+
+  const { error } = await supabase
+    .from("bookings")
+    .update({
+      archived_by_provider: !isHidden,
+    })
+    .eq("id", booking.id);
+
+  if (!error) {
+    setBookings((prev) =>
+      prev.filter((b) => b.id !== booking.id)
+    );
+  }
+}
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-600">
@@ -62,17 +86,41 @@ export default function ProviderBookingsPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 px-4 py-8">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold mb-6">
           Provider Bookings
         </h1>
+
+        <div className="flex justify-center gap-4 mb-6">
+  <button
+    onClick={() => setView("active")}
+    className={`px-5 py-2 rounded-full text-sm font-semibold transition shadow ${
+      view === "active"
+        ? "bg-green-600 text-white shadow-md"
+        : "bg-green-100 text-green-700 hover:bg-green-200"
+    }`}
+  >
+    🟢 Active
+  </button>
+
+  <button
+    onClick={() => setView("hidden")}
+    className={`px-5 py-2 rounded-full text-sm font-semibold transition shadow ${
+      view === "hidden"
+        ? "bg-gray-600 text-white shadow-md"
+        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+    }`}
+  >
+    🗑️ Hidden
+  </button>
+</div>
 
         {bookings.length === 0 ? (
           <div className="bg-white rounded-xl p-6 shadow text-gray-600">
             No bookings found.
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
             {bookings.map((booking) => (
               <Link
                 key={booking.id}
@@ -149,6 +197,19 @@ export default function ProviderBookingsPage() {
                       <div className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium shadow">
                         View Booking Details
                       </div>
+
+                         <button
+                           onClick={(e) => {
+                            e.preventDefault();
+                            toggleBooking(booking);
+                          }}
+                          className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium shadow hover:bg-gray-300 transition"
+                       >
+                          {booking.archived_by_provider
+                            ? "Restore"
+                            : "Remove from my view"}
+                        </button>
+
                     </div>
 
                   </div>
