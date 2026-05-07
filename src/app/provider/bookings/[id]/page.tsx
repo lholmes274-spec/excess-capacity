@@ -275,6 +275,23 @@ export default function ProviderBookingPage() {
         <h2 className="font-semibold text-lg mb-2">Booking Summary</h2>
 
         <p>Status: <span className="font-medium">{booking.status}</span></p>
+
+        {/* ✅ NEW — Appointment Type */}
+        <p>
+          Appointment Type:{" "}
+          <span
+            className={`font-medium ${
+              booking.appointment_type === "mobile"
+                ? "text-orange-600"
+                : "text-blue-600"
+            }`}
+          >
+            {booking.appointment_type === "mobile"
+              ? "Mobile Service"
+              : "Office Visit"}
+          </span>
+        </p>
+
         <p>
           Total:{" "}
           <span className="font-medium">
@@ -291,6 +308,19 @@ export default function ProviderBookingPage() {
              <> at {formatTime(booking.time_slot)}</>
           )}
         </p>
+      )}
+
+      {/* ✅ NEW — Mobile Service Notice */}
+      {booking.appointment_type === "mobile" && (
+        <div className="mt-4 p-4 bg-orange-50 border border-orange-200 rounded-xl">
+          <p className="font-semibold text-orange-700">
+            Mobile Service Request
+          </p>
+
+          <p className="text-sm text-orange-600 mt-1">
+            Customer requested provider travel. Travel fees may apply.
+          </p>
+        </div>
       )}
 
         {/* 🔥 ONLY CHANGE ADDED */}
