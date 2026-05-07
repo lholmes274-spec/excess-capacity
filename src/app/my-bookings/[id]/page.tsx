@@ -232,6 +232,15 @@ export default function BookingDetailsPage() {
           <span className="capitalize">{booking.status}</span>
         </p>
 
+        {booking.appointment_type && (
+       <p>
+         <strong>Appointment Type:</strong>{" "}
+         <span className="capitalize">
+           {booking.appointment_type}
+         </span>
+      </p>
+   )}
+
         {/* ✅ PROVIDER ACTIONS */}
         {user?.id === booking.owner_id &&
           booking.status === "pending" && (
