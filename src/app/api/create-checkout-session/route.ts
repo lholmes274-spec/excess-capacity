@@ -59,6 +59,7 @@ export async function POST(req: Request) {
     let end_date = body.end_date;
     let transaction_type = body.transaction_type;
     let booking_id = body.booking_id;
+    let appointment_type = body.appointment_type || "office";
 
     // 🔐 CREATE SUPABASE CLIENT FIRST
     const supabase = createServerClient<Database>(
@@ -435,6 +436,7 @@ export async function POST(req: Request) {
         time_slot: String(body.time_slot || ""),
         start_time: String(start_time || ""),
         end_time: String(end_time || ""),
+        appointment_type: String(appointment_type),
       },
 
         payment_intent_data: hasStripe
