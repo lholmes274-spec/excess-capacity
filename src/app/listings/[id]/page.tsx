@@ -332,15 +332,15 @@ const { data: overlappingBookings } = await query;
    let url = "";
 
    if (isForSale) {
-    url = `/checkout?listing_id=${listing.id}&transaction_type=sale&guest=true&guest_email=${guestEmail}`;
+    url = `/checkout?listing_id=${listing.id}&transaction_type=sale&guest=true&guest_email=${encodeURIComponent(guestEmail)}&guest_name=${encodeURIComponent(guestName)}&guest_phone=${encodeURIComponent(guestPhone)}`;
    } else if (isService) {
-       url = `/checkout?listing_id=${listing.id}&transaction_type=booking&start_date=${startDate}&end_date=${endDate}&days=1&guest_email=${guestEmail}`;
+       url = `/checkout?listing_id=${listing.id}&transaction_type=booking&start_date=${startDate}&end_date=${endDate}&days=1&guest_email=${encodeURIComponent(guestEmail)}&guest_name=${encodeURIComponent(guestName)}&guest_phone=${encodeURIComponent(guestPhone)}`;
 
        if (listing.booking_mode === "time_slots") {
          url += `&time_slot=${selectedTime}`;
        }
    } else {
-     url = `/checkout?listing_id=${listing.id}&transaction_type=booking&start_date=${startDate}&end_date=${endDate}&days=${Number(days || 1)}&guest_email=${guestEmail}`;
+     url = `/checkout?listing_id=${listing.id}&transaction_type=booking&start_date=${startDate}&end_date=${endDate}&days=${Number(days || 1)}&guest_email=${encodeURIComponent(guestEmail)}&guest_name=${encodeURIComponent(guestName)}&guest_phone=${encodeURIComponent(guestPhone)}`;
 
     const requiresTimeSlot =
       listing.booking_mode === "time_slots";

@@ -12,6 +12,9 @@ function CheckoutContent() {
   const start_date = searchParams.get("start_date");
   const end_date = searchParams.get("end_date");
   const time_slot = searchParams.get("time_slot"); 
+  const guest_email = searchParams.get("guest_email");
+  const guest_name = searchParams.get("guest_name");
+  const guest_phone = searchParams.get("guest_phone");
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -51,6 +54,9 @@ function CheckoutContent() {
             start_date,
             end_date,
             time_slot,
+            guest_email,
+            guest_name,
+            guest_phone,
             days: Number(days) || 1,
           }),
         });
