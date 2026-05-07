@@ -241,6 +241,66 @@ export default function BookingDetailsPage() {
       </p>
    )}
 
+   {/* ✅ TRAVEL FEE REQUEST */}
+{user?.id === booking.owner_id &&
+ booking.status === "pending" && (
+  <div className="border rounded-xl p-4 bg-orange-50 space-y-3">
+    <h3 className="font-semibold text-orange-700">
+      Travel Fee Request
+    </h3>
+
+    <input
+      type="number"
+      placeholder="Enter travel fee"
+      value={booking.travel_fee || ""}
+      onChange={async (e) => {
+        const value = e.target.value;
+
+        setBooking((prev) => ({
+          ...prev,
+          travel_fee: value,
+        }));
+      }}
+      className="w-full border p-3 rounded-lg"
+    />
+
+    <button
+      onClick={async () => {
+        if (
+          !booking.travel_fee ||
+          Number(booking.travel_fee) <= 0
+        ) {
+          alert("Enter a valid travel fee.");
+          return;
+        }
+
+        const { error } = await supabase
+          .from("bookings")
+          .update({
+            travel_fee: Number(booking.travel_fee),
+            travel_fee_requested: true,
+          })
+          .eq("id", booking.id);
+
+        if (error) {
+          alert("Failed to send travel fee.");
+          return;
+        }
+
+        setBooking((prev) => ({
+          ...prev,
+          travel_fee_requested: true,
+        }));
+
+        alert("Travel fee request sent!");
+      }}
+      className="w-full bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700 transition"
+    >
+      Send Travel Fee Request
+    </button>
+  </div>
+       )}
+
         {/* ✅ PROVIDER ACTIONS */}
         {user?.id === booking.owner_id &&
           booking.status === "pending" && (
@@ -287,12 +347,21 @@ export default function BookingDetailsPage() {
 
                alert("Booking confirmed successfully!");
             }}
-            className="flex-1 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition"
+            className={`flex-1 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition ${
+              booking.travel_fee_requested &&
+              !booking.travel_fee_paid
+                ? "opacity-50 cursor-not-allowed"
+                : ""
+            }`}
           >
             Accept Booking
           </button>
 
           <button
+            disabled={
+              booking.travel_fee_requested &&
+              !booking.travel_fee_paid
+            }
             onClick={async () => {
               const confirmed = confirm(
                 "Decline this booking request?"

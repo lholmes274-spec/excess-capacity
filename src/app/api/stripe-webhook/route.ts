@@ -195,6 +195,34 @@ export async function POST(req: Request) {
     }
 
     // =====================================================
+    // TRAVEL FEE PAYMENT
+    // =====================================================
+  if (session.metadata?.payment_type === "travel_fee") {
+
+    const booking_id = session.metadata?.booking_id;
+
+    if (!booking_id) {
+      return NextResponse.json(
+        { error: "Missing booking ID" },
+        { status: 400 }
+      );
+    }
+
+    const { error } = await supabase
+      .from("bookings")
+      .update({
+        travel_fee_paid: true,
+      })
+      .eq("id", booking_id);
+
+    if (error) {
+    console.error("Travel fee update failed:", error);
+    }
+
+  return NextResponse.json({ received: true });
+}
+
+    // =====================================================
     // BOOKING FLOW — CREATE BOOKING
     // =====================================================
     if (session.metadata?.transaction_type === "booking") {

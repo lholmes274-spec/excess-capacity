@@ -331,7 +331,57 @@ export default function BookingDetailsPage() {
           <strong>Amount Paid:</strong> ${booking.amount_paid}
         </p>
 
-        {booking.start_date && booking.start_date !== "" ? (
+       {/* ✅ TRAVEL FEE */}
+       {booking.travel_fee_requested && (
+         <div className="border rounded-xl p-4 bg-orange-50 mt-4">
+           <h3 className="font-semibold text-orange-700 mb-2">
+             Travel Fee
+           </h3>
+
+           <p className="mb-3">
+             Provider requested an additional travel fee of{" "}
+             <strong>${booking.travel_fee}</strong>
+           </p>
+
+           {booking.travel_fee_paid ? (
+             <p className="text-green-600 font-semibold">
+              ✅ Travel fee paid
+            </p>
+           ) : (
+            <button
+              onClick={async () => {
+                const res = await fetch(
+                  "/api/create-travel-payment-session",
+                  {
+                   method: "POST",
+                   headers: {
+                     "Content-Type": "application/json",
+                   },
+                   body: JSON.stringify({
+                    booking_id: booking.id,
+                    amount: booking.travel_fee,
+                   }),
+                 }
+              );
+
+              const data = await res.json();
+
+              if (!res.ok) {
+                alert(data.error || "Checkout failed");
+                return;
+              }
+
+              window.location.href = data.url;
+           }}
+           className="w-full bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700 transition"
+         >
+           Pay Travel Fee
+         </button>
+       )}
+    </div>
+  )}
+
+  {booking.start_date && booking.start_date !== "" ? (
           <>
            <p>
             <strong>Start:</strong>{" "}
