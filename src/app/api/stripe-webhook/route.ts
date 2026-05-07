@@ -233,6 +233,9 @@ export async function POST(req: Request) {
           user_id: buyer_id,
           user_email: buyer_email,
           booker_email: buyer_email,
+          guest_email: session.metadata?.guest_email || buyer_email || null,
+          guest_name: session.metadata?.guest_name || null,
+          guest_phone: session.metadata?.guest_phone || null,
           amount_paid: amountPaid,
           stripe_session_id: session.id,
           status: 
