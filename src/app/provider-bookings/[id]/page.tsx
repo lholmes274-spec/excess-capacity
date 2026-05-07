@@ -241,20 +241,6 @@ export default function BookingDetailsPage() {
       </p>
    )}
 
-   <p className="text-red-600 font-bold">
-  DEBUG MOBILE:
-  {String(booking.appointment_type)}
-</p>
-
-<p className="text-blue-600 font-bold">
-  DEBUG CONDITION:
-  {String(
-    user?.id === booking.owner_id &&
-    booking.status === "pending" &&
-    booking.appointment_type?.toLowerCase() === "mobile"
-  )}
-</p>
-
  {/* ✅ TRAVEL FEE REQUEST */}
 {user?.id === booking.owner_id &&
  booking.status === "pending" &&
