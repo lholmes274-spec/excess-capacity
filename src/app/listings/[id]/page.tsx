@@ -674,7 +674,7 @@ const { data: overlappingBookings } = await query;
 
       {listing.booking_mode === "request" && (
         <div className="mt-4 p-4 bg-yellow-50 border border-yellow-300 rounded-lg text-sm text-yellow-800">
-          Booking requests require provider confirmation after checkout.
+          After checkout, the provider will contact you to confirm your requested appointment time.
         </div>
       )}
 
