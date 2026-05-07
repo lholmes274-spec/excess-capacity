@@ -12,6 +12,7 @@ function CheckoutContent() {
   const start_date = searchParams.get("start_date");
   const end_date = searchParams.get("end_date");
   const time_slot = searchParams.get("time_slot"); 
+  const appointment_type = searchParams.get("appointment_type");
   const guest_email = searchParams.get("guest_email");
   const guest_name = searchParams.get("guest_name");
   const guest_phone = searchParams.get("guest_phone");
