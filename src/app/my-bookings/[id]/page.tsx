@@ -388,7 +388,8 @@ export default function BookingDetailsPage() {
 )}
 
        {/* ✅ TRAVEL FEE */}
-       {booking.travel_fee_requested && (
+       {booking.travel_fee_requested && 
+       user?.id !== booking.owner_id && (
          <div className="border rounded-xl p-4 bg-orange-50 mt-4">
            <h3 className="font-semibold text-orange-700 mb-2">
              Travel Fee
