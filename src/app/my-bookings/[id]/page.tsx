@@ -486,7 +486,7 @@ export default function BookingDetailsPage() {
                   receiver_email:
                     user.id === booking.owner_id
                       ? booking.guest_email
-                      : listing.contact_email,
+                      : null,
                   booking_id: booking.id,
                 }),
               });
