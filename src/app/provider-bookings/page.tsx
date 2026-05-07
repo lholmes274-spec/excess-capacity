@@ -30,12 +30,18 @@ export default function ProviderBookingsPage() {
         return;
       }
 
-      // ✅ Fetch bookings directly by owner_id
       const { data, error } = await supabase
-        .from("bookings")
-        .select("*")
-        .eq("owner_id", user.id)
-        .order("booking_date", { ascending: false });
+       .from("bookings")
+       .select(`
+        *,
+        listings (
+          id,
+          title,
+          images
+        )
+    `)
+    .eq("owner_id", user.id)
+    .order("booking_date", { ascending: false });
 
       if (error) {
         console.error("❌ Bookings error:", error);
@@ -80,7 +86,7 @@ export default function ProviderBookingsPage() {
                   <div className="flex justify-between items-start mb-2">
                     <div>
                       <h2 className="text-lg font-semibold">
-                        {booking.guest_name || "Booking Request"}
+                        {booking.listings?.title || "Booking Request"}
                       </h2>
 
                       <p className="text-sm text-gray-500">
