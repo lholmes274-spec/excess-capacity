@@ -32,7 +32,6 @@ export default function ProviderBookingsPage() {
         listings (
           id,
           title,
-          images
         )
     `)
     .eq("owner_id", user.id)
