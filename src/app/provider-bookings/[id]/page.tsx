@@ -241,10 +241,10 @@ export default function BookingDetailsPage() {
       </p>
    )}
 
-   {/* ✅ TRAVEL FEE REQUEST */}
-   {user?.id === booking.owner_id &&
-    booking.status === "pending" &&
-    booking.appointment_type?.toLowerCase() === "mobile" && (
+ {/* ✅ TRAVEL FEE REQUEST */}
+{user?.id === booking.owner_id &&
+ booking.status === "pending" &&
+ booking.appointment_type?.toLowerCase() === "mobile" && (
   <div className="border rounded-xl p-4 bg-orange-50 space-y-3">
     <h3 className="font-semibold text-orange-700">
       Travel Fee Request
@@ -254,7 +254,7 @@ export default function BookingDetailsPage() {
       type="number"
       placeholder="Enter travel fee"
       value={booking.travel_fee || ""}
-      onChange={async (e) => {
+      onChange={(e) => {
         const value = e.target.value;
 
         setBooking((prev) => ({
