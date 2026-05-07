@@ -262,6 +262,20 @@ export default function BookingDetailsPage() {
                  status: "confirmed",
                }));
 
+               await fetch("/api/message-notification", {
+                 method: "POST",
+                 headers: {
+                   "Content-Type": "application/json",
+                 },
+                 body: JSON.stringify({
+                  booking_id: booking.id,
+                  receiver_email:
+                    booking.guest_email ||
+                    booking.user_email ||
+                    booking.booker_email,
+                 }),
+              });
+
                alert("Booking confirmed successfully!");
             }}
             className="flex-1 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition"
