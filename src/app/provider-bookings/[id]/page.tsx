@@ -242,8 +242,9 @@ export default function BookingDetailsPage() {
    )}
 
    {/* ✅ TRAVEL FEE REQUEST */}
-{user?.id === booking.owner_id &&
- booking.status === "pending" && (
+   {user?.id === booking.owner_id &&
+    booking.status === "pending" &&
+    booking.appointment_type?.toLowerCase() === "mobile" && (
   <div className="border rounded-xl p-4 bg-orange-50 space-y-3">
     <h3 className="font-semibold text-orange-700">
       Travel Fee Request
@@ -299,7 +300,7 @@ export default function BookingDetailsPage() {
       Send Travel Fee Request
     </button>
   </div>
-       )}
+)}
 
         {/* ✅ PROVIDER ACTIONS */}
         {user?.id === booking.owner_id &&
