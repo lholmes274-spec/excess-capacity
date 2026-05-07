@@ -232,6 +232,78 @@ export default function BookingDetailsPage() {
           <span className="capitalize">{booking.status}</span>
         </p>
 
+        {/* ✅ PROVIDER ACTIONS */}
+        {user?.id === booking.owner_id &&
+          booking.status === "pending" && (
+           <div className="flex gap-3 mt-4">
+    
+             <button
+               onClick={async () => {
+                 const confirmed = confirm(
+                   "Accept this booking request?"
+                 );
+
+                if (!confirmed) return;
+
+                const { error } = await supabase
+                 .from("bookings")
+                 .update({
+                   status: "confirmed",
+                })
+                .eq("id", booking.id);
+
+                if (error) {
+                 alert("Failed to accept booking.");
+                 return;
+                }
+
+                setBooking((prev) => ({
+                 ...prev,
+                 status: "confirmed",
+               }));
+
+               alert("Booking confirmed successfully!");
+            }}
+            className="flex-1 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition"
+          >
+            Accept Booking
+          </button>
+
+          <button
+            onClick={async () => {
+              const confirmed = confirm(
+                "Decline this booking request?"
+             );
+
+             if (!confirmed) return;
+
+             const { error } = await supabase
+               .from("bookings")
+               .update({
+                 status: "declined",
+               })
+               .eq("id", booking.id);
+
+             if (error) {
+              alert("Failed to decline booking.");
+              return;
+             }
+
+             setBooking((prev) => ({
+              ...prev,
+              status: "declined",
+             }));
+
+             alert("Booking declined.");
+           }}
+           className="flex-1 bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition"
+         >
+           Decline Booking
+         </button>
+
+       </div>
+    )}
+
         <p>
           <strong>Amount Paid:</strong> ${booking.amount_paid}
         </p>
