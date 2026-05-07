@@ -441,18 +441,20 @@ export default function BookingDetailsPage() {
           </p>
         </div>
 
-       <div className="w-full max-w-full overflow-hidden bg-blue-50 border border-blue-200 p-4 rounded-lg">
-        <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+       <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg w-full overflow-hidden">
           <h3 className="font-semibold text-blue-700 mb-2">
             Customer Information
           </h3>
 
-          <p className="text-gray-700">
+          <div className="space-y-2 text-gray-700">
+          <p className="break-all">
             <strong>Name:</strong> {booking.guest_name || "—"}
           </p>
+
           <p className="text-gray-700">
             <strong>Email:</strong> {booking.guest_email || booking.user_email || "—"}
           </p>
+
           <p className="text-gray-700">
             <strong>Phone:</strong> {booking.guest_phone || "—"}
           </p>
