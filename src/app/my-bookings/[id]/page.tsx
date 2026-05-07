@@ -451,9 +451,13 @@ export default function BookingDetailsPage() {
             <strong>Name:</strong> {booking.guest_name || "—"}
           </p>
 
-          <p className="text-gray-700">
-            <strong>Email:</strong> {booking.guest_email || booking.user_email || "—"}
-          </p>
+         <div className="text-gray-700">
+           <strong>Email:</strong>
+
+           <div className="break-all w-full">
+             {booking.guest_email || booking.user_email || "—"}
+           </div>
+         </div>
 
           <p className="text-gray-700">
             <strong>Phone:</strong> {booking.guest_phone || "—"}
