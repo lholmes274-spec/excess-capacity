@@ -380,12 +380,45 @@ export default function ProviderBookingPage() {
           className="w-full border rounded-lg p-3 mb-3"
         />
 
-        <button
-          onClick={() => {
-             alert(
-               `Travel payment request feature coming next. Amount entered: $${travelFee}`
-             );
-           }}
+      <button
+        onClick={async () => {
+
+          if (!travelFee || Number(travelFee) <= 0) {
+             alert("Please enter a valid travel fee.");
+             return;
+          }
+
+          try {
+            const response = await fetch(
+              "/api/create-travel-payment-session",
+              {
+                 method: "POST",
+                 headers: {
+                    "Content-Type": "application/json",
+                 },
+                 body: JSON.stringify({
+                    booking_id: booking.id,
+                    amount: Number(travelFee),
+                 }),
+                }
+              );
+
+              const data = await response.json();
+
+              if (!response.ok) {
+                alert(data.error || "Failed to create travel payment.");
+                return;
+              }
+
+              if (data.url) {
+                window.open(data.url, "_blank");
+              }
+
+            } catch (err) {
+              console.error(err);
+              alert("Something went wrong.");
+            }
+          }}
            className="bg-orange-600 hover:bg-orange-700 text-white px-5 py-3 rounded-lg font-medium"
          >
            Request Travel Payment
