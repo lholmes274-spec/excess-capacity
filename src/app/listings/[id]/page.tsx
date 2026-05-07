@@ -34,6 +34,7 @@ export default function ListingDetailPage() {
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [selectedTime, setSelectedTime] = useState<string>("");
+  const [appointmentType, setAppointmentType] = useState<string>("office");
 
   // fallback if listing has no slots
   const defaultSlots = [
@@ -567,7 +568,56 @@ const { data: overlappingBookings } = await query;
     )}
   </div>
 )}
-          
+
+      {/* ✅ NEW — Appointment Type Selection */}
+      {listing.booking_mode === "request" &&
+      !isForSale &&
+      listing.pricing_type === "per_service" && (
+       <div className="mt-6">
+        <label className="block font-semibold text-gray-800 mb-3">
+             Appointment Type *
+        </label>
+
+        <div className="space-y-3">
+          <button
+            type="button"
+            onClick={() => setAppointmentType("office")}
+            className={`w-full border rounded-xl p-4 text-left transition ${
+              appointmentType === "office"
+                ? "border-orange-600 bg-orange-50"
+                : "border-gray-300 bg-white hover:bg-gray-50"
+            }`}
+          >
+            <p className="font-semibold text-gray-900">
+              I will go to the provider
+            </p>
+
+            <p className="text-sm text-gray-600 mt-1">
+              Meet at the provider’s office or agreed location.
+            </p>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setAppointmentType("mobile")}
+            className={`w-full border rounded-xl p-4 text-left transition ${
+              appointmentType === "mobile"
+                ? "border-orange-600 bg-orange-50"
+                : "border-gray-300 bg-white hover:bg-gray-50"
+             }`}
+          >
+             <p className="font-semibold text-gray-900">
+               Mobile service (provider comes to me)
+             </p>
+
+             <p className="text-sm text-gray-600 mt-1">
+               Additional travel fees may apply after provider confirmation.
+             </p>
+           </button>
+         </div>
+       </div>
+      )}
+       
       {/* BOOKING: SHOW TOTAL FOR ALL */}
       {!isForSale && (
         <>
