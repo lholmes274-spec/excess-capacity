@@ -331,6 +331,62 @@ export default function BookingDetailsPage() {
           <strong>Amount Paid:</strong> ${booking.amount_paid}
         </p>
 
+        {/* ✅ PROVIDER TRAVEL FEE REQUEST */}
+{user?.id === booking.owner_id &&
+ booking.status === "pending" &&
+ booking.appointment_type?.toLowerCase() === "mobile" && (
+  <div className="border rounded-xl p-4 bg-orange-50 mt-4">
+    <h3 className="font-semibold text-orange-700 mb-2">
+      Request Travel Fee
+    </h3>
+
+    <input
+      type="number"
+      placeholder="Enter travel fee"
+      value={booking.travel_fee || ""}
+      onChange={(e) => {
+        setBooking((prev) => ({
+          ...prev,
+          travel_fee: e.target.value,
+        }));
+      }}
+      className="w-full border p-3 rounded-lg mb-3"
+    />
+
+    <button
+      onClick={async () => {
+        if (!booking.travel_fee || Number(booking.travel_fee) <= 0) {
+          alert("Enter a valid travel fee.");
+          return;
+        }
+
+        const { error } = await supabase
+          .from("bookings")
+          .update({
+            travel_fee: Number(booking.travel_fee),
+            travel_fee_requested: true,
+          })
+          .eq("id", booking.id);
+
+        if (error) {
+          alert("Failed to request travel fee.");
+          return;
+        }
+
+        setBooking((prev) => ({
+          ...prev,
+          travel_fee_requested: true,
+        }));
+
+        alert("Travel fee request sent!");
+      }}
+      className="w-full bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700 transition"
+    >
+      Send Travel Fee Request
+    </button>
+  </div>
+)}
+
        {/* ✅ TRAVEL FEE */}
        {booking.travel_fee_requested && (
          <div className="border rounded-xl p-4 bg-orange-50 mt-4">
