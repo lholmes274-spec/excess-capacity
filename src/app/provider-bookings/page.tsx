@@ -34,7 +34,10 @@ export default function ProviderBookingsPage() {
       const { data, error } = await supabase
         .from("bookings")
         .select("*")
-        .eq("owner_id", user.id)
+        .eq(
+          "owner_id",
+          "37a8f7f4-e298-4dc8-8e70-59aef9b0aa10"
+        )
         .order("booking_date", { ascending: false });
 
       if (error) {
