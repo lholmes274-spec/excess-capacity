@@ -382,7 +382,7 @@ export default function Dashboard() {
               I Earn
             </div>
             
-            <Link href="/provider/bookings" className="w-full">
+            <Link href="/provider-bookings" className="w-full">
               <div className="p-6 bg-white rounded-xl shadow hover:shadow-lg transition cursor-pointer text-center border border-green-200">
                 <h3 className="text-lg font-semibold">
                   Orders on My Listings
