@@ -220,6 +220,9 @@ export async function POST(req: Request) {
       const estimated_time_window =
         session.metadata?.time_window || null;
 
+      const appointment_type =
+        session.metadata?.appointment_type || "office";
+
       console.log("📅 Booking metadata:", {
         start_date,
         end_date,
@@ -250,6 +253,8 @@ export async function POST(req: Request) {
           time_slot,
           start_time: session.metadata?.start_time || null,
           end_time: session.metadata?.end_time || null,
+          // ✅ NEW — office vs mobile
+          appointment_type,
         },
       ]);
 
