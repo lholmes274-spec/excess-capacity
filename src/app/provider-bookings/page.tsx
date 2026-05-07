@@ -38,6 +38,9 @@ export default function ProviderBookingsPage() {
     .eq("owner_id", user.id)
     .order("created_at", { ascending: false });
 
+    console.log("🔥 BOOKINGS:", data);
+    console.log("🔥 ERROR:", error);
+
       if (error) {
         console.error("❌ Bookings error:", error);
       } else {
