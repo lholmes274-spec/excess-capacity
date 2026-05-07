@@ -54,6 +54,7 @@ function CheckoutContent() {
             start_date,
             end_date,
             time_slot,
+            appointment_type,
             guest_email,
             guest_name,
             guest_phone,
