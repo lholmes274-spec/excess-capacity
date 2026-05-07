@@ -4,7 +4,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function ProviderBookingsPage() {
   const [bookings, setBookings] = useState<any[]>([]);
@@ -36,7 +36,7 @@ export default function ProviderBookingsPage() {
         )
     `)
     .eq("owner_id", user.id)
-    .order("booking_date", { ascending: false });
+    .order("created_at", { ascending: false });
 
       if (error) {
         console.error("❌ Bookings error:", error);
