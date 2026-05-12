@@ -231,13 +231,13 @@ export async function POST(req: Request) {
 
         payment_intent_data: hasStripe
           ? {
-             application_fee_amount: platformFee,
+             application_fee_amount: applicationFeeAmount,
              transfer_data: {
                destination: listerProfile.stripe_account_id,
             },
            }
          : {
-             application_fee_amount: platformFee,
+             application_fee_amount: applicationFeeAmount,
            },
 
         line_items: [
@@ -337,12 +337,23 @@ export async function POST(req: Request) {
     }
 
     const unitAmountInCents = Math.round(Number(listing.baseprice) * 100);
-    const baseTotal = unitAmountInCents * quantity;
-    const PLATFORM_FEE = 500; // $5 in cents
-    const totalAmountInCents = baseTotal + PLATFORM_FEE;
 
-    const platformFee = Math.min(
-      Math.round(baseTotal * 0.1) + PLATFORM_FEE,
+    // Provider/service subtotal
+    const providerSubtotal = unitAmountInCents * quantity;
+
+    // Fixed Prosperity Hub platform fee
+    const PLATFORM_FEE = 500; // $5
+
+    // 10% commission ONLY on provider subtotal
+    const commissionFee = Math.round(providerSubtotal * 0.10);
+
+    // Total customer charge
+    const totalAmountInCents =
+      providerSubtotal + PLATFORM_FEE;
+
+    // Prosperity Hub protected fee
+    const applicationFeeAmount = Math.min(
+      PLATFORM_FEE + commissionFee,
       totalAmountInCents - 1
     );
 
@@ -441,14 +452,14 @@ export async function POST(req: Request) {
 
         payment_intent_data: hasStripe
           ? {
-             application_fee_amount: platformFee,
+             application_fee_amount: applicationFeeAmount,
              transfer_data: {
                destination: listerProfile.stripe_account_id,
             },
         setup_future_usage: "off_session",
       }
     : {
-        application_fee_amount: platformFee,
+        application_fee_amount: applicationFeeAmount,
         setup_future_usage: "off_session",
       },
 
