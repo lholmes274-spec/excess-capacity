@@ -170,28 +170,35 @@ export default function Dashboard() {
     }
   };
 
-  const handleManageSubscription = async () => {
-    try {
-      setOpeningPortal(true);
+ const handleManageSubscription = async () => {
+  try {
+    setOpeningPortal(true);
 
-      const res = await fetch("/api/stripe/customer-portal", {
-        method: "POST",
-      });
+    const res = await fetch("/api/stripe/customer-portal", {
+      method: "POST",
+    });
 
-      const data = await res.json();
+    const data = await res.json();
 
-      if (data?.url) {
-        window.location.href = data.url;
-      } else {
-        alert("Unable to open subscription portal.");
-      }
-    } catch (err) {
-      console.error("Customer portal error:", err);
-      alert("Unable to open subscription portal.");
-    } finally {
-      setOpeningPortal(false);
+    if (data?.url) {
+      window.location.href = data.url;
+      return;
     }
-  };
+
+    // ✅ Friendly backend message
+    if (data?.error) {
+      alert(data.error);
+      return;
+    }
+
+    alert("Unable to open subscription portal.");
+  } catch (err) {
+    console.error("Customer portal error:", err);
+    alert("Unable to open subscription portal.");
+  } finally {
+    setOpeningPortal(false);
+  }
+};
 
   if (loading) {
     return (
