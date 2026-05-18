@@ -33,7 +33,10 @@ export async function POST() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 }
+    );
   }
 
   const { data: profile, error } = await supabase
@@ -42,20 +45,35 @@ export async function POST() {
     .eq("id", user.id)
     .single();
 
+  // ✅ Gracefully handle users without subscriptions/customers
   if (error || !profile?.stripe_customer_id) {
-    console.error("❌ Stripe customer not found", error);
     return NextResponse.json(
-      { error: "Stripe customer not found" },
+      {
+        error: "No active subscription found.",
+      },
       { status: 400 }
     );
   }
 
-  // ✅ PRO-ONLY billing portal (storage excluded entirely)
-  const portalSession = await stripe.billingPortal.sessions.create({
-    customer: profile.stripe_customer_id,
-    configuration: process.env.STRIPE_PRO_PORTAL_CONFIG_ID!,
-    return_url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`,
-  });
+  try {
+    // ✅ Open Stripe Billing Portal
+    const portalSession = await stripe.billingPortal.sessions.create({
+      customer: profile.stripe_customer_id,
+      configuration: process.env.STRIPE_PRO_PORTAL_CONFIG_ID!,
+      return_url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`,
+    });
 
-  return NextResponse.json({ url: portalSession.url });
+    return NextResponse.json({
+      url: portalSession.url,
+    });
+  } catch (err) {
+    console.error("❌ Failed to create billing portal session:", err);
+
+    return NextResponse.json(
+      {
+        error: "Unable to open billing portal.",
+      },
+      { status: 500 }
+    );
+  }
 }
