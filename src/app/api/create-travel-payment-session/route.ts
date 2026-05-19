@@ -58,7 +58,26 @@ export async function POST(req: Request) {
       );
     }
 
+    // 🔍 LOAD PROVIDER STRIPE ACCOUNT
+    const { data: listerProfile } = await supabase
+     .from("profiles")
+     .select("stripe_account_id, stripe_charges_enabled")
+     .eq("id", listing.owner_id)
+     .single();
+
+    const hasStripe =
+      !!listerProfile?.stripe_account_id &&
+      listerProfile?.stripe_charges_enabled === true;
+
+    if (!hasStripe) {
+      return NextResponse.json(
+        { error: "Provider is not ready to accept payments" },
+        { status: 400 }
+      );
+    }
+
     const amountInCents = Math.round(amount * 100);
+    const platformFee = Math.round(amountInCents * 0.20); // 20% commission
 
     // ✅ CREATE STRIPE SESSION
     const stripeSession = await stripe.checkout.sessions.create({
@@ -74,6 +93,14 @@ export async function POST(req: Request) {
         booking_id: String(booking.id),
         listing_id: String(listing.id),
         payment_type: "travel_fee",
+      },
+
+      // ✅ THIS IS THE NEW PART (Stripe split)
+      payment_intent_data: {
+        application_fee_amount: platformFee,
+        transfer_data: {
+          destination: listerProfile.stripe_account_id,
+        },
       },
 
       line_items: [
