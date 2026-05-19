@@ -107,7 +107,7 @@ export async function POST(req: Request) {
      }
 
     // 🔹 Send email
-    const emailResult = await resend.emails.send({
+    const emailResult = resend.emails.send({
       from: "Prosperity Hub <no-reply@prosperityhub.app>",
       to: emailToSend,
       subject: 
