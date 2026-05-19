@@ -29,13 +29,16 @@ export default function HomePage() {
         setListingCount(count || 0);
       }
 
-      const { data: realData } = await supabase
+      const { data: realData, error } = await supabase
         .from("listings")
         .select("*")
         .eq("demo_mode", false)
         .eq("listing_status", "active")
         .order("created_at", { ascending: false })
         .limit(15);
+
+        console.log("Listings Error:", error);
+        console.log("Listings Data:", realData);
 
       setRealListings(realData || []);
 

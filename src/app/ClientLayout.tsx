@@ -106,6 +106,11 @@ export default function ClientLayout({
             {/* DESKTOP NAV */}
             <ul className="hidden md:flex space-x-6 text-sm font-medium items-center">
               <li><Link href="/" className="hover:text-blue-300">Home</Link></li>
+              <li>
+             <Link href="/listings" className="hover:text-blue-300">
+               Listings
+             </Link>
+             </li>
               <li><Link href="/services" className="hover:text-blue-300">Services</Link></li>
               <li><Link href="/about" className="hover:text-blue-300">About</Link></li>
               <li><Link href="/contact" className="hover:text-blue-300">Contact</Link></li>
@@ -173,6 +178,9 @@ export default function ClientLayout({
 
             <nav className="flex flex-col space-y-6 text-2xl font-medium">
               <Link href="/" onClick={() => setMenuOpen(false)}>Home</Link>
+              <Link href="/listings" onClick={() => setMenuOpen(false)}>
+                Listings
+              </Link>
               <Link href="/services" onClick={() => setMenuOpen(false)}>Services</Link>
               <Link href="/about" onClick={() => setMenuOpen(false)}>About</Link>
               <Link href="/contact" onClick={() => setMenuOpen(false)}>Contact</Link>
