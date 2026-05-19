@@ -588,7 +588,11 @@ export default function BookingDetailsPage() {
                       : booking.owner_id,
                   receiver_email:
                     user.id === booking.owner_id
-                      ? booking.guest_email
+                      ? (
+                        booking.guest_email ||
+                        booking.user_email ||
+                        booking.email
+                      )
                       : null,
                   booking_id: booking.id,
                 }),
