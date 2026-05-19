@@ -331,6 +331,7 @@ try {
     session.metadata?.guest_email ||
     buyer_email;
 
+  console.log("📧 CUSTOMER EMAIL:", customerEmail);
   if (customerEmail) {
     fetch(
       `${process.env.NEXT_PUBLIC_SITE_URL}/api/message-notification`,
