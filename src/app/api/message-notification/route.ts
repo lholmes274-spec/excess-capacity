@@ -107,7 +107,7 @@ export async function POST(req: Request) {
      }
 
     // 🔹 Send email
-    await resend.emails.send({
+    const emailResult = await resend.emails.send({
       from: "Prosperity Hub <no-reply@prosperityhub.app>",
       to: emailToSend,
       subject: 
@@ -129,6 +129,8 @@ export async function POST(req: Request) {
         <p>Please log in to view full details and take action.</p>
       `,
     });
+
+    console.log("RESEND RESULT:", emailResult);
 
     return NextResponse.json({ success: true });
 
