@@ -341,7 +341,7 @@ try {
         },
         body: JSON.stringify({
           receiver_email: customerEmail,
-          booking_id: listing_id,
+          booking_id: insertedBooking.id,
         }),
       }
     );
