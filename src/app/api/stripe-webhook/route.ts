@@ -310,7 +310,7 @@ try {
 
   // ✅ Provider notification
   if (providerProfile?.email) {
-    await fetch(
+    fetch(
       `${process.env.NEXT_PUBLIC_SITE_URL}/api/message-notification`,
       {
         method: "POST",
@@ -332,7 +332,7 @@ try {
     buyer_email;
 
   if (customerEmail) {
-    await fetch(
+    fetch(
       `${process.env.NEXT_PUBLIC_SITE_URL}/api/message-notification`,
       {
         method: "POST",
