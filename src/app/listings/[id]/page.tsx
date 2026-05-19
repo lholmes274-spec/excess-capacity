@@ -214,7 +214,7 @@ export default function ListingDetailPage() {
     }).format(amount);
   };
 
-  const PLATFORM_FEE = 5;
+  const PLATFORM_FEE = 10;
 
   // 🧠 Calculate subtotal properly by type
   let subtotal = 0;
@@ -650,7 +650,7 @@ const { data: overlappingBookings } = await query;
                 Service fee: {formatCurrency(PLATFORM_FEE, listing.currency)}
               </p>
               <p className="text-xs text-gray-500">
-                 Service fee helps support the platform and ensures secure, reliable bookings.
+                 Service fee helps ensure secure booking, fast confirmation, and reliable service coordination.
               </p>
               <p className="text-lg font-semibold">
                 Total: {formatCurrency(Number(totalPrice), listing.currency)}
