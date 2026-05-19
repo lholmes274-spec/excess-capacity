@@ -231,13 +231,13 @@ export async function POST(req: Request) {
 
         payment_intent_data: hasStripe
           ? {
-             application_fee_amount: applicationFeeAmount,
+             application_fee_amount: platformFee,
              transfer_data: {
                destination: listerProfile.stripe_account_id,
             },
            }
          : {
-             application_fee_amount: applicationFeeAmount,
+             application_fee_amount: platformFee,
            },
 
         line_items: [
@@ -457,8 +457,8 @@ export async function POST(req: Request) {
                destination: listerProfile.stripe_account_id,
             },
         setup_future_usage: "off_session",
-      }
-    : {
+        }
+      : {
         application_fee_amount: applicationFeeAmount,
         setup_future_usage: "off_session",
       },
