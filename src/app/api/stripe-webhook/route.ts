@@ -257,8 +257,10 @@ export async function POST(req: Request) {
         days,
       });
 
-      const { error } = await supabase.from("bookings").insert([
-        {
+      const { data: insertedBooking, error } = await supabase
+        .from("bookings")
+        .insert([
+          {
           listing_id,
           owner_id: seller_id,
           user_id: buyer_id,
@@ -284,7 +286,9 @@ export async function POST(req: Request) {
           // ✅ NEW — office vs mobile
           appointment_type,
         },
-      ]);
+        ])
+        .select()
+        .single();
 
       if (error) {
         console.error("❌ Booking insert failed:", error);
@@ -292,6 +296,62 @@ export async function POST(req: Request) {
       }
 
       console.log("✅ Booking inserted successfully");
+      // =====================================================
+// SEND PROVIDER EMAIL NOTIFICATION
+// =====================================================
+
+try {
+  // 🔹 Get provider profile/email
+  const { data: providerProfile } = await supabase
+    .from("profiles")
+    .select("email")
+    .eq("id", seller_id)
+    .single();
+
+  // ✅ Provider notification
+  if (providerProfile?.email) {
+    await fetch(
+      `${process.env.NEXT_PUBLIC_SITE_URL}/api/message-notification`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          receiver_id: seller_id,
+          receiver_email: providerProfile.email,
+          booking_id: insertedBooking.id,
+        }),
+      }
+    );
+  }
+
+  // ✅ Customer / guest notification
+  const customerEmail =
+    session.metadata?.guest_email ||
+    buyer_email;
+
+  if (customerEmail) {
+    await fetch(
+      `${process.env.NEXT_PUBLIC_SITE_URL}/api/message-notification`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          receiver_email: customerEmail,
+          booking_id: listing_id,
+        }),
+      }
+    );
+  }
+
+  console.log("📧 Booking notifications sent");
+
+} catch (emailError) {
+  console.error("❌ Email notification error:", emailError);
+}
     }
   }
 
