@@ -38,20 +38,34 @@ export async function POST(req: Request) {
        emailToSend = receiver_email;
     }
 
-    // ✅ FALLBACK: lookup from profiles (logged-in users)
     else if (receiver_id) {
-      const { data: profile, error } = await supabase
-        .from("profiles")
-        .select("email")
-        .eq("id", receiver_id)
-        .single();
 
-      if (error || !profile?.email) {
-        return NextResponse.json({ error: "User not found" }, { status: 404 });
-      }
+  // ✅ FIRST try profiles table
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("email")
+    .eq("id", receiver_id)
+    .maybeSingle();
 
-      emailToSend = profile.email;
+  if (profile?.email) {
+    emailToSend = profile.email;
+  }
+
+  // ✅ FALLBACK: use auth.users
+  if (!emailToSend) {
+    const { data: authUser, error: authError } =
+      await supabase.auth.admin.getUserById(receiver_id);
+
+    if (authError || !authUser?.user?.email) {
+      return NextResponse.json(
+        { error: "User email not found" },
+        { status: 404 }
+      );
     }
+
+    emailToSend = authUser.user.email;
+  }
+}
 
     if (!receiver_id && receiver_email) {
       emailToSend = receiver_email;
