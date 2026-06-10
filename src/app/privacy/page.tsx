@@ -15,8 +15,8 @@ export default function PrivacyClient() {
 
       <p className="mb-4 text-sm text-gray-500">
         {isES
-          ? "Última actualización: 19 de noviembre de 2025"
-          : "Last updated: November 19, 2025"}
+          ? "Última actualización: 9 de Junio de 2026"
+          : "Last updated: June 9, 2026"}
       </p>
 
       <p className="mb-4">
@@ -110,9 +110,66 @@ export default function PrivacyClient() {
       </p>
 
       <h2 className="text-xl font-semibold mt-8 mb-4">
+        {isES ? "7. Comunicaciones SMS" : "7. SMS Communications"}
+      </h2>
+      <p className="mb-4">
+        {isES ? (
+          <>
+            Al proporcionar tu número de teléfono móvil a través de Prosperity Hub,
+            aceptas recibir mensajes SMS relacionados con confirmaciones de reservas,
+            recordatorios de citas, notificaciones de cuenta, actualizaciones de anuncios,
+            soporte al cliente y otras comunicaciones transaccionales.
+
+            <br /><br />
+
+            La frecuencia de los mensajes puede variar.
+            Pueden aplicarse tarifas de mensajes y datos.
+
+            <br /><br />
+
+            Puedes cancelar la suscripción en cualquier momento respondiendo STOP
+            a cualquier mensaje. Para obtener ayuda, responde HELP.
+
+            <br /><br />
+
+            La información móvil no será compartida con terceros o afiliados para
+            fines de marketing o promocionales.
+
+            <br /><br />
+
+            Los datos de suscripción y consentimiento para mensajes SMS no serán
+            compartidos con terceros bajo ninguna circunstancia.
+          </>
+        ) : (
+          <>
+            By providing your mobile phone number through Prosperity Hub, you
+            consent to receive SMS messages related to booking confirmations,
+            booking reminders, account notifications, listing updates, customer
+            support, and other transactional communications.
+
+            <br /><br />
+
+            Message frequency varies. Message and data rates may apply.
+
+            <br /><br />
+
+            You may opt out at any time by replying STOP to any message.
+            For assistance, reply HELP.
+
+            <br /><br />
+
+            Mobile information will not be shared with third parties or affiliates
+            for marketing or promotional purposes.
+
+            All the above categories exclude text messaging originator opt-in data
+            and consent; this information will not be shared with any third parties.
+          </>
+        )}
+      </p>
+      <h2 className="text-xl font-semibold mt-8 mb-4">
         {isES
-          ? "7. Actualizaciones de esta política"
-          : "7. Updates to This Policy"}
+          ? "8. Actualizaciones de esta política"
+          : "8. Updates to This Policy"}
       </h2>
       <p className="mb-4">
         {isES
@@ -121,7 +178,7 @@ export default function PrivacyClient() {
       </p>
 
       <h2 className="text-xl font-semibold mt-8 mb-4">
-        {isES ? "8. Contacto" : "8. Contact"}
+        {isES ? "9. Contacto" : "9. Contact"}
       </h2>
       <p>
         {isES

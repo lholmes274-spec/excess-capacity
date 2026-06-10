@@ -15,8 +15,8 @@ export default function TermsPage() {
 
         <p className="text-sm text-gray-500 text-center mb-6">
           {isES
-            ? "Última actualización: 16 de Abril de 2026"
-            : "Last updated: April 16, 2026"}
+            ? "Última actualización: 9 de Junio de 2026"
+            : "Last updated: June 9, 2026"}
         </p>
 
         <p className="text-gray-700 mb-4">
@@ -260,7 +260,78 @@ export default function TermsPage() {
 
         {/* 9 */}
         <h2 className="text-2xl font-semibold mt-8 mb-3 text-gray-900">
-          {isES ? "9. Actualizaciones de los Términos" : "9. Updates to Terms"}
+         {isES ? "9. Términos de Mensajería SMS" : "9. SMS Messaging Terms"}
+        </h2>
+        <p className="text-gray-700 mb-4">
+          {isES ? (
+           <>
+             Al proporcionar tu número de teléfono móvil a través de Prosperity Hub,
+             aceptas recibir mensajes SMS relacionados con confirmaciones de reservas,
+             recordatorios de citas, actividad de la cuenta, actualizaciones de anuncios,
+             soporte al cliente y otras comunicaciones transaccionales.
+
+             <br /><br />
+
+             La frecuencia de los mensajes puede variar.
+             Pueden aplicarse tarifas de mensajes y datos.
+
+             <br /><br />
+
+             Puedes cancelar la suscripción en cualquier momento respondiendo STOP
+             a cualquier mensaje SMS. Para obtener ayuda, responde HELP.
+
+            <br /><br />
+
+             El consentimiento para recibir mensajes SMS no es una condición para
+             comprar bienes o servicios.
+
+            <br /><br />
+
+             La información móvil no será compartida con terceros o afiliados para
+             fines de marketing o promocionales.
+
+            <br /><br />
+
+             Los datos de suscripción y consentimiento para mensajes SMS no serán
+             compartidos con terceros bajo ninguna circunstancia.
+            </>
+         ) : (
+           <>
+             By providing your mobile phone number through Prosperity Hub, you
+             agree to receive SMS messages related to booking confirmations,
+             appointment reminders, account activity, listing updates, customer
+             support, and other transactional communications.
+
+             <br /><br />
+
+             Message frequency varies. Message and data rates may apply.
+
+             <br /><br />
+
+             You may opt out at any time by replying STOP to any SMS message.
+             For assistance, reply HELP.
+
+             <br /><br />
+
+             Consent to receive SMS messages is not a condition of purchasing
+             any goods or services.
+
+             <br /><br />
+
+             Mobile information will not be shared with third parties or affiliates
+             for marketing or promotional purposes.
+
+             <br /><br />
+
+             All the above categories exclude text messaging originator opt-in data
+             and consent; this information will not be shared with any third parties.
+           </>
+         )}
+        </p>
+
+        {/* 10 */}
+        <h2 className="text-2xl font-semibold mt-8 mb-3 text-gray-900">
+          {isES ? "10. Actualizaciones de los Términos" : "10. Updates to Terms"}
         </h2>
         <p className="text-gray-700 mb-4">
           {isES ? (
@@ -277,9 +348,9 @@ export default function TermsPage() {
           )}
         </p>
 
-        {/* 10 */}
+        {/* 11 */}
         <h2 className="text-2xl font-semibold mt-8 mb-3 text-gray-900">
-          {isES ? "10. Contáctanos" : "10. Contact Us"}
+          {isES ? "11. Contáctanos" : "11. Contact Us"}
         </h2>
         <p className="text-gray-700">
           <a
@@ -290,9 +361,9 @@ export default function TermsPage() {
           </a>
         </p>
 
-        {/* 11 NEW — CANCELLATION POLICY */}
+        {/* 12 NEW — CANCELLATION POLICY */}
         <h2 className="text-2xl font-semibold mt-8 mb-3 text-gray-900">
-          {isES ? "11. Política de Cancelación" : "11. Cancellation Policy"}
+          {isES ? "12. Política de Cancelación" : "12. Cancellation Policy"}
         </h2>
         <p className="text-gray-700 mb-4">
           {isES ? (
