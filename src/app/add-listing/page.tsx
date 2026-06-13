@@ -876,6 +876,29 @@ export default function AddListingPage() {
             placeholder="Contact Phone"
             className="w-full p-3 border rounded-lg"
           />
+          <p className="text-xs text-gray-500 mt-2">
+           By providing your phone number, you agree to receive transactional SMS
+           messages from Prosperity Hub related to booking requests, booking updates,
+           account notifications, and customer support. Message frequency may vary.
+           Message and data rates may apply. Reply STOP to opt out and HELP for
+           assistance. Consent is not a condition of purchase.
+           <br />
+           <a
+             href="/terms"
+             target="_blank"
+             className="text-blue-600 underline"
+           >
+             Terms
+           </a>
+           {" | "}
+           <a
+             href="/privacy"
+             target="_blank"
+             className="text-blue-600 underline"
+           >
+             Privacy Policy
+           </a>
+          </p>
           <div className="relative">
             <input
               type="email"

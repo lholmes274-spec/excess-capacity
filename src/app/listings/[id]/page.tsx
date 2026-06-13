@@ -745,6 +745,30 @@ const { data: overlappingBookings } = await query;
             className="w-full border p-2 rounded"
             onChange={(e) => setGuestPhone(e.target.value)}
           />
+
+          <p className="text-xs text-gray-500 mt-2">
+            By providing your phone number, you agree to receive transactional SMS
+            messages from Prosperity Hub related to bookings, appointment reminders,
+            account activity, and customer support. Message frequency may vary.
+            Message and data rates may apply. Reply STOP to opt out and HELP for
+            assistance. Consent is not a condition of purchase.
+            <br />
+            <a
+              href="/terms"
+              target="_blank"
+              className="text-blue-600 underline"
+            >
+              Terms
+            </a>
+            {" | "}
+            <a
+              href="/privacy"
+              target="_blank"
+              className="text-blue-600 underline"
+            >
+              Privacy Policy
+            </a>
+           </p>
         </div>
       )}
 
