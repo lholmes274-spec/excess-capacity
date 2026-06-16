@@ -149,7 +149,7 @@ export default function PrivacyClient() {
 
             <br /><br />
 
-            Message frequency varies. Message and data rates may apply.
+            You may receive up to 10 messages per month depending on bookings, account activity, and customer communications. Message frequency may vary. Message and data rates may apply.
 
             <br /><br />
 
