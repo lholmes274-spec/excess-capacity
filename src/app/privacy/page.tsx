@@ -15,8 +15,8 @@ export default function PrivacyClient() {
 
       <p className="mb-4 text-sm text-gray-500">
         {isES
-          ? "Última actualización: 9 de Junio de 2026"
-          : "Last updated: June 9, 2026"}
+          ? "Última actualización: 15 de Junio de 2026"
+          : "Last updated: June 15, 2026"}
       </p>
 
       <p className="mb-4">
