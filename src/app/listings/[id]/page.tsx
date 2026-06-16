@@ -661,11 +661,11 @@ const { data: overlappingBookings } = await query;
 
       {/* PUBLIC INSTRUCTIONS */}
       {listing.pickup_instructions && (
-        <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+         <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4 overflow-hidden">
           <h3 className="font-semibold text-orange-800 mb-2">
             Pickup & Instructions
           </h3>
-          <p className="text-gray-700 text-sm whitespace-pre-line">
+          <p className="text-gray-700 text-sm whitespace-pre-line break-all">
             {listing.pickup_instructions}
           </p>
         </div>
