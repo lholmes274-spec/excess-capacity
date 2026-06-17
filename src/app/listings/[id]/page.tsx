@@ -16,6 +16,8 @@ export default function ListingDetailPage() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
 
+  const [smsConsent, setSmsConsent] = useState(false);
+
   // 🔥 NEW — Guest fields
   const [guestName, setGuestName] = useState("");
   const [guestEmail, setGuestEmail] = useState("");
@@ -749,9 +751,10 @@ const { data: overlappingBookings } = await query;
           <p className="text-xs text-gray-500 mt-2">
             By providing your phone number, you agree to receive transactional SMS
             messages from Prosperity Hub related to bookings, appointment reminders,
-            account activity, and customer support. Message frequency may vary.
-            Message and data rates may apply. Reply STOP to opt out and HELP for
-            assistance. Consent is not a condition of purchase.
+            account activity, booking updates, and customer support communications.
+            You may receive up to 10 messages per month depending on bookings and
+            account activity. Message and data rates may apply. Reply STOP to opt
+            out and HELP for assistance. Consent is not a condition of purchase.
             <br />
             <a
               href="/terms"
@@ -769,6 +772,20 @@ const { data: overlappingBookings } = await query;
               Privacy Policy
             </a>
            </p>
+           <label className="flex items-start gap-2 mt-3 text-xs text-gray-600">
+             <input
+               type="checkbox"
+               checked={smsConsent}
+               onChange={(e) => setSmsConsent(e.target.checked)}
+               className="mt-1"
+             />
+
+             <span>
+               I agree to receive transactional SMS messages from Prosperity Hub
+               related to bookings, appointment reminders, account activity,
+               booking updates, and customer support communications.
+             </span>
+           </label>
         </div>
       )}
 
