@@ -258,6 +258,10 @@ export async function POST(req: Request) {
         days,
       });
 
+      console.log("🔍 FULL STRIPE METADATA:", session.metadata);
+      console.log("👤 STRIPE NAME:", session.metadata?.guest_name);
+      console.log("📱 STRIPE PHONE:", session.metadata?.guest_phone);
+
       const { data: insertedBooking, error } = await supabase
         .from("bookings")
         .insert([
