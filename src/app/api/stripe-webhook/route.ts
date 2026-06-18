@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
+import { sendSMS } from "@/lib/twilio";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -296,17 +297,36 @@ export async function POST(req: Request) {
       }
 
       console.log("✅ Booking inserted successfully");
-      // =====================================================
-// SEND PROVIDER EMAIL NOTIFICATION
-// =====================================================
 
-try {
-  // 🔹 Get provider profile/email
-  const { data: providerProfile } = await supabase
-    .from("profiles")
-    .select("email")
-    .eq("id", seller_id)
-    .single();
+     // =====================================================
+     // SEND SMS NOTIFICATIONS
+     // =====================================================
+
+     try {
+       // Customer SMS
+       if (session.metadata?.guest_phone) {
+        await sendSMS(
+          session.metadata.guest_phone,
+          `Prosperity Hub: Your booking request for "${listing.title}" has been received. We will notify you when the provider responds.`
+       );
+      }
+
+      console.log("📱 Customer SMS sent");
+    } catch (smsError) {
+      console.error("❌ Customer SMS failed:", smsError);
+    }
+
+      // =====================================================
+      // SEND PROVIDER EMAIL NOTIFICATION
+      // =====================================================
+
+      try {
+        // 🔹 Get provider profile/email
+        const { data: providerProfile } = await supabase
+          .from("profiles")
+          .select("email")
+          .eq("id", seller_id)
+          .single();
 
   // ✅ Provider notification
   if (providerProfile?.email) {
