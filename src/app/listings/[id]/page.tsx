@@ -353,6 +353,10 @@ const { data: overlappingBookings } = await query;
     }
    }
 
+   console.log("👤 guestName:", guestName);
+   console.log("📧 guestEmail:", guestEmail);
+   console.log("📱 guestPhone:", guestPhone);
+
    console.log("✅ STEP PASSED — redirecting now");
    console.log("🚀 FINAL URL:", url);
 
