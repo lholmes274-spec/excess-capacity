@@ -47,6 +47,7 @@ export async function POST(req: Request) {
     console.log("🔥 NEW BACKEND VERSION LOADED");
     const body = await req.json();
     console.log("🔥 REQUEST BODY:", body);
+    console.log("📱 GUEST PHONE:", body.guest_phone);
 
     // 🔍 DEBUG — what frontend is sending
     console.log("🔥 DEBUG body.time_slot:", body.time_slot);
