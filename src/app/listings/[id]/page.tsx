@@ -353,14 +353,13 @@ const { data: overlappingBookings } = await query;
     }
    }
 
-   console.log("👤 guestName:", guestName);
-   console.log("📧 guestEmail:", guestEmail);
-   console.log("📱 guestPhone:", guestPhone);
-
-   console.log("✅ STEP PASSED — redirecting now");
-   console.log("🚀 FINAL URL:", url);
-
-   console.log("🚀 REDIRECT URL:", url);
+   console.log("================================");
+   console.log("LISTING PAGE DEBUG");
+   console.log("guestName =", JSON.stringify(guestName));
+   console.log("guestEmail =", JSON.stringify(guestEmail));
+   console.log("guestPhone =", JSON.stringify(guestPhone));
+   console.log("FINAL URL =", url);
+   console.log("================================");
    router.push(url);
   };
 

@@ -17,6 +17,13 @@ function CheckoutContent() {
   const guest_name = searchParams.get("guest_name");
   const guest_phone = searchParams.get("guest_phone");
 
+  console.log("================================");
+  console.log("CHECKOUT PAGE");
+  console.log("guest_email =", guest_email);
+  console.log("guest_name =", guest_name);
+  console.log("guest_phone =", guest_phone);
+  console.log("================================");
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
