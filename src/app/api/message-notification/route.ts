@@ -23,8 +23,15 @@ export async function POST(req: Request) {
         .select(`
           id,
           user_id,
+          guest_name,
+          guest_email,
+          guest_phone,
+          appointment_type,
+          start_date,
+          end_date,
           listings (
-            owner_id
+            owner_id,
+            title
           )
         `)
         .eq("id", booking_id)
@@ -109,16 +116,43 @@ export async function POST(req: Request) {
      // 🔹 Build premium message text
      let messageText = "You received a new message.";
 
-     if (type === "booking_cancelled") {
-        messageText = "A booking has been cancelled. Please review the details.";
-     } else if (booking_id && booking) {
-       const ownerId = booking.listings?.[0]?.owner_id;
-       const isProvider = receiver_id === ownerId;
+if (type === "booking_cancelled") {
 
-       messageText = isProvider
-         ? "You have a new booking request. Please review the details and respond to proceed."
-         : "Your booking has been updated. Review the details for the latest information.";
-     }
+  messageText =
+    "A booking has been cancelled. Please review the details.";
+
+} else if (booking_id && booking) {
+
+  const ownerId = booking.listings?.[0]?.owner_id;
+  const isProvider = receiver_id === ownerId;
+
+  if (isProvider) {
+
+    messageText = `
+      <strong>New Booking Request</strong><br><br>
+
+      Service: ${booking.listings?.[0]?.title || "Service"}<br>
+      Customer Name: ${booking.guest_name || "Not Provided"}<br>
+      Customer Email: ${booking.guest_email || "Not Provided"}<br>
+      Customer Phone: ${booking.guest_phone || "Not Provided"}<br>
+      Appointment Type: ${booking.appointment_type || "office"}<br>
+      Start Date: ${booking.start_date || "N/A"}<br>
+      End Date: ${booking.end_date || "N/A"}<br>
+      Booking ID: ${booking.id}
+    `;
+
+  } else {
+
+    messageText = `
+      <strong>Your Booking Has Been Received</strong><br><br>
+
+      Booking ID: ${booking.id}<br>
+      Status: Pending Provider Review<br><br>
+
+      The provider has been notified and will respond soon.
+    `;
+  }
+}
 
     // 🔹 Send email
     const emailResult = resend.emails.send({
