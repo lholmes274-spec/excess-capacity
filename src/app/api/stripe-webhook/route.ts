@@ -127,7 +127,7 @@ export async function POST(req: Request) {
     // -------------------------
     const { data: listing, error: listingErr } = await supabase
       .from("listings")
-      .select("user_id, transaction_type, title, booking_mode")
+      .select("owner_id, transaction_type, title, booking_mode")
       .eq("id", listing_id)
       .single();
 
@@ -140,7 +140,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const seller_id = listing.user_id;
+    const seller_id = listing.owner_id;
 
     // =====================================================
     // SALE FLOW — CREATE CONVERSATION
