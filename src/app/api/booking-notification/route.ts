@@ -37,6 +37,8 @@ export async function POST(req: Request) {
 
     // 📦 Extract useful info
     const customerEmail = booking?.user_email || booking?.guest_email || "N/A";
+    const customerName = booking?.guest_name || "Not Provided";
+    const customerPhone = booking?.guest_phone || "Not Provided";
     const listingTitle = listing?.title || "Listing";
     const bookingDate = booking?.created_at
       ? new Date(booking.created_at).toLocaleString()
@@ -79,12 +81,30 @@ export async function POST(req: Request) {
 
     if (booking_status === "pending") {
       subject = "You have a new booking request on Prosperity Hub";
-      message = "You have received a new booking request for one of your listings.";
+      message = `
+      <strong>New Booking Request</strong><br/><br/>
+
+      Service: ${listingTitle}<br/>
+      Customer Name: ${customerName}<br/>
+      Customer Email: ${customerEmail}<br/>
+      Customer Phone: ${customerPhone}<br/>
+      Date: ${bookingDate}<br/>
+      Booking ID: ${booking_id}
+     `;
     }
 
     if (booking_status === "completed") {
       subject = "New Booking Confirmed on Prosperity Hub";
-      message = "A booking has been confirmed for one of your listings.";
+      message = `
+      <strong>Booking Confirmed</strong><br/><br/>
+
+      Service: ${listingTitle}<br/>
+      Customer Name: ${customerName}<br/>
+      Customer Email: ${customerEmail}<br/>
+      Customer Phone: ${customerPhone}<br/>
+      Date: ${bookingDate}<br/>
+      Booking ID: ${booking_id}
+     `;
     }
 
     if (booking_status === "cancelled") {
