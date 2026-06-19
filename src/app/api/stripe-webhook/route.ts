@@ -127,7 +127,9 @@ export async function POST(req: Request) {
     // -------------------------
     const { data: listing, error: listingErr } = await supabase
       .from("listings")
-      .select("owner_id, transaction_type, title, booking_mode")
+       .select(
+         "owner_id, transaction_type, title, booking_mode, contact_phone"
+      )
       .eq("id", listing_id)
       .single();
 
@@ -324,6 +326,18 @@ export async function POST(req: Request) {
           `Prosperity Hub: Your booking request for "${listing.title}" has been received. We will notify you when the provider responds.`
        );
       }
+
+      // Provider SMS
+       if (listing.contact_phone) {
+        await sendSMS(
+          listing.contact_phone,
+           `New booking received for "${listing.title}". Customer: ${
+             session.metadata?.guest_name || "Customer"
+            }. Phone: ${
+              session.metadata?.guest_phone || "Not provided"
+            }.`
+        );
+       }
 
       console.log("📱 Customer SMS sent");
     } catch (smsError) {
