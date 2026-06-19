@@ -173,12 +173,11 @@ if (type === "booking_cancelled") {
   } else {
 
     messageText = `
-      <strong>Your Booking Has Been Received</strong><br><br>
+      <strong>Booking Confirmed</strong><br><br>
 
-      Booking ID: ${booking.id}<br>
-      Status: Pending Provider Review<br><br>
+      Booking ID: ${booking.id}<br><br>
 
-      The provider has been notified and will respond soon.
+      Your booking has been successfully received and payment has been processed.
     `;
   }
 }
