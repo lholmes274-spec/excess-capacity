@@ -321,9 +321,13 @@ export async function POST(req: Request) {
      try {
        // Customer SMS
        if (session.metadata?.guest_phone) {
-        await sendSMS(
-          session.metadata.guest_phone,
-          `Prosperity Hub: Your booking request for "${listing.title}" has been received. We will notify you when the provider responds.`
+        const customerMessage =
+         listing.booking_mode === "request"
+          ? `Prosperity Hub: Your booking request for "${listing.title}" has been received. We will notify you when the provider responds.`
+          : `Prosperity Hub: Your booking for "${listing.title}" has been confirmed and payment has been processed.`;
+         await sendSMS(
+           session.metadata.guest_phone,
+           customerMessage
        );
       }
 
