@@ -119,6 +119,14 @@ export async function POST(req: Request) {
       const ownerId = booking.listings?.[0]?.owner_id;
       const isProvider = receiver_id === ownerId;
 
+      console.log("EMAIL DEBUG");
+      console.log({
+        receiver_id,
+        ownerId,
+        isProvider,
+        bookingId: booking.id,
+      });
+
       const redirectPath = isProvider
          ? `/provider-bookings/${booking_id}`
          : `/my-bookings/${booking_id}`;
