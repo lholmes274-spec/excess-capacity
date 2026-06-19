@@ -361,23 +361,34 @@ export async function POST(req: Request) {
     buyer_email;
 
   console.log("📧 CUSTOMER EMAIL:", customerEmail);
+  console.log("CUSTOMER EMAIL DEBUG");
+  console.log({
+    customerEmail,
+    bookingId: insertedBooking.id,
+  });
   if (customerEmail) {
-    fetch(
-      `${process.env.NEXT_PUBLIC_SITE_URL}/api/message-notification`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          receiver_email: customerEmail,
-          booking_id: insertedBooking.id,
-        }),
-      }
-    );
-  }
 
-  console.log("📧 Booking notifications sent");
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_SITE_URL}/api/message-notification`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        receiver_email: customerEmail,
+        booking_id: insertedBooking.id,
+      }),
+    }
+  );
+
+  console.log(
+    "CUSTOMER EMAIL RESPONSE:",
+    await response.text()
+  );
+}
+
+console.log("📧 Booking notifications sent");
 
 } catch (emailError) {
   console.error("❌ Email notification error:", emailError);
