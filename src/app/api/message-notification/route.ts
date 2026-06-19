@@ -155,6 +155,15 @@ if (type === "booking_cancelled") {
   const ownerId = booking.listings?.[0]?.owner_id;
   const isProvider = receiver_id === ownerId;
 
+  console.log("EMAIL TEMPLATE DEBUG");
+  console.log({
+    receiver_id,
+    receiver_email,
+    ownerId,
+    isProvider,
+    bookingId: booking.id,
+  });
+
   if (isProvider) {
 
     messageText = `
