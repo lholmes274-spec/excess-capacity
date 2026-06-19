@@ -34,6 +34,7 @@ export async function POST(req: Request) {
         .from("bookings")
         .select(`
           id,
+          status,
           user_id,
           guest_name,
           guest_email,
@@ -41,7 +42,7 @@ export async function POST(req: Request) {
           appointment_type,
           start_date,
           end_date,
-          listings (
+          listing:listings(
             owner_id,
             title
           )
@@ -151,7 +152,7 @@ if (type === "booking_cancelled") {
     messageText = `
       <strong>New Booking Request</strong><br><br>
 
-      Service: ${booking.listings?.[0]?.title || "Service"}<br>
+      Service: ${booking.listing?.[0]?.title || "Service"}<br>
       Customer Name: ${booking.guest_name || "Not Provided"}<br>
       Customer Email: ${booking.guest_email || "Not Provided"}<br>
       Customer Phone: ${booking.guest_phone || "Not Provided"}<br>
