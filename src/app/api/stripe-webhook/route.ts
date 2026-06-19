@@ -262,6 +262,11 @@ export async function POST(req: Request) {
       console.log("👤 STRIPE NAME:", session.metadata?.guest_name);
       console.log("📱 STRIPE PHONE:", session.metadata?.guest_phone);
 
+      console.log("================================");
+      console.log("WEBHOOK DEBUG");
+      console.log(JSON.stringify(session.metadata, null, 2));
+      console.log("================================");
+
       const { data: insertedBooking, error } = await supabase
         .from("bookings")
         .insert([
