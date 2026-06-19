@@ -176,7 +176,7 @@ if (type === "booking_cancelled") {
 }
 
     // 🔹 Send email
-    const emailResult = resend.emails.send({
+    const emailResult = await resend.emails.send({
       from: "Prosperity Hub <no-reply@prosperityhub.app>",
       to: emailToSend,
       subject: 
@@ -199,7 +199,8 @@ if (type === "booking_cancelled") {
       `,
     });
 
-    console.log("RESEND RESULT:", emailResult);
+    console.log("RESEND RESULT TYPE:", typeof emailResult);
+    console.log("RESEND RESULT:", JSON.stringify(emailResult, null, 2));
 
     return NextResponse.json({ success: true });
 
