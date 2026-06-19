@@ -11,7 +11,19 @@ const supabase = createClient(
 
 export async function POST(req: Request) {
   try {
+    console.log("MESSAGE NOTIFICATION ROUTE HIT");
+
+    const rawBody = await req.clone().text();
+    console.log("RAW BODY:", rawBody);
     const { receiver_id, receiver_email, booking_id, type } = await req.json();
+
+    console.log("PARSED BODY");
+    console.log({
+      receiver_id,
+      receiver_email,
+      booking_id,
+      type,
+    });
 
     let emailToSend = "";
     let booking = null;
@@ -79,7 +91,16 @@ export async function POST(req: Request) {
     }
 
     if (!emailToSend) {
-      return NextResponse.json({ error: "No valid recipient" }, { status: 400 });
+     console.error("NO VALID RECIPIENT");
+     console.log({
+       receiver_id,
+       receiver_email,
+       emailToSend,
+     });
+      return NextResponse.json(
+        { error: "No valid recipient" },
+        { status: 400 }
+     );
     }
 
     console.log("EMAIL API:", {
