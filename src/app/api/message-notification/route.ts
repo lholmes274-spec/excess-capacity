@@ -50,6 +50,8 @@ export async function POST(req: Request) {
         .maybeSingle();
 
       booking = data;
+      console.log("BOOKING DATA DEBUG");
+      console.log(JSON.stringify(data, null, 2));
     }
 
     // 🔹 Determine recipient email
@@ -116,16 +118,7 @@ export async function POST(req: Request) {
     let buttonText = "";
 
     if (booking_id && booking) {
-      const ownerId = booking.listings?.[0]?.owner_id;
-      const isProvider = receiver_id === ownerId;
-
-      console.log("EMAIL DEBUG");
-      console.log({
-        receiver_id,
-        ownerId,
-        isProvider,
-        bookingId: booking.id,
-      });
+      const isProvider = !!receiver_id;
 
       const redirectPath = isProvider
          ? `/provider-bookings/${booking_id}`
@@ -151,18 +144,7 @@ if (type === "booking_cancelled") {
     "A booking has been cancelled. Please review the details.";
 
 } else if (booking_id && booking) {
-
-  const ownerId = booking.listings?.[0]?.owner_id;
-  const isProvider = receiver_id === ownerId;
-
-  console.log("EMAIL TEMPLATE DEBUG");
-  console.log({
-    receiver_id,
-    receiver_email,
-    ownerId,
-    isProvider,
-    bookingId: booking.id,
-  });
+  const isProvider = !!receiver_id;
 
   if (isProvider) {
 
