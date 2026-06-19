@@ -106,9 +106,12 @@ export async function POST(req: Request) {
     const rawEmail = session.metadata?.user_email;
 
     if (!listing_id) {
-      return NextResponse.json({ error: "Missing listing_id" }, { status: 400 });
+      console.error("WEBHOOK ERROR: Missing listing_id");
+      return NextResponse.json(
+       { error: "Missing listing_id" },
+       { status: 400 }
+     );
     }
-
     const buyer_id = rawUserId === "0" ? null : rawUserId;
     const buyer_email =
       rawEmail && rawEmail !== "unknown"
@@ -129,6 +132,8 @@ export async function POST(req: Request) {
       .single();
 
     if (listingErr || !listing) {
+      console.error("WEBHOOK ERROR: Listing lookup failed");
+      console.error(listingErr);
       return NextResponse.json(
         { error: "Listing lookup failed" },
         { status: 400 }
