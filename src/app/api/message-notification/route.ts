@@ -126,9 +126,13 @@ export async function POST(req: Request) {
          : `/my-bookings/${booking_id}`;
       link = `${baseUrl}/auth-redirect?to=${encodeURIComponent(redirectPath)}`;
 
-      buttonText = isProvider
-        ? "View Booking Request"
-        : "View Booking";
+    if (isProvider) {
+      buttonText = "View Booking Request";
+    } else if (booking.user_id) {
+      buttonText = "View Booking";
+    } else {
+      buttonText = "";
+    }
 
     } else {
       // 🔵 GENERAL MESSAGE → INBOX
@@ -165,11 +169,19 @@ if (type === "booking_cancelled") {
   } else {
 
     messageText = `
-      <strong>Booking Confirmed</strong><br><br>
+      <strong>Booking Request Received</strong><br><br>
 
       Booking ID: ${booking.id}<br><br>
 
-      Your booking has been successfully received and payment has been processed.
+      Your booking request has been received and payment has been processed.
+
+      <br><br>
+
+      Status: Pending Provider Approval
+
+      <br><br>
+
+      You will receive another notification once the provider accepts or declines your booking request.
     `;
   }
 }
@@ -187,14 +199,14 @@ if (type === "booking_cancelled") {
       html: `
         <p>${messageText}</p>
 
+        ${buttonText ? `
         <p style="margin:20px 0;">
           <a href="${link}"
             style="display:inline-block;padding:12px 20px;background:#ea580c;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:bold;">
             ${buttonText}
           </a>
         </p>
-
-        <p>Please log in to view full details and take action.</p>
+        ` : ""}
       `,
     });
 
