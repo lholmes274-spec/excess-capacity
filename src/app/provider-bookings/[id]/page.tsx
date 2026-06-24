@@ -332,7 +332,7 @@ export default function BookingDetailsPage() {
                  status: "confirmed",
                }));
 
-               await fetch("/api/message-notification", {
+               await fetch("/api/booking-approved", {
                  method: "POST",
                  headers: {
                    "Content-Type": "application/json",
