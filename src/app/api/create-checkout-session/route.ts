@@ -347,18 +347,13 @@ export async function POST(req: Request) {
     // Fixed Prosperity Hub platform fee
     const PLATFORM_FEE = 1000; // $10
 
-    // 10% commission ONLY on provider subtotal
-    const commissionFee = Math.round(providerSubtotal * 0.10);
-
     // Total customer charge
     const totalAmountInCents =
       providerSubtotal + PLATFORM_FEE;
 
-    // Prosperity Hub protected fee
-    const applicationFeeAmount = Math.min(
-      PLATFORM_FEE + commissionFee,
-      totalAmountInCents - 1
-    );
+    // Prosperity Hub keeps ONLY the fixed platform fee.
+    // Provider receives 100% of their service price.
+    const applicationFeeAmount = PLATFORM_FEE;
 
     const unitLabel =
       listing.pricing_type === "per_day"
