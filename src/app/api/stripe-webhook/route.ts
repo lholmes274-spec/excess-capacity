@@ -359,16 +359,25 @@ return NextResponse.json({ received: true });
       }
 
       // Provider SMS
-       if (listing.contact_phone) {
+      if (listing.contact_phone) {
         await sendSMS(
           listing.contact_phone,
-           `New booking received for "${listing.title}". Customer: ${
-             session.metadata?.guest_name || "Customer"
-            }. Phone: ${
-              session.metadata?.guest_phone || "Not provided"
-            }.`
-        );
-       }
+          `Prosperity Hub: You have a new ${
+            appointment_type === "mobile" ? "mobile " : ""
+          }booking request for "${listing.title}".
+
+      Customer: ${session.metadata?.guest_name || "Customer"}
+      Phone: ${session.metadata?.guest_phone || "Not provided"}
+
+      ${
+        appointment_type === "mobile"
+         ? "Next Step: If travel is required, open your Bookings dashboard and send a travel fee request before accepting the booking."
+         : "Next Step: Open your Bookings dashboard to review and respond to the booking."
+      }`
+  );
+
+  console.log("📱 Provider SMS sent");
+}
 
       console.log("📱 Customer SMS sent");
     } catch (smsError) {
