@@ -397,7 +397,7 @@ if (!paymentResponse.ok) {
 }
 
 // STEP 2 - Send customer notification using the saved payment URL.
-await fetch("/api/message-notification", {
+const notificationResponse = await fetch("/api/message-notification", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
@@ -411,6 +411,13 @@ await fetch("/api/message-notification", {
     type: "travel_fee_requested",
   }),
 });
+
+const notificationData = await notificationResponse.json();
+
+if (!notificationResponse.ok) {
+  alert(notificationData.error || "Travel fee email could not be sent.");
+  return;
+}
 
 setBooking((prev) => ({
   ...prev,
