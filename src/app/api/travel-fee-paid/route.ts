@@ -40,6 +40,10 @@ export async function POST(req: Request) {
       );
     }
 
+    const bookingLink =
+      `${process.env.NEXT_PUBLIC_SITE_URL}/auth-redirect?to=` +
+      encodeURIComponent(`/provider-bookings/${booking.id}`);
+
     await resend.emails.send({
       from: "Prosperity Hub <no-reply@prosperityhub.app>",
       to: provider.email,
@@ -52,11 +56,29 @@ export async function POST(req: Request) {
         </p>
 
         <p>
-          You may now return to Prosperity Hub and accept the booking.
+          You may now review the booking and accept it.
+        </p>
+
+        <p style="margin:25px 0;">
+          <a
+            href="${bookingLink}"
+            style="
+              display:inline-block;
+              background:#ea580c;
+              color:#ffffff;
+              text-decoration:none;
+              padding:14px 22px;
+              border-radius:8px;
+              font-weight:bold;
+            "
+          >
+            View Booking
+          </a>
         </p>
 
         <p>
-          Booking ID: ${booking.id}
+          Booking ID:<br>
+          ${booking.id}
         </p>
       `,
     });
