@@ -42,6 +42,10 @@ export async function POST(req: Request) {
           appointment_type,
           start_date,
           end_date,
+          travel_fee,
+          travel_fee_requested,
+          travel_fee_paid,
+          travel_payment_url,
           listing:listings(
             owner_id,
             title
@@ -112,61 +116,96 @@ export async function POST(req: Request) {
       emailToSend,
     });
 
-    // 🔹 Build link + button
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
+     // 🔹 Build link + button
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
 
-    let link = "";
-    let buttonText = "";
+let link = "";
+let buttonText = "";
 
-    if (booking_id && booking) {
-      const isProvider = !!receiver_id;
+// ✅ Travel Fee Notification
+if (type === "travel_fee_requested" && booking) {
 
-      const redirectPath = isProvider
-         ? `/provider-bookings/${booking_id}`
-         : `/my-bookings/${booking_id}`;
-      link = `${baseUrl}/auth-redirect?to=${encodeURIComponent(redirectPath)}`;
+  link = booking.travel_payment_url || "";
 
-    if (isProvider) {
-      buttonText = "View Booking Request";
-    } else if (booking.user_id) {
-      buttonText = "View Booking";
-    } else {
-      buttonText = "";
-    }
+  buttonText = "Pay Travel Fee";
 
-    } else {
-      // 🔵 GENERAL MESSAGE → INBOX
-      link = `${baseUrl}/login?redirect=/inbox`;
-      buttonText = "View Inbox";
-    }
+}
+
+// ✅ Booking Notifications
+else if (booking_id && booking) {
+
+  const isProvider = !!receiver_id;
+
+  const redirectPath = isProvider
+    ? `/provider-bookings/${booking_id}`
+    : `/my-bookings/${booking_id}`;
+
+  link = `${baseUrl}/auth-redirect?to=${encodeURIComponent(redirectPath)}`;
+
+  if (isProvider) {
+    buttonText = "View Booking Request";
+  } else if (booking.user_id) {
+    buttonText = "View Booking";
+  } else {
+    buttonText = "";
+  }
+
+}
+// ✅ General Inbox Notifications
+else {
+
+  link = `${baseUrl}/login?redirect=/inbox`;
+  buttonText = "View Inbox";
+
+}
 
      // 🔹 Build premium message text
      let messageText = "You received a new message.";
 
-if (type === "booking_cancelled") {
+     if (type === "booking_cancelled") {
+      messageText =
+        "A booking has been cancelled. Please review the details.";
+     }
+     else if (type === "travel_fee_requested" && booking) {
+       messageText = `
+         <strong>Additional Payment Required</strong><br><br>
 
-  messageText =
-    "A booking has been cancelled. Please review the details.";
+         Your provider has requested an additional travel fee for your mobile appointment.
 
-} else if (booking_id && booking) {
-  const isProvider = !!receiver_id;
+         <br><br>
 
-  if (isProvider) {
+         <strong>Travel Fee:</strong> $${booking.travel_fee}
 
-    messageText = `
-      <strong>New Booking Request</strong><br><br>
+         <br><br>
 
-      Service: ${booking.listing?.[0]?.title || "Service"}<br>
-      Customer Name: ${booking.guest_name || "Not Provided"}<br>
-      Customer Email: ${booking.guest_email || "Not Provided"}<br>
-      Customer Phone: ${booking.guest_phone || "Not Provided"}<br>
-      Appointment Type: ${booking.appointment_type || "office"}<br>
-      Start Date: ${booking.start_date || "N/A"}<br>
-      End Date: ${booking.end_date || "N/A"}<br>
-      Booking ID: ${booking.id}
-    `;
+         Your appointment will remain pending until this payment has been completed.
 
-  } else {
+         <br><br>
+
+         Click the button below to securely pay your travel fee and complete your mobile booking request.
+       `;
+     }
+     else if (booking_id && booking) {
+       
+       const isProvider = !!receiver_id;
+
+       if (isProvider) {
+        
+
+        messageText = `
+          <strong>New Booking Request</strong><br><br>
+
+          Service: ${booking.listing?.[0]?.title || "Service"}<br>
+          Customer Name: ${booking.guest_name || "Not Provided"}<br>
+          Customer Email: ${booking.guest_email || "Not Provided"}<br>
+          Customer Phone: ${booking.guest_phone || "Not Provided"}<br>
+          Appointment Type: ${booking.appointment_type || "office"}<br>
+          Start Date: ${booking.start_date || "N/A"}<br>
+          End Date: ${booking.end_date || "N/A"}<br>
+          Booking ID: ${booking.id}
+        `;
+
+     } else {
 
     messageText = `
       <strong>Booking Request Received</strong><br><br>

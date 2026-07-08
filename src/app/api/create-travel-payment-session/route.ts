@@ -121,6 +121,14 @@ export async function POST(req: Request) {
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/canceled`,
     });
 
+    // ✅ Save the Stripe Checkout URL so it can be reused
+    await supabase
+      .from("bookings")
+      .update({
+        travel_payment_url: stripeSession.url,
+      })
+      .eq("id", booking.id);
+
     return NextResponse.json({
       url: stripeSession.url,
     });

@@ -373,23 +373,51 @@ export default function BookingDetailsPage() {
           return;
         }
 
-        // NEW
-        await fetch("/api/travel-fee-notification", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-           booking_id: booking.id,
-          }),
-        });
+              // STEP 1 - Create the Stripe travel payment session.
+// This also saves travel_payment_url into the booking.
+const paymentResponse = await fetch(
+  "/api/create-travel-payment-session",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      booking_id: booking.id,
+      amount: booking.travel_fee,
+    }),
+  }
+);
 
-        setBooking((prev) => ({
-          ...prev,
-          travel_fee_requested: true,
-        }));
+const paymentData = await paymentResponse.json();
 
-        alert("Travel fee request sent!");
+if (!paymentResponse.ok) {
+  alert(paymentData.error || "Unable to create travel payment.");
+  return;
+}
+
+// STEP 2 - Send customer notification using the saved payment URL.
+await fetch("/api/message-notification", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    booking_id: booking.id,
+    receiver_email:
+      booking.guest_email ||
+      booking.user_email ||
+      booking.booker_email,
+    type: "travel_fee_requested",
+  }),
+});
+
+setBooking((prev) => ({
+  ...prev,
+  travel_fee_requested: true,
+}));
+
+alert("Travel fee request sent successfully!");
       }}
       className="w-full bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700 transition"
     >
