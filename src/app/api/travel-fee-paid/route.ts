@@ -33,13 +33,15 @@ export async function POST(req: Request) {
       );
     }
 
-    const { data: provider } = await supabase
+    // Get provider email
+    const { data: provider, error: providerError } = await supabase
       .from("profiles")
-      .select("email, phone")
+      .select("email")
       .eq("id", booking.owner_id)
       .single();
 
     console.log("👤 Provider:", provider);
+    console.log("❌ Provider Error:", providerError);
 
     if (!provider?.email) {
       return NextResponse.json(
@@ -48,10 +50,21 @@ export async function POST(req: Request) {
       );
     }
 
+    // Get provider phone from listing
+    const { data: listing, error: listingError } = await supabase
+      .from("listings")
+      .select("contact_phone")
+      .eq("id", booking.listing_id)
+      .single();
+
+    console.log("📋 Listing:", listing);
+    console.log("❌ Listing Error:", listingError);
+
     const bookingLink =
       `${process.env.NEXT_PUBLIC_SITE_URL}/auth-redirect?to=` +
       encodeURIComponent(`/provider-bookings/${booking.id}`);
 
+    // Send Email
     await resend.emails.send({
       from: "Prosperity Hub <no-reply@prosperityhub.app>",
       to: provider.email,
@@ -93,21 +106,21 @@ export async function POST(req: Request) {
 
     console.log("✅ Provider email sent");
 
-    if (provider.phone) {
+    // Send SMS
+    if (listing?.contact_phone) {
       await sendSMS(
-        provider.phone,
+        listing.contact_phone,
         "Prosperity Hub: Your customer has paid the travel fee. You may now review and accept the booking."
       );
 
       console.log("✅ Provider SMS sent");
     } else {
-      console.log("⚠️ Provider does not have a phone number.");
+      console.log("⚠️ Listing does not have a contact phone.");
     }
 
     return NextResponse.json({
       success: true,
     });
-
   } catch (err) {
     console.error("❌ TRAVEL-FEE-PAID ERROR:", err);
 
