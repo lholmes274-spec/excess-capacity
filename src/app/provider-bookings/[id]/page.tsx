@@ -122,6 +122,10 @@ export default function BookingDetailsPage() {
       // ✅ ONLY SET STATE AFTER PASSING SECURITY
       setBooking(bookingData);
       setListing(listingData);
+      console.log("Logged in user:", loggedInUser?.id);
+      console.log("Booking owner:", bookingData.owner_id);
+      console.log("Match:", loggedInUser?.id === bookingData.owner_id);
+      console.log("Travel fee paid:", bookingData.travel_fee_paid);
 
       if (!loggedInUser && buyerEmail) {
         localStorage.setItem("guest_email", buyerEmail);
