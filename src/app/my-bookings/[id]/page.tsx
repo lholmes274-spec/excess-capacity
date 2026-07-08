@@ -373,6 +373,17 @@ export default function BookingDetailsPage() {
           return;
         }
 
+        // NEW
+        await fetch("/api/travel-fee-notification", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+           booking_id: booking.id,
+          }),
+        });
+
         setBooking((prev) => ({
           ...prev,
           travel_fee_requested: true,
