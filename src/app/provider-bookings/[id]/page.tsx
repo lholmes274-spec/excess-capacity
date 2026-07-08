@@ -318,35 +318,34 @@ export default function BookingDetailsPage() {
     return;
   }
 
-  // Send customer notification
-  const notificationResponse = await fetch(
-    "/api/message-notification",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        booking_id: booking.id,
-        receiver_email:
-          booking.guest_email ||
-          booking.user_email ||
-          booking.booker_email,
-        type: "travel_fee_requested",
-      }),
-    }
-  );
-
-  const notificationData =
-    await notificationResponse.json();
-
-  if (!notificationResponse.ok) {
-    alert(
-      notificationData.error ||
-      "Unable to send travel fee notification."
-    );
-    return;
+  // Send customer travel fee email + SMS
+const notificationResponse = await fetch(
+  "/api/travel-fee-requested",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      booking_id: booking.id,
+      receiver_email:
+        booking.guest_email ||
+        booking.user_email ||
+        booking.booker_email,
+    }),
   }
+);
+
+const notificationData =
+  await notificationResponse.json();
+
+if (!notificationResponse.ok) {
+  alert(
+    notificationData.error ||
+    "Unable to send travel fee notification."
+  );
+  return;
+}
 
   setBooking((prev) => ({
     ...prev,
