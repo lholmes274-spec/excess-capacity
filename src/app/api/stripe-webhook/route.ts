@@ -231,7 +231,7 @@ if (error) {
 }
 
 // Notify the provider that the travel fee has been paid
-await fetch(
+const notifyResponse = await fetch(
   `${process.env.NEXT_PUBLIC_SITE_URL}/api/travel-fee-paid`,
   {
     method: "POST",
@@ -242,6 +242,16 @@ await fetch(
       booking_id: booking.id,
     }),
   }
+);
+
+console.log(
+  "📨 Travel Fee Paid Notification Status:",
+  notifyResponse.status
+);
+
+console.log(
+  "📨 Travel Fee Paid Notification Response:",
+  await notifyResponse.text()
 );
 
 return NextResponse.json({ received: true });
