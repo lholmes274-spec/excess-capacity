@@ -216,18 +216,35 @@ export async function POST(req: Request) {
       );
     }
 
-    const { error } = await supabase
-      .from("bookings")
-      .update({
-        travel_fee_paid: true,
-      })
-      .eq("id", booking_id);
+  const { data: booking, error } = await supabase
+  .from("bookings")
+  .update({
+    travel_fee_paid: true,
+  })
+  .eq("id", booking_id)
+  .select()
+  .single();
 
-    if (error) {
-    console.error("Travel fee update failed:", error);
-    }
-
+if (error) {
+  console.error("Travel fee update failed:", error);
   return NextResponse.json({ received: true });
+}
+
+// Notify the provider that the travel fee has been paid
+await fetch(
+  `${process.env.NEXT_PUBLIC_SITE_URL}/api/travel-fee-paid`,
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      booking_id: booking.id,
+    }),
+  }
+);
+
+return NextResponse.json({ received: true });
 }
 
     // =====================================================
