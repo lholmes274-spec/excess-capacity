@@ -267,34 +267,90 @@ export default function BookingDetailsPage() {
 
     <button
       onClick={async () => {
-        if (
-          !booking.travel_fee ||
-          Number(booking.travel_fee) <= 0
-        ) {
-          alert("Enter a valid travel fee.");
-          return;
-        }
+  if (
+    !booking.travel_fee ||
+    Number(booking.travel_fee) <= 0
+  ) {
+    alert("Enter a valid travel fee.");
+    return;
+  }
 
-        const { error } = await supabase
-          .from("bookings")
-          .update({
-            travel_fee: Number(booking.travel_fee),
-            travel_fee_requested: true,
-          })
-          .eq("id", booking.id);
+  // Save travel fee
+  const { error } = await supabase
+    .from("bookings")
+    .update({
+      travel_fee: Number(booking.travel_fee),
+      travel_fee_requested: true,
+    })
+    .eq("id", booking.id);
 
-        if (error) {
-          alert("Failed to send travel fee.");
-          return;
-        }
+  if (error) {
+    alert("Failed to save travel fee.");
+    return;
+  }
 
-        setBooking((prev) => ({
-          ...prev,
-          travel_fee_requested: true,
-        }));
+  // Create Stripe Checkout Session
+  const paymentResponse = await fetch(
+    "/api/create-travel-payment-session",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        booking_id: booking.id,
+        amount: Number(booking.travel_fee),
+      }),
+    }
+  );
 
-        alert("Travel fee request sent!");
-      }}
+  const paymentData = await paymentResponse.json();
+
+  if (!paymentResponse.ok) {
+    alert(
+      paymentData.error ||
+      "Unable to create travel payment."
+    );
+    return;
+  }
+
+  // Send customer notification
+  const notificationResponse = await fetch(
+    "/api/message-notification",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        booking_id: booking.id,
+        receiver_email:
+          booking.guest_email ||
+          booking.user_email ||
+          booking.booker_email,
+        type: "travel_fee_requested",
+      }),
+    }
+  );
+
+  const notificationData =
+    await notificationResponse.json();
+
+  if (!notificationResponse.ok) {
+    alert(
+      notificationData.error ||
+      "Unable to send travel fee notification."
+    );
+    return;
+  }
+
+  setBooking((prev) => ({
+    ...prev,
+    travel_fee_requested: true,
+  }));
+
+  alert("Travel fee request sent!");
+}}
       className="w-full bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700 transition"
     >
       Send Travel Fee Request

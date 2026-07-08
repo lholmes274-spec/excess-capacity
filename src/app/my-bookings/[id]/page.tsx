@@ -397,6 +397,18 @@ if (!paymentResponse.ok) {
 }
 
 // STEP 2 - Send customer notification using the saved payment URL.
+
+console.log("==================================");
+console.log("CALLING MESSAGE NOTIFICATION API");
+console.log("Booking ID:", booking.id);
+console.log(
+  "Customer Email:",
+  booking.guest_email ||
+  booking.user_email ||
+  booking.booker_email
+);
+console.log("==================================");
+
 const notificationResponse = await fetch("/api/message-notification", {
   method: "POST",
   headers: {
@@ -412,7 +424,17 @@ const notificationResponse = await fetch("/api/message-notification", {
   }),
 });
 
+console.log(
+  "MESSAGE NOTIFICATION STATUS:",
+  notificationResponse.status
+);
+
 const notificationData = await notificationResponse.json();
+
+console.log(
+  "MESSAGE NOTIFICATION RESPONSE:",
+  notificationData
+);
 
 if (!notificationResponse.ok) {
   alert(notificationData.error || "Travel fee email could not be sent.");
