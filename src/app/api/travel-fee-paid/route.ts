@@ -12,13 +12,19 @@ const supabase = createClient(
 
 export async function POST(req: Request) {
   try {
+    console.log("✅ TRAVEL-FEE-PAID ROUTE HIT");
+
     const { booking_id } = await req.json();
+
+    console.log("📌 Booking ID:", booking_id);
 
     const { data: booking } = await supabase
       .from("bookings")
       .select("*")
       .eq("id", booking_id)
       .single();
+
+    console.log("📖 Booking:", booking);
 
     if (!booking) {
       return NextResponse.json(
@@ -32,6 +38,8 @@ export async function POST(req: Request) {
       .select("email, phone")
       .eq("id", booking.owner_id)
       .single();
+
+    console.log("👤 Provider:", provider);
 
     if (!provider?.email) {
       return NextResponse.json(
@@ -83,11 +91,17 @@ export async function POST(req: Request) {
       `,
     });
 
+    console.log("✅ Provider email sent");
+
     if (provider.phone) {
       await sendSMS(
         provider.phone,
         "Prosperity Hub: Your customer has paid the travel fee. You may now review and accept the booking."
       );
+
+      console.log("✅ Provider SMS sent");
+    } else {
+      console.log("⚠️ Provider does not have a phone number.");
     }
 
     return NextResponse.json({
@@ -95,7 +109,7 @@ export async function POST(req: Request) {
     });
 
   } catch (err) {
-    console.error(err);
+    console.error("❌ TRAVEL-FEE-PAID ERROR:", err);
 
     return NextResponse.json(
       { error: "Server error" },
