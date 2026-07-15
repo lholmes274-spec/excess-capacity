@@ -51,10 +51,14 @@ export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
 
-   {/* PREMIUM BANNER */}
+    {/* PREMIUM BANNER */}
 <div className="w-full flex justify-center px-4 mt-6">
   <div
     className="w-full max-w-[1300px] rounded-2xl shadow-xl py-10 px-6 text-center text-white bg-gradient-to-r from-[#0f172a] via-[#142c45] to-[#d4a934]"
+    style={{
+      borderRadius: "18px",
+      boxShadow: "0 8px 30px rgba(0,0,0,0.10)",
+    }}
   >
     <div className="inline-block bg-[#0057ff] px-6 py-2 rounded-md">
       <h1 className="text-4xl font-extrabold tracking-tight text-white">
@@ -63,11 +67,12 @@ export default function HomePage() {
     </div>
 
     <p className="text-xl mt-4 font-semibold opacity-95">
-      ...
+      {isES
+        ? "Convierte lo que ya tienes en ingresos"
+        : "Turn What You Already Own Into Income"}
     </p>
   </div>
 </div>
-
       {/* HERO */}
       <div className="text-center mt-10 px-4">
         <h1 className="text-3xl font-bold text-gray-900">
