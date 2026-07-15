@@ -51,17 +51,20 @@ export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
 
-     {/* PREMIUM BANNER */}
+   {/* PREMIUM BANNER */}
 <div className="w-full flex justify-center px-4 mt-6">
-  <div className="w-full max-w-[1300px]">
-    <Image
-      src="/prosperity-hub-hero-banner.png"
-      alt="Prosperity Hub Hero Banner"
-      width={1300}
-      height={340}
-      priority
-      className="w-full h-auto rounded-2xl shadow-xl"
-    />
+  <div
+    className="w-full max-w-[1300px] rounded-2xl shadow-xl py-10 px-6 text-center text-white bg-gradient-to-r from-[#0f172a] via-[#142c45] to-[#d4a934]"
+  >
+    <div className="inline-block bg-[#0057ff] px-6 py-2 rounded-md">
+      <h1 className="text-4xl font-extrabold tracking-tight text-white">
+        Prosperity Hub™
+      </h1>
+    </div>
+
+    <p className="text-xl mt-4 font-semibold opacity-95">
+      ...
+    </p>
   </div>
 </div>
 
