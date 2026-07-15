@@ -58,7 +58,7 @@ export default function HomePage() {
     <img
       src="/prosperity-hub-hero-banner.png"
       alt="Prosperity Hub"
-      className="w-full h-auto rounded-2xl shadow-xl"
+      className="w-full h-[180px] object-cover rounded-2xl shadow-xl"
     />
   </div>
 </div>
