@@ -52,14 +52,24 @@ export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
 
- {/* PREMIUM BANNER */}
+       {/* PREMIUM BANNER */}
 <div className="w-full flex justify-center px-4 mt-6">
   <div className="w-full max-w-[1300px]">
+
+    {/* Desktop Banner */}
     <img
       src="/prosperity-hub-hero-banner.png"
       alt="Prosperity Hub"
-      className="w-full h-[190px] object-cover rounded-2xl shadow-xl"
+      className="hidden md:block w-full h-[190px] object-cover rounded-2xl shadow-xl"
     />
+
+    {/* Mobile Banner */}
+    <img
+      src="/prosperity-hub-mobile-banner.png"
+      alt="Prosperity Hub"
+      className="block md:hidden w-full h-auto rounded-2xl shadow-xl"
+    />
+
   </div>
 </div>
       {/* HERO */}
