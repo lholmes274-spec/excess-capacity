@@ -216,7 +216,7 @@ export default function ListingDetailPage() {
     }).format(amount);
   };
 
-  const PLATFORM_FEE = 10;
+  const PLATFORM_FEE = 5;
 
   // 🧠 Calculate subtotal properly by type
   let subtotal = 0;
