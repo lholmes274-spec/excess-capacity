@@ -345,7 +345,7 @@ export async function POST(req: Request) {
     const providerSubtotal = unitAmountInCents * quantity;
 
    // Fixed Prosperity Hub platform fee charged to customer
-   const PLATFORM_FEE = 1000; // $10
+   const PLATFORM_FEE = 500; // $5
 
    // 10% Prosperity Hub commission on provider/service subtotal
    const commissionFee = Math.round(providerSubtotal * 0.10);
