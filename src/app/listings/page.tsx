@@ -42,6 +42,11 @@ function ListingsContent() {
 
   const searchParams = useSearchParams();
   const selectedType = searchParams.get("type");
+  const searchFromUrl = searchParams.get("search") || "";
+
+  useEffect(() => {
+    setSearch(searchFromUrl);
+  }, [searchFromUrl]);
 
   useEffect(() => {
     async function fetchListings() {
